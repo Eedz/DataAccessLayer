@@ -1,10 +1,10 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>a95ec154-7009-4323-a432-1261b2cc7124</ProjectGuid>
+    <ProjectGuid>{A95EC154-7009-4323-A432-1261B2CC7124}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>DataAccessLayer</RootNamespace>
@@ -30,24 +30,42 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System"/>
-    
-    <Reference Include="System.Core"/>
-    <Reference Include="System.Xml.Linq"/>
-    <Reference Include="System.Data.DataSetExtensions"/>
-    
-    
-    <Reference Include="Microsoft.CSharp"/>
-    
-    <Reference Include="System.Data"/>
-    
-    <Reference Include="System.Net.Http"/>
-    
-    <Reference Include="System.Xml"/>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class1.cs" />
+    <Compile Include="Read\DBAction.Audit.cs" />
+    <Compile Include="Read\DBAction.Comment.cs" />
+    <Compile Include="Read\DBAction.cs" />
+    <Compile Include="Delete\DBAction.Delete.cs" />
+    <Compile Include="Insert\DBAction.Insert.cs" />
+    <Compile Include="Read\DBAction.Labels.cs" />
+    <Compile Include="Read\DBAction.Question.cs" />
+    <Compile Include="Read\DBAction.Search.cs" />
+    <Compile Include="Read\DBAction.Survey.cs" />
+    <Compile Include="Read\DBAction.SurveyChecks.cs" />
+    <Compile Include="Read\DBAction.SurveyDrafts.cs" />
+    <Compile Include="Read\DBAction.Translation.cs" />
+    <Compile Include="Update\DBAction.Update.cs" />
+    <Compile Include="Read\DBAction.User.cs" />
+    <Compile Include="Read\DBAction.VarName.cs" />
+    <Compile Include="Read\DBAction.VarNameChanges.cs" />
+    <Compile Include="Read\DBAction.Wordings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\ITCLib\ITCLib\ITCLib.csproj">
+      <Project>{1f878409-8602-4dc3-a0cb-45cccc21289e}</Project>
+      <Name>ITCLib</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
- </Project>
+</Project>
