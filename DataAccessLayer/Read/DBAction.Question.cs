@@ -7,7 +7,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Configuration;
 using System.ComponentModel;
-
+using Dapper;
 namespace ITCLib
 {
     partial class DBAction
@@ -19,7 +19,7 @@ namespace ITCLib
         {
             List<SurveyQuestion> qs = new List<SurveyQuestion>();
 
-            string query = "SELECT * FROM qrySurveyQuestions ORDER BY ID";
+            string query = "SELECT * FROM qrySurveyQuestions ORDER BY refVarName, Survey";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
             using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
@@ -36,8 +36,8 @@ namespace ITCLib
                             SurveyQuestion q = new SurveyQuestion
                             {
                                 ID = (int)rdr["ID"],
-                                SurveyCode = (string)rdr["Survey"],
-                                Qnum = (string)rdr["Qnum"],
+                                SurveyCode = rdr.SafeGetString("Survey"),
+                                Qnum = rdr.SafeGetString("Qnum"),
                                 //PreP = new Wording ((int)rdr["PreP#"], (string)rdr["PreP"]),
                                 PrePNum = (int)rdr["PreP#"],
                                 PreP = (string)rdr["PreP"],
@@ -57,7 +57,7 @@ namespace ITCLib
                                 NRCodes = (string)rdr["NRCodes"],
                                 VarName = new VariableName((string)rdr["VarName"])
                                 {
-                                    VarLabel = (string)rdr["VarLabel"],
+                                    VarLabel = rdr.SafeGetString("VarLabel"),
                                     Domain = new DomainLabel((int)rdr["DomainNum"], (string)rdr["Domain"]),
                                     Topic = new TopicLabel((int)rdr["TopicNum"], (string)rdr["Topic"]),
                                     Content = new ContentLabel((int)rdr["ContentNum"], (string)rdr["Content"]),
@@ -65,9 +65,7 @@ namespace ITCLib
                                 },
                                 TableFormat = (bool)rdr["TableFormat"],
                                 CorrectedFlag = (bool)rdr["CorrectedFlag"],
-                                NumCol = (int)rdr["NumCol"],
-                                NumDec = (int)rdr["NumDec"],
-                                VarType = (string)rdr["VarType"],
+                                
                                 ScriptOnly = (bool)rdr["ScriptOnly"]
                             };
 
@@ -87,6 +85,123 @@ namespace ITCLib
             return qs;
         }
 
+        public static List<SurveyQuestion> GetAllSurveyVarNames()
+        {
+            List<SurveyQuestion> qs = new List<SurveyQuestion>();
+
+            string query = "SELECT ID, Survey, VarName, refVarName, VarLabel, ContentNum, Content, TopicNum, Topic, DomainNum, Domain, ProductNum, Product " + 
+                "FROM qrySurveyQuestions ORDER BY refVarName, Survey";
+
+            using (SqlDataAdapter sql = new SqlDataAdapter())
+            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            {
+                conn.Open();
+
+                sql.SelectCommand = new SqlCommand(query, conn);
+                try
+                {
+                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
+                    {
+                        while (rdr.Read())
+                        {
+                            SurveyQuestion q = new SurveyQuestion
+                            {
+                                ID = (int)rdr["ID"],
+                                SurveyCode = rdr.SafeGetString("Survey"),
+                                
+                                VarName = new VariableName((string)rdr["VarName"])
+                                {
+                                    VarLabel = rdr.SafeGetString("VarLabel"),
+                                    Domain = new DomainLabel((int)rdr["DomainNum"], (string)rdr["Domain"]),
+                                    Topic = new TopicLabel((int)rdr["TopicNum"], (string)rdr["Topic"]),
+                                    Content = new ContentLabel((int)rdr["ContentNum"], (string)rdr["Content"]),
+                                    Product = new ProductLabel((int)rdr["ProductNum"], (string)rdr["Product"])
+                                },                                
+                            };
+
+                            qs.Add(q);
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    
+                }
+            }
+
+            return qs;
+        }
+
+        public static List<SurveyQuestion> GetSurveyQuestions(SurveyQuestionCriteria criteria)
+        {
+            List<SurveyQuestion> qs = new List<SurveyQuestion>();
+
+            string query = "SELECT * FROM qrySurveyQuestions";
+            query += " WHERE " + criteria.GetCriteria() + " ORDER BY Survey";
+
+            using (SqlDataAdapter sql = new SqlDataAdapter())
+            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            {
+                conn.Open();
+
+                sql.SelectCommand = new SqlCommand(query, conn);
+                try
+                {
+                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
+                    {
+                        while (rdr.Read())
+                        {
+                            SurveyQuestion q = new SurveyQuestion
+                            {
+                                ID = (int)rdr["ID"],
+                                SurveyCode = rdr.SafeGetString("Survey"),
+                                Qnum = rdr.SafeGetString("Qnum"),
+                                //PreP = new Wording ((int)rdr["PreP#"], (string)rdr["PreP"]),
+                                PrePNum = (int)rdr["PreP#"],
+                                PreP = (string)rdr["PreP"],
+                                PreINum = (int)rdr["PreI#"],
+                                PreI = (string)rdr["PreI"],
+                                PreANum = (int)rdr["PreA#"],
+                                PreA = (string)rdr["PreA"],
+                                LitQNum = (int)rdr["LitQ#"],
+                                LitQ = (string)rdr["LitQ"],
+                                PstINum = (int)rdr["PstI#"],
+                                PstI = (string)rdr["PstI"],
+                                PstPNum = (int)rdr["PstP#"],
+                                PstP = (string)rdr["PstP"],
+                                RespName = (string)rdr["RespName"],
+                                RespOptions = (string)rdr["RespOptions"],
+                                NRName = (string)rdr["NRName"],
+                                NRCodes = (string)rdr["NRCodes"],
+                                VarName = new VariableName((string)rdr["VarName"])
+                                {
+                                    VarLabel = rdr.SafeGetString("VarLabel"),
+                                    Domain = new DomainLabel((int)rdr["DomainNum"], (string)rdr["Domain"]),
+                                    Topic = new TopicLabel((int)rdr["TopicNum"], (string)rdr["Topic"]),
+                                    Content = new ContentLabel((int)rdr["ContentNum"], (string)rdr["Content"]),
+                                    Product = new ProductLabel((int)rdr["ProductNum"], (string)rdr["Product"])
+                                },
+                                TableFormat = (bool)rdr["TableFormat"],
+                                CorrectedFlag = (bool)rdr["CorrectedFlag"],
+                                
+                                ScriptOnly = (bool)rdr["ScriptOnly"]
+                            };
+
+                            if (!rdr.IsDBNull(rdr.GetOrdinal("AltQnum"))) q.AltQnum = (string)rdr["AltQnum"];
+                            if (!rdr.IsDBNull(rdr.GetOrdinal("AltQnum2"))) q.AltQnum2 = (string)rdr["AltQnum2"];
+                            if (!rdr.IsDBNull(rdr.GetOrdinal("AltQnum3"))) q.AltQnum3 = (string)rdr["AltQnum3"];
+                            qs.Add(q);
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
+            }
+
+            return qs;
+        }
 
         /// <summary>
         /// Returns a SurveyQuestion with the provided ID. 
@@ -144,9 +259,7 @@ namespace ITCLib
                                 },
                                 TableFormat = (bool)rdr["TableFormat"],
                                 CorrectedFlag = (bool)rdr["CorrectedFlag"],
-                                NumCol = (int)rdr["NumCol"],
-                                NumDec = (int)rdr["NumDec"],
-                                VarType = (string)rdr["VarType"],
+                                
                                 ScriptOnly = (bool)rdr["ScriptOnly"]
                             };
 
@@ -174,6 +287,7 @@ namespace ITCLib
         public static BindingList<SurveyQuestion> GetSurveyQuestions(Survey s)
         {
             BindingList<SurveyQuestion> qs = new BindingList<SurveyQuestion>();
+            
             SurveyQuestion q;
             string query = "SELECT * FROM Questions.FN_GetSurveyQuestions(@SID) ORDER BY Qnum";
 
@@ -215,7 +329,7 @@ namespace ITCLib
                                 NRCodes = (string)rdr["NRCodes"],
                                 VarName = new VariableName((string)rdr["VarName"])
                                 {
-                                    VarLabel = (string)rdr["VarLabel"],
+                                    VarLabel = rdr.SafeGetString("VarLabel"),
                                     Domain = new DomainLabel((int)rdr["DomainNum"], (string)rdr["Domain"]),
                                     Topic = new TopicLabel((int)rdr["TopicNum"], (string)rdr["Topic"]),
                                     Content = new ContentLabel((int)rdr["ContentNum"], (string)rdr["Content"]),
@@ -223,9 +337,7 @@ namespace ITCLib
                                 },
                                 TableFormat = (bool)rdr["TableFormat"],
                                 CorrectedFlag = (bool)rdr["CorrectedFlag"],
-                                NumCol = (int)rdr["NumCol"],
-                                NumDec = (int)rdr["NumDec"],
-                                VarType = (string)rdr["VarType"],
+                                
                                 ScriptOnly = (bool)rdr["ScriptOnly"]
                             };
 
@@ -245,6 +357,124 @@ namespace ITCLib
 
             return qs;
         }
+
+        /// <summary>
+        /// Retrieves a set of records for a particular survey ID and returns a list of SurveyQuestion objects. 
+        /// </summary>
+        /// <param name="Survey">Survey object</param>
+        /// <returns>List of SurveyQuestions</returns>
+        public static BindingList<QuestionRecord> GetSurveyQuestionRecords(Survey s)
+        {
+            BindingList<QuestionRecord> qs = new BindingList<QuestionRecord>();
+
+
+            string sql = "SELECT ID, Survey AS SurveyCode, Qnum, PreP# AS PrePNum, PreP, PreI# AS PreINum, PreI, PreA# AS PreANum, PreA, LitQ# AS LitQNum, LitQ, " +
+                    "PstI# AS PstINum, PstI, PstP# AS PstPNum, RespName, RespOptions, NRName, NRCodes, TableFormat, CorrectedFlag, ScriptOnly, AltQnum, AltQnum2, AltQnum3, " +
+                    "VarName, VarLabel, " +
+                    "DomainNum, DomainNum AS ID, Domain AS LabelText, "+
+                    "TopicNum, TopicNum AS ID, Topic AS LabelText, " +
+                    "ContentNum, ContentNum AS ID, Content AS LabelText, " +
+                    "ProductNum, ProductNum AS ID, Product AS LabelText " +
+                    "FROM Questions.FN_GetSurveyQuestions(@SID) ORDER BY Qnum";
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            {
+    
+                var parameters = new { SID = s.SID };
+
+                var results = db.Query<QuestionRecord, VariableName, DomainLabel, TopicLabel, ContentLabel, ProductLabel, QuestionRecord>(sql,
+                    (question, varname, domain, topic, content, product) =>
+                {
+                    varname.Domain = domain;
+                    varname.Topic = topic;
+                    varname.Content = content;
+                    varname.Product = product;
+                    question.VarName = varname;
+                    return question;
+                }, parameters, splitOn: "VarName, DomainNum, TopicNum, ContentNum, ProductNum").ToList();
+
+                qs = new BindingList<QuestionRecord>(results);
+
+            }
+            
+            return qs;
+        }
+
+        /// <summary>
+        /// Retrieves a set of records for a particular survey ID and returns a list of SurveyQuestion objects. 
+        /// </summary>
+        /// <param name="Survey">Survey object</param>
+        /// <returns>List of SurveyQuestions</returns>
+        public static BindingList<QuestionRecord> GetCompleteSurvey(Survey s)
+        {
+            BindingList<QuestionRecord> qs = new BindingList<QuestionRecord>();
+
+
+            string sql = "SELECT ID, Survey AS SurveyCode, Qnum, PreP# AS PrePNum, PreP, PreI# AS PreINum, PreI, PreA# AS PreANum, PreA, LitQ# AS LitQNum, LitQ, " +
+                    "PstI# AS PstINum, PstI, PstP# AS PstPNum, RespName, RespOptions, NRName, NRCodes, TableFormat, CorrectedFlag, ScriptOnly, AltQnum, AltQnum2, AltQnum3, " +
+                    "VarName, VarLabel, " +
+                    "DomainNum, DomainNum AS ID, Domain AS LabelText, " +
+                    "TopicNum, TopicNum AS ID, Topic AS LabelText, " +
+                    "ContentNum, ContentNum AS ID, Content AS LabelText, " +
+                    "ProductNum, ProductNum AS ID, Product AS LabelText " +
+                    "FROM Questions.FN_GetSurveyQuestions(@SID) ORDER BY Qnum;" +
+                    "SELECT T.ID, QID, Q.Survey, Q.VarName, Lang AS Language, Translation AS TranslationText, Bilingual "+
+                        "LanguageID, LanguageID AS ID, Lang AS LanguageName, Abbrev, ISOAbbrev, NonLatin, PreferredFont, RTL " +
+                        "FROM qryTranslation AS T LEFT JOIN qrySurveyQuestions AS Q ON T.QID = Q.ID WHERE SurvID=@SID;" +
+                    "SELECT ID, QID, SurvID, Survey, VarName, NoteDate, SourceName, Source " +
+                        "CID, CID AS ID, Notes AS NoteText, "+
+                        "NoteInit, NoteInit AS ID, Name, " +
+                        "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, ShortForm " +
+                        "FROM qryCommentsQues WHERE SurvID = @SID";
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            {
+                var parameters = new { SID = s.SID };
+
+                var results = db.QueryMultiple(sql, parameters);
+
+                // questions
+                var questions = results.Read<QuestionRecord, VariableName, DomainLabel, TopicLabel, ContentLabel, ProductLabel, QuestionRecord>(
+                    (question, varname, domain, topic, content, product) =>
+                    {
+                        varname.Domain = domain;
+                        varname.Topic = topic;
+                        varname.Content = content;
+                        varname.Product = product;
+                        question.VarName = varname;
+                        return question;
+                    }, splitOn: "VarName, DomainNum, TopicNum, ContentNum, ProductNum").ToList();
+
+                // translations
+                var translations = results.Read<TranslationRecord, Language, TranslationRecord>((translation, language) =>
+                {
+                    translation.LanguageName = language;
+                    return translation;
+                }, splitOn: "LanguageID").ToList();
+
+                // comments
+                var comments = results.Read<QuestionComment, Note, Person, CommentType, QuestionComment>(
+                    (comment, note, author, type) =>
+                    {
+                        comment.Notes = note;
+                        comment.Author = author;
+                        comment.NoteType = type;
+                        return comment;
+                    }, splitOn: "CID, NoteInit, NoteTypeID").ToList();
+
+                // add translations and comments to questions
+                foreach(QuestionRecord qr in questions)
+                {
+                    qr.Translations = translations.Where(x => x.QID == qr.ID).ToList();
+                    qr.Comments = comments.Where(x => x.QID == qr.ID).ToList();
+                }
+
+                qs = new BindingList<QuestionRecord>(questions);
+            }
+
+            return qs;
+        }
+
 
         /// <summary>
         /// Retrieves a set of records for a particular VarName and returns a list of SurveyQuestion objects. 
@@ -303,9 +533,7 @@ namespace ITCLib
                                 },
                                 TableFormat = (bool)rdr["TableFormat"],
                                 CorrectedFlag = (bool)rdr["CorrectedFlag"],
-                                NumCol = (int)rdr["NumCol"],
-                                NumDec = (int)rdr["NumDec"],
-                                VarType = (string)rdr["VarType"],
+                                
                                 ScriptOnly = (bool)rdr["ScriptOnly"]
 
                             };
@@ -321,6 +549,69 @@ namespace ITCLib
                 catch (Exception)
                 {
                    
+                }
+            }
+
+            return qs;
+        }
+
+        /// <summary>
+        /// Retrieves a set of records for a particular VarName and returns a list of SurveyQuestion objects. 
+        /// </summary>
+        /// <param name="varname">A valid VarName.</param>
+        /// <returns>List of SurveyQuestions</returns>
+        public static List<QuestionUsage> GetVarNameQuestions(VariableName varname)
+        {
+            List<QuestionUsage> qs = new List<QuestionUsage>();
+            QuestionUsage q;
+            string query = "SELECT refVarName, VarName, PreP, PreI, PreA, LitQ, PstI, PstP, RespOptions, NRCodes, STUFF((SELECT  ',' + Survey " +
+                            "FROM qrySurveyQuestions SQ2 " +
+                            "WHERE VarName = sq1.VarName " +
+                            "GROUP BY SQ2.Survey " +
+                            "ORDER BY Survey " +
+                            "FOR XML PATH(''), TYPE).value('text()[1]', 'nvarchar(max)') ,1, LEN(','), '') AS SurveyList " +
+                            "FROM qrySurveyQuestions Sq1 " +
+                            "WHERE refVarName = @varname " +
+                            "GROUP BY sq1.refVarName, VarName, PreP, PreI, PreA, LitQ, PstI, PstP, RespOptions, NRCodes " +
+                            "ORDER BY refVarName";
+
+            using (SqlDataAdapter sql = new SqlDataAdapter())
+            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            {
+                conn.Open();
+
+                sql.SelectCommand = new SqlCommand(query, conn);
+                sql.SelectCommand.Parameters.AddWithValue("@varname", varname.RefVarName);
+                try
+                {
+                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
+                    {
+                        while (rdr.Read())
+                        {
+                            q = new QuestionUsage
+                            {
+                                SurveyList = rdr.SafeGetString("SurveyList"),
+                                PreP = (string)rdr["PreP"],
+                                PreI = (string)rdr["PreI"],
+                                PreA = (string)rdr["PreA"],
+                                LitQ = (string)rdr["LitQ"],
+                                PstI = (string)rdr["PstI"],
+                                PstP = (string)rdr["PstP"],
+                                RespOptions = (string)rdr["RespOptions"],
+                                NRCodes = (string)rdr["NRCodes"],
+                                VarName = new VariableName((string)rdr["VarName"])
+                                
+                            };
+                            q.VarName.RefVarName = rdr.SafeGetString("refVarName");
+                           
+
+                            qs.Add(q);
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+
                 }
             }
 
@@ -384,9 +675,7 @@ namespace ITCLib
                                 },
                                 TableFormat = (bool)rdr["TableFormat"],
                                 CorrectedFlag = (bool)rdr["CorrectedFlag"],
-                                NumCol = (int)rdr["NumCol"],
-                                NumDec = (int)rdr["NumDec"],
-                                VarType = (string)rdr["VarType"],
+                                
                                 ScriptOnly = (bool)rdr["ScriptOnly"]
                             };
 
@@ -412,10 +701,10 @@ namespace ITCLib
         /// <param name="refvarname">A valid VarName.</param>
         /// <param name="surveyGlob">Survey code pattern.</param>
         /// <returns>List of SurveyQuestions</returns>
-        public static List<SurveyQuestion> GetRefVarNameQuestionsGlob(string refvarname, string surveyGlob)
+        public static List<QuestionRecord> GetRefVarNameQuestionsGlob(string refvarname, string surveyGlob = "%")
         {
-            List<SurveyQuestion> qs = new List<SurveyQuestion>();
-            SurveyQuestion q;
+            List<QuestionRecord> qs = new List<QuestionRecord>();
+            QuestionRecord q;
             string query = "SELECT * FROM Questions.FN_GetRefVarNameQuestionsGlob(@refvarname, @surveyPattern) ORDER BY Qnum";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
@@ -432,11 +721,10 @@ namespace ITCLib
                     {
                         while (rdr.Read())
                         {
-                            q = new SurveyQuestion
+                            q = new QuestionRecord
                             {
                                 ID = (int)rdr["ID"],
                                 SurveyCode = (string)rdr["Survey"],
-                                //VarName = (string)rdr["VarName"],
                                 Qnum = (string)rdr["Qnum"],
                                 //PreP = new Wording((int)rdr["PreP#"], (string)rdr["PreP"]),
                                 PrePNum = (int)rdr["PreP#"],
@@ -465,9 +753,7 @@ namespace ITCLib
                                 },
                                 TableFormat = (bool)rdr["TableFormat"],
                                 CorrectedFlag = (bool)rdr["CorrectedFlag"],
-                                NumCol = (int)rdr["NumCol"],
-                                NumDec = (int)rdr["NumDec"],
-                                VarType = (string)rdr["VarType"],
+
                                 ScriptOnly = (bool)rdr["ScriptOnly"]
                             };
 
@@ -498,14 +784,13 @@ namespace ITCLib
         public static List<SurveyQuestion> GetBackupQuestions(Survey s, DateTime backup)
         {
             List<SurveyQuestion> qs = new List<SurveyQuestion>();
-            SurveyQuestion q;
             DataTable rawTable;
-            //string filePath = backup.ToString("yyyy-MM-dd") + ".7z";
+
             BackupConnection bkp = new BackupConnection(backup);
+
             string select = "SELECT tblSurveyNumbers.[ID], [Qnum] AS SortBy, [Survey], tblSurveyNumbers.[VarName], refVarName, Qnum, AltQnum, CorrectedFlag, TableFormat, tblDomain.ID AS DomainNum, tblDomain.[Domain], " +
                 "tblTopic.ID AS TopicNum, [Topic], tblContent.ID AS ContentNum, [Content], VarLabel, tblProduct.ID AS ProductNum, [Product], PreP, [PreP#], PreI, [PreI#], PreA, [PreA#], LitQ, [LitQ#], PstI, [PstI#], PstP, [PstP#], RespOptions, tblSurveyNumbers.RespName, NRCodes, tblSurveyNumbers.NRName " ;
             string where = "Survey = '" + s.SurveyCode + "'";
-
 
             if (bkp.Connected)
             {
@@ -515,16 +800,16 @@ namespace ITCLib
             else
             {
                 // could not unzip backup/7zip not installed etc. 
-                return null;
+                return qs;
             }
 
             foreach (DataRow r in rawTable.Rows)
             {
-                q = new SurveyQuestion();
+                SurveyQuestion q = new SurveyQuestion();
 
                 q.ID = (int)r["ID"];
                 q.SurveyCode = (string)r["Survey"];
-                q.VarName.FullVarName = (string)r["VarName"];
+                q.VarName.VarName = (string)r["VarName"];
                 
                 q.Qnum = (string)r["Qnum"];
                 if (!DBNull.Value.Equals(r["AltQnum"])) q.AltQnum = (string)r["AltQnum"];
@@ -591,7 +876,6 @@ namespace ITCLib
                             {
                                 ID = (int)rdr["ID"],
                                 SurveyCode = (string)rdr["Survey"],
-                               // VarName = (string)rdr["VarName"],
                                 Qnum = (string)rdr["Qnum"],
                                 PrePNum = (int)rdr["PreP#"],
                                 PreP = (string)rdr["PreP"],
@@ -631,7 +915,7 @@ namespace ITCLib
         /// <returns></returns>
         public static int GetQuestionID(string survey, string varname)
         {
-            int qid=0;
+            int qid = 0;
             string query = "SELECT ID FROM qrySurveyQuestions WHERE Survey =@survey AND Varname=@varname";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
@@ -656,12 +940,174 @@ namespace ITCLib
                 }
                 catch (Exception)
                 {
-                    int i = 0;
+                    
                 }
             }
 
             return qid;
         }
+
+        /// <summary>
+        /// Returns the list of corrected questions for a specified survey.
+        /// </summary>
+        /// <param name="surveyCode"></param>
+        /// <returns></returns>
+        public static int GetQuestionIDRef(string survey, string refvarname)
+        {
+            int qid = 0;
+            string query = "SELECT ID FROM qrySurveyQuestions WHERE Survey =@survey AND refVarname=@refvarname";
+
+            using (SqlDataAdapter sql = new SqlDataAdapter())
+            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            {
+                conn.Open();
+
+                sql.SelectCommand = new SqlCommand(query, conn);
+                sql.SelectCommand.Parameters.AddWithValue("@survey", survey);
+                sql.SelectCommand.Parameters.AddWithValue("@refvarname", refvarname);
+                try
+                {
+                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
+                    {
+                        while (rdr.Read())
+                        {
+
+                            qid = (int)rdr["ID"];
+
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+
+                }
+            }
+
+            return qid;
+        }
+
+        public static List<DeletedQuestion> GetDeletedQuestions (string survey)
+        {
+            List<DeletedQuestion> list = new List<DeletedQuestion>();
+            string query = "SELECT * FROM qryDeletedSurveyVars WHERE Survey =@survey";
+
+            using (SqlDataAdapter sql = new SqlDataAdapter())
+            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            {
+                conn.Open();
+
+                sql.SelectCommand = new SqlCommand(query, conn);
+                sql.SelectCommand.Parameters.AddWithValue("@survey", survey);
+                
+                try
+                {
+                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
+                    {
+                        while (rdr.Read())
+                        {
+                            DeletedQuestion d = new DeletedQuestion();
+                            d.ID = (int)rdr["ID"];
+                            d.SurveyCode = rdr.SafeGetString("Survey");
+                            d.VarName = rdr.SafeGetString("VarName");
+                            d.VarLabel = rdr.SafeGetString("VarLabel");
+                            d.ContentLabel = rdr.SafeGetString("ContentLabel");
+                            d.TopicLabel = rdr.SafeGetString("TopicLabel");
+                            d.DomainLabel = rdr.SafeGetString("DomainLabel");
+                            d.DeleteDate = rdr.SafeGetDate("DeleteDate");
+                            d.DeletedBy = rdr.SafeGetString("DeletedBy");
+
+                            d.DeleteNotes = GetDeletedComments(survey, d.VarName);
+
+                            list.Add(d);
+
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+
+                }
+            }
+
+            return list;
+        }
+
+        public static List<Heading> GetHeadingQuestions(Survey survey)
+        {
+            List<Heading> list = new List<Heading>();
+            
+            List<SurveyQuestion> questions = GetSurveyQuestions(survey).ToList();
+
+            bool inSection = false;
+            bool firstDone = false;
+            Heading currentSection = null; 
+
+            for (int i = 0; i < questions.Count; i++)
+            {
+                if (questions[i].VarName.VarName.StartsWith("Z") && !questions[i].VarName.VarName.EndsWith("s"))
+                {
+                    if (i > 0 && currentSection != null)
+                    {
+                        currentSection.EndQnum = questions[i - 1].Qnum;
+                        currentSection.LastVarName = questions[i - 1].VarName.VarName;
+                        firstDone = false;
+                    }
+                    Heading heading = new Heading();
+                    heading.VarName.VarName = questions[i].VarName.VarName;
+                    heading.PreP = questions[i].PreP;
+                    heading.Qnum = questions[i].Qnum;
+                    list.Add(heading);
+                    inSection = true;
+                    currentSection = heading;
+                    
+                }
+                else
+                {
+                    if (inSection && !firstDone )
+                    {
+                        currentSection.StartQnum = questions[i].Qnum;
+                        currentSection.FirstVarName = questions[i].VarName.VarName;
+                        firstDone = true;
+                    }
+                }
+            }
+            currentSection.EndQnum = questions.Last().Qnum;
+            currentSection.LastVarName = questions.Last().VarName.VarName;
+
+            return list;
+        }
+
+        /// <summary>
+        /// Returns true if the provided VarName exists in the database.
+        /// </summary>
+        /// <param name="varname"></param>
+        /// <returns></returns>
+        public static bool VarNameIsUsed(string varname)
+        {
+            bool result = false; ;
+            string query = "SELECT FN_VarNameUsed(@varname)";
+
+            using (SqlDataAdapter sql = new SqlDataAdapter())
+            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            {
+                conn.Open();
+
+                sql.SelectCommand = new SqlCommand(query, conn);
+                sql.SelectCommand.Parameters.AddWithValue("@varname", varname);
+
+                try
+                {
+                    result = (bool)sql.SelectCommand.ExecuteScalar();
+                }
+                catch (Exception)
+                {
+                    result = false;
+                }
+            }
+
+            return result;
+        }
+
 
 
         //
@@ -727,9 +1173,7 @@ namespace ITCLib
                                 },
                                 TableFormat = (bool)rdr["TableFormat"],
                                 CorrectedFlag = (bool)rdr["CorrectedFlag"],
-                                NumCol = (int)rdr["NumCol"],
-                                NumDec = (int)rdr["NumDec"],
-                                VarType = (string)rdr["VarType"],
+                                
                                 ScriptOnly = (bool)rdr["ScriptOnly"]
                             };
 

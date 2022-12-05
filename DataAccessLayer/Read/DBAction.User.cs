@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Data;
 using System.Data.SqlClient;
 using System.Configuration;
+using Dapper;
 
 namespace ITCLib
 {
@@ -20,43 +21,57 @@ namespace ITCLib
         /// </summary>
         /// <param name="username"></param>
         /// <returns></returns>
-        public static UserPrefs GetUser(string username)
+        public static UserRecord GetUser(string username)
         {
-            UserPrefs u;
-            string query = "SELECT * FROM Users.FN_GetUserPrefs (@username)";
+            UserRecord prefs;
+            string sql = "SELECT PersonnelID as userid, username, AccessLevel, ReportFolder AS ReportPath, ReportPrompt, WordingNumbers, CommentDetails FROM Users.FN_GetUserPrefs (@username);" +
+                            "SELECT PersonnelID, FormCode AS FormName, FormNumber AS FormNum, RecNum AS RecordPosition, Filter, SurvID AS FilterID FROM qryFormManager WHERE username = @username ORDER BY FormCode, FormNumber;";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            string sql2 = "SELECT ID, NoteDate, SourceInit AS SourceName, Source," +
+                            "0 AS NoteID, Comment AS NoteText," +
+                            "NoteInit AS AuthorID, NoteInit AS ID, Name," +
+                            "AuthorityID, AuthorityID AS ID, Name," +
+                            "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName FROM qrySavedComments WHERE PersonnelID = @userid ORDER BY qrySavedComments.ID ASC;" +
+                            "SELECT ID, NoteDate, SourceName, Source," +
+                            "0 AS NoteID, '' AS NoteText," +
+                            "NoteInit AS AuthorID, NoteInit AS ID, Name," +
+                            "NoteTypeID, NoteTypeID AS ID, NoteType AS TypeName FROM qryLastUsedComment WHERE PersonnelID = @userid;" +
+                            "SELECT SourceText FROM qrySavedSources WHERE PersonnelID = @userid ORDER BY SourceNumber ASC;";
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
+                var grid = db.QueryMultiple(sql, new { username = username});
+                prefs = grid.Read<UserRecord>().First();
+                List<FormStateRecord> states = grid.Read<FormStateRecord>().ToList();
+                prefs.FormStates = states;
 
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@username", username);
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        rdr.Read();
-                        u = new UserPrefs
-                        {
-                            userid = (int)rdr["PersonnelID"],
-                            Username = (string)rdr["username"],
-                            accessLevel = (AccessLevel)rdr["AccessLevel"],
-                            ReportPath = (string)rdr["ReportFolder"],
-                            reportPrompt = (bool)rdr["ReportPrompt"],
-                            wordingNumbers = (bool)rdr["WordingNumbers"],
-                            commentDetails = (int)rdr["CommentDetails"]
-                        };
-                    }
-                }
-                catch (Exception)
-                {
-                    return null;
-                }
+                //var grid2 = db.QueryMultiple(sql2, new { userid = prefs.userid });
+                
+                //var savedComments =  grid.Read<Comment, Note, Person, Person, CommentType, Comment>((comment, note, author, authority, type) =>
+                //{
+                //    comment.Notes = note;
+                //    comment.Author = author;
+                //    comment.Authority = authority;
+                //    comment.NoteType = type;
+                //    return comment;
+                //}, splitOn: "NoteID, AuthorID, AuthorityID, NotTypeID").ToList();
+                //var lastComment = grid.Read<Comment, Note, Person,  CommentType, Comment>((comment, note, author, type) =>
+                //{
+                //    comment.Notes = note;
+                //    comment.Author = author;
+                //    comment.NoteType = type;
+                //    return comment;
+                //}, splitOn: "NoteID, AuthorID, NotTypeID").FirstOrDefault();
+                //var sources = grid.Read<string>().ToList();
+                //prefs.SavedSources = sources;
+                //prefs.SavedComments = savedComments;
+                //prefs.LastUsedComment = lastComment;
+
             }
-            
-            return u;
+            return prefs;
         }
+
+               
 
         /// <summary>
         /// Saves a filter for the provided user.
@@ -66,22 +81,24 @@ namespace ITCLib
         /// <param name="position"></param>
         /// <param name="user"></param>
         /// <returns></returns>
-        public static int SaveSession(string formName, string filter, int position, UserPrefs user)
+        public static int UpdateFormFilter(string formName, int formNum, string filter, int position, UserPrefs user)
         {
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
             using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
                 conn.Open();
-                sql.UpdateCommand = new SqlCommand("proc_saveSession", conn)
+                sql.UpdateCommand = new SqlCommand("proc_updateFormFilter", conn)
                 {
                     CommandType = CommandType.StoredProcedure
                 };
 
-                sql.UpdateCommand.Parameters.AddWithValue("@formname", formName);
+                sql.UpdateCommand.Parameters.AddWithValue("@formCode", formName);
                 sql.UpdateCommand.Parameters.AddWithValue("@filter", filter);
-                sql.UpdateCommand.Parameters.AddWithValue("@position", position);
+                sql.UpdateCommand.Parameters.AddWithValue("@formNum", formNum);
                 sql.UpdateCommand.Parameters.AddWithValue("@personnelID", user.userid);
+                sql.UpdateCommand.Parameters.AddWithValue("@position", position);
+                
 
                 try
                 {
@@ -96,82 +113,124 @@ namespace ITCLib
 
         }
 
-        //
-        // Fill Methods
-        //
-
         /// <summary>
-        /// Populates the Survey Entry filters for the provided user.
+        /// Saves a filter for the provided user.
         /// </summary>
+        /// <param name="formName"></param>
+        /// <param name="filter"></param>
+        /// <param name="position"></param>
         /// <param name="user"></param>
-        public static void FillUserSurveyFilters(UserPrefs user)
+        /// <returns></returns>
+        public static int UpdateFormFilter(FormStateRecord record, int userid)
         {
-  
-            string query = "SELECT * FROM Users.FN_GetUserFilters(@id)";
-            string se1 = "4C1"; string seb1 = "4C1"; string seg1 = "4C1";
-            string se2 = "4C1"; string seb2 = "4C1"; string seg2 = "4C1";
-            string se3 = "4C1"; string seb3 = "4C1"; string seg3 = "4C1";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
             using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
                 conn.Open();
+                sql.UpdateCommand = new SqlCommand("proc_updateFormFilter", conn)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
 
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@id", user.userid);
+                sql.UpdateCommand.Parameters.AddWithValue("@formCode", record.FormName);
+                sql.UpdateCommand.Parameters.AddWithValue("@filter", record.Filter);
+                sql.UpdateCommand.Parameters.AddWithValue("@formNum", record.FormNum);
+                sql.UpdateCommand.Parameters.AddWithValue("@personnelID", userid);
+                sql.UpdateCommand.Parameters.AddWithValue("@position", record.RecordPosition);
+
+
                 try
                 {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            if ((string)rdr["FormName"] == "frmSurveyEntry")
-                                se1 = (string)rdr["Filter"];
-                            else if ((string)rdr["FormName"] == "frmSurveyEntry2")
-                                se2 = (string)rdr["Filter"];
-                            else if ((string)rdr["FormName"] == "frmSurveyEntry3")
-                                se3 = (string)rdr["Filter"];
-
-                            if ((string)rdr["FormName"] == "sfrmSurveyEntryBrown")
-                                seb1 = (string)rdr["Filter"];
-                            else if ((string)rdr["FormName"] == "sfrmSurveyEntryBrown2")
-                                seb2 = (string)rdr["Filter"];
-                            else if ((string)rdr["FormName"] == "sfrmSurveyEntryBrown3")
-                                seb3 = (string)rdr["Filter"];
-
-                            if ((string)rdr["FormName"] == "sfrmSurveyEntryGreen")
-                                seg1 = (string)rdr["Filter"];
-                            else if ((string)rdr["FormName"] == "sfrmSurveyEntryGreen2")
-                                seg2 = (string)rdr["Filter"];
-                            else if ((string)rdr["FormName"] == "sfrmSurveyEntryGreen3")
-                                seg3 = (string)rdr["Filter"];
-
-
-                        }
-
-                    }
+                    sql.UpdateCommand.ExecuteNonQuery();
                 }
                 catch (Exception)
                 {
-
+                    return 1;
                 }
             }
-
-            user.SurveyEntryCodes.Add(se1);
-            user.SurveyEntryCodes.Add(se2);
-            user.SurveyEntryCodes.Add(se3);
-
-            user.SurveyEntryBrown.Add(seb1);
-            user.SurveyEntryBrown.Add(seb2);
-            user.SurveyEntryBrown.Add(seb3);
-
-            user.SurveyEntryGreen.Add(seg1);
-            user.SurveyEntryGreen.Add(seg2);
-            user.SurveyEntryGreen.Add(seg3);
+            return 0;
 
         }
 
-        
-        
+        /// <summary>
+        /// Saves a filter for the provided user.
+        /// </summary>
+        /// <param name="formName"></param>
+        /// <param name="filter"></param>
+        /// <param name="position"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public static int UpdateFormSurvey(string formName, int formNum, int survID, int position, UserPrefs user)
+        {
+
+            using (SqlDataAdapter sql = new SqlDataAdapter())
+            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            {
+                conn.Open();
+                sql.UpdateCommand = new SqlCommand("proc_updateFormSurvey", conn)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+
+                sql.UpdateCommand.Parameters.AddWithValue("@formCode", formName);
+                sql.UpdateCommand.Parameters.AddWithValue("@survID", survID);
+                sql.UpdateCommand.Parameters.AddWithValue("@formNum", formNum);
+                sql.UpdateCommand.Parameters.AddWithValue("@personnelID", user.userid);
+                sql.UpdateCommand.Parameters.AddWithValue("@position", position);
+
+
+                try
+                {
+                    sql.UpdateCommand.ExecuteNonQuery();
+                }
+                catch (Exception)
+                {
+                    return 1;
+                }
+            }
+            return 0;
+
+        }
+
+        /// <summary>
+        /// Saves a filter for the provided user.
+        /// </summary>
+        /// <param name="formName"></param>
+        /// <param name="filter"></param>
+        /// <param name="position"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public static int UpdateFormSurvey(FormStateRecord record, int userid)
+        {
+
+            using (SqlDataAdapter sql = new SqlDataAdapter())
+            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            {
+                conn.Open();
+                sql.UpdateCommand = new SqlCommand("proc_updateFormSurvey", conn)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+
+                sql.UpdateCommand.Parameters.AddWithValue("@formCode", record.FormName);
+                sql.UpdateCommand.Parameters.AddWithValue("@survID", record.FilterID);
+                sql.UpdateCommand.Parameters.AddWithValue("@formNum", record.FormNum);
+                sql.UpdateCommand.Parameters.AddWithValue("@personnelID", userid);
+                sql.UpdateCommand.Parameters.AddWithValue("@position", record.RecordPosition);
+
+
+                try
+                {
+                    sql.UpdateCommand.ExecuteNonQuery();
+                }
+                catch (Exception)
+                {
+                    return 1;
+                }
+            }
+            return 0;
+
+        }
     }
 }

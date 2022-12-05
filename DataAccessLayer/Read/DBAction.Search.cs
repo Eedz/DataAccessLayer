@@ -18,20 +18,40 @@ namespace ITCLib
         //
         // Question Search
         //
-        // TODO create dynamic sql stored procedure for this
-        public static List<SurveyQuestion> GetSurveyQuestions(string crit, bool withTranslation)
+        public static List<SurveyQuestion> GetSurveyQuestions(List<SearchCriterium> criteria, bool withTranslation, string withTranslationText=null, bool excludeHiddenSurveys = true)
         {
             List<SurveyQuestion> qs = new List<SurveyQuestion>();
 
-            //string[] conditions = crit.Split(new string[] { " AND " }, StringSplitOptions.RemoveEmptyEntries);
-
-            
-            crit = crit.Replace("*", "%");
             string query;
-            if (withTranslation)
-                query = "SELECT * FROM qrySurveyQuestionsTranslations WHERE " + crit + " ORDER BY ID";
+            string where = "";
+            query = "SELECT * FROM qrySurveyQuestions ";
+
+            if (criteria.Count > 0)
+            { 
+                int t = 0;
+                foreach (SearchCriterium sc in criteria)
+                {
+                    //where += sc.ToString(t);
+                    where += sc.GetParameterizedCondition(t);
+                    where += " AND ";
+                    t = t + sc.Criteria.Count();
+                }                
+            }
+            else 
+            {
+
+            }
+
+            if (excludeHiddenSurveys)
+                where += " NOT Survey IN (SELECT Survey FROM qrySurveyInfo WHERE HideSurvey = 1)";
             else
-                query = "SELECT * FROM qrySurveyQuestions WHERE " + crit + " ORDER BY ID";
+                where = Utilities.TrimString(where, " AND ");
+
+
+            if (!string.IsNullOrEmpty(where))
+                query += "WHERE " + where;
+
+            query += " ORDER BY ID";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
             using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
@@ -39,20 +59,30 @@ namespace ITCLib
                 conn.Open();
 
                 sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@crit", crit);
+
+                int t = 0;
+                foreach (SearchCriterium sc in criteria)
+                {
+                    foreach (string f in sc.Fields)
+                    foreach (string s in sc.Criteria)
+                    {
+                        sql.SelectCommand.Parameters.AddWithValue("@tag" + t, s);
+                        t++;
+                    }
+                }
+
                 try
                 {
                     using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
                     {
                         while (rdr.Read())
                         {
+                   
                             SurveyQuestion q = new SurveyQuestion
                             {
                                 ID = (int)rdr["ID"],
                                 SurveyCode = (string)rdr["Survey"],
-                                //VarName = (string)rdr["VarName"],
                                 Qnum = (string)rdr["Qnum"],
-                                //PreP = new Wording ((int)rdr["PreP#"], (string)rdr["PreP"]),
                                 PrePNum = (int)rdr["PreP#"],
                                 PreP = (string)rdr["PreP"],
                                 PreINum = (int)rdr["PreI#"],
@@ -79,9 +109,7 @@ namespace ITCLib
                                 },
                                 TableFormat = (bool)rdr["TableFormat"],
                                 CorrectedFlag = (bool)rdr["CorrectedFlag"],
-                                NumCol = (int)rdr["NumCol"],
-                                NumDec = (int)rdr["NumDec"],
-                                VarType = (string)rdr["VarType"],
+                                
                                 ScriptOnly = (bool)rdr["ScriptOnly"]
                             };
 
@@ -90,15 +118,16 @@ namespace ITCLib
                             if (!rdr.IsDBNull(rdr.GetOrdinal("AltQnum3"))) q.AltQnum3 = (string)rdr["AltQnum3"];
 
                             if (withTranslation)
-                            {
-                                q.Translations.Add(new Translation()
-                                {
-                                    Survey = q.SurveyCode,
-                                    VarName = q.VarName.FullVarName,
-                                    Language = (string)rdr["Lang"],
-                                    TranslationText = (string)rdr["Translation"]
-                                });
+                            { 
+                                if (string.IsNullOrEmpty(withTranslationText))
+                                    q.Translations = DBAction.GetQuestionTranslations(q.ID).ToList();
+                                else
+                                    q.Translations = DBAction.GetQuestionTranslations(q.ID).Where(x => x.TranslationText.ToLower().Contains(withTranslationText.ToLower())).ToList();
                             }
+
+                            // if there was translation criteria, yet no translations exist, do not add this question to the result
+                            if (!string.IsNullOrEmpty(withTranslationText) && q.Translations.Count == 0)
+                                continue;
 
                             qs.Add(q);
                         }
@@ -106,12 +135,113 @@ namespace ITCLib
                 }
                 catch (Exception)
                 {
-                    return null;
+                    
                 }
             }
 
             return qs;
         }
 
+        public static List<SurveyQuestion> GetSurveyQuestions(List<SearchCriterium> criteria)
+        {
+            List<SurveyQuestion> qs = new List<SurveyQuestion>();
+
+            string query;
+            string where = "";
+            query = "SELECT * FROM qrySurveyQuestions ";
+
+            if (criteria.Count > 0)
+            {
+                int t = 0;
+                foreach (SearchCriterium sc in criteria)
+                {
+                    //where += sc.ToString(t);
+                    where += sc.GetParameterizedCondition(t);
+                    where += " AND ";
+                    t = t + sc.Criteria.Count();
+                }
+
+                where = Utilities.TrimString(where, " AND ");
+
+                if (!string.IsNullOrEmpty(where))
+                    query += "WHERE " + where;
+            }
+
+            query += " ORDER BY ID";
+
+            using (SqlDataAdapter sql = new SqlDataAdapter())
+            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            {
+                conn.Open();
+
+                sql.SelectCommand = new SqlCommand(query, conn);
+
+                int t = 0;
+                foreach (SearchCriterium sc in criteria)
+                {
+                    foreach (string s in sc.Criteria)
+                    {
+                        sql.SelectCommand.Parameters.AddWithValue("@tag" + t, s);
+                        t++;
+                    }
+                }
+
+                try
+                {
+                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
+                    {
+                        while (rdr.Read())
+                        {
+                            SurveyQuestion q = new SurveyQuestion
+                            {
+                                ID = (int)rdr["ID"],
+                                SurveyCode = (string)rdr["Survey"],
+                                Qnum = (string)rdr["Qnum"],
+                                PrePNum = (int)rdr["PreP#"],
+                                PreP = (string)rdr["PreP"],
+                                PreINum = (int)rdr["PreI#"],
+                                PreI = (string)rdr["PreI"],
+                                PreANum = (int)rdr["PreA#"],
+                                PreA = (string)rdr["PreA"],
+                                LitQNum = (int)rdr["LitQ#"],
+                                LitQ = (string)rdr["LitQ"],
+                                PstINum = (int)rdr["PstI#"],
+                                PstI = (string)rdr["PstI"],
+                                PstPNum = (int)rdr["PstP#"],
+                                PstP = (string)rdr["PstP"],
+                                RespName = (string)rdr["RespName"],
+                                RespOptions = (string)rdr["RespOptions"],
+                                NRName = (string)rdr["NRName"],
+                                NRCodes = (string)rdr["NRCodes"],
+                                VarName = new VariableName((string)rdr["VarName"])
+                                {
+                                    VarLabel = (string)rdr["VarLabel"],
+                                    Domain = new DomainLabel((int)rdr["DomainNum"], (string)rdr["Domain"]),
+                                    Topic = new TopicLabel((int)rdr["TopicNum"], (string)rdr["Topic"]),
+                                    Content = new ContentLabel((int)rdr["ContentNum"], (string)rdr["Content"]),
+                                    Product = new ProductLabel((int)rdr["ProductNum"], (string)rdr["Product"])
+                                },
+                                TableFormat = (bool)rdr["TableFormat"],
+                                CorrectedFlag = (bool)rdr["CorrectedFlag"],
+
+                                ScriptOnly = (bool)rdr["ScriptOnly"]
+                            };
+
+                            q.AltQnum =rdr.SafeGetString("AltQnum");
+                            q.AltQnum2 = rdr.SafeGetString("AltQnum2");
+                            q.AltQnum3 = rdr.SafeGetString("AltQnum3");
+
+                            qs.Add(q);
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+
+                }
+            }
+
+            return qs;
+        }
     }
 }
