@@ -71,9 +71,9 @@ namespace ITCLib
 
                     }
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    int i = 0;
+                    Console.Write(e.Message);
                 }
             }
 
@@ -138,9 +138,9 @@ namespace ITCLib
 
                     }
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    int i = 0;
+                    Console.Write(e.Message);
                 }
             }
 
@@ -205,9 +205,9 @@ namespace ITCLib
 
                     }
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    int i = 0;
+                    Console.Write(e.Message);
                 }
             }
 
@@ -278,9 +278,9 @@ namespace ITCLib
 
                     }
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    int i = 0;
+                    Console.Write(e.Message);
                 }
             }
 
@@ -313,9 +313,9 @@ namespace ITCLib
                         hasHistory = rdr.Read();
                     }
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    int i = 0;
+                    Console.Write(e.Message);
                 }
             }
 
@@ -355,9 +355,9 @@ namespace ITCLib
                         hasHistory = rdr.Read();
                     }
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    int i = 0;
+                    Console.Write(e.Message);
                 }
             }
 
@@ -392,9 +392,9 @@ namespace ITCLib
 
                     }
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    int i = 0;
+                    Console.Write(e.Message);
                 }
             }
 
@@ -522,9 +522,9 @@ namespace ITCLib
 
                     }
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    int i = 0;
+                    Console.Write(e.Message);
                 }
             }
 
@@ -580,9 +580,9 @@ namespace ITCLib
 
                     }
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    int i = 0;
+                    Console.Write(e.Message);
                 }
             }
 
@@ -637,9 +637,9 @@ namespace ITCLib
 
                     }
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    int i = 0;
+                    Console.Write(e.Message);
                 }
             }
 

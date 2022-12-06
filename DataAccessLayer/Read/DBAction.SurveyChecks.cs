@@ -39,18 +39,19 @@ namespace ITCLib
                     {
                         while (rdr.Read())
                         {
-                            Survey r = new Survey();
-
-                            r.SID = (int)rdr["SurvID"];
-                            r.SurveyCode = rdr.SafeGetString("Survey");
+                            Survey r = new Survey()
+                            {
+                                SID = (int)rdr["SurvID"],
+                                SurveyCode = rdr.SafeGetString("Survey")
+                            };
 
                             records.Add(r);
                         }
                     }
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    int i = 0;
+                    Console.Write(e.Message);
                 }
             }
 
@@ -82,17 +83,14 @@ namespace ITCLib
                     {
                         while (rdr.Read())
                         {
-                            SurveyCheckRec r = new SurveyCheckRec();
+                            SurveyCheckRec r = new SurveyCheckRec() {
+                                ID = (int)rdr["ID"],
+                                CheckType = new SurveyCheckType((int)rdr["CheckTypeID"], rdr.SafeGetString("CheckType")),
+                                Name = new Person(rdr.SafeGetString("Name"), (int)rdr["CheckInit"]),
+                                Comments = rdr.SafeGetString("Comments"),
+                                SurveyCode = new Survey(rdr.SafeGetString("Survey")),
+                            };
 
-                            r.ID = (int)rdr["ID"];
-                            r.CheckType = new SurveyCheckType((int)rdr["CheckTypeID"], rdr.SafeGetString("CheckType"));
-                           
-                            r.Name = new Person(rdr.SafeGetString("Name"),(int)rdr["CheckInit"]);
-                            
-           
-                            
-                            r.Comments = rdr.SafeGetString("Comments");
-                            r.SurveyCode = new Survey(rdr.SafeGetString("Survey"));
                             r.SurveyCode.SID = (int)rdr["SurvID"];
 
                             if (!rdr.IsDBNull(rdr.GetOrdinal("CheckDate")))
@@ -106,9 +104,9 @@ namespace ITCLib
                         }
                     }
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    int i = 0;
+                    Console.Write(e.Message);
                 }
             }
 
@@ -140,16 +138,14 @@ namespace ITCLib
                     {
                         while (rdr.Read())
                         {
-                            SurveyCheckRefSurvey r = new SurveyCheckRefSurvey();
-
-                            r.ID = (int)rdr["ID"];
-                            r.CheckID = (int)rdr["CheckID"];
-                            r.SID = (int)rdr["SurvID"];
+                            SurveyCheckRefSurvey r = new SurveyCheckRefSurvey() {
+                                ID = (int)rdr["ID"],
+                                CheckID = (int)rdr["CheckID"],
+                                SID = (int)rdr["SurvID"]
+                            };
 
                             if (!rdr.IsDBNull(rdr.GetOrdinal("SurveyDate")))
                                 r.SurveyDate = (DateTime)rdr["SurveyDate"];
-
-                            
 
                             records.Add(r);
                         }
@@ -189,18 +185,19 @@ namespace ITCLib
                     {
                         while (rdr.Read())
                         {
-                            SurveyCheckType r = new SurveyCheckType();
-
-                            r.ID = (int)rdr["ID"];
-                            r.CheckName = rdr.SafeGetString("CheckType");
+                            SurveyCheckType r = new SurveyCheckType()
+                            {
+                                ID = (int)rdr["ID"],
+                                CheckName = rdr.SafeGetString("CheckType")
+                            };
 
                             records.Add(r);
                         }
                     }
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    int i = 0;
+                    Console.Write(e.Message);
                 }
             }
 

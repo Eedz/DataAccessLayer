@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Data;
 using System.Data.SqlClient;
 using System.Configuration;
+using Dapper;
 
 namespace ITCLib
 {
@@ -22,68 +23,15 @@ namespace ITCLib
         public static List<DomainLabel> ListDomainLabels()
         {
             List<DomainLabel> domains = new List<DomainLabel>();
-            DomainLabel d;
-            string query = "SELECT * FROM Labels.FN_ListDomainLabels() ORDER BY Domain";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            string sql = "SELECT ID, Domain AS LabelText, Uses FROM Labels.FN_ListCountDomainLabels() ORDER BY Domain";
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            d = new DomainLabel ((int)rdr["ID"], (string)rdr["Domain"]);
-
-                            domains.Add(d);
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
+                domains = db.Query<DomainLabel>(sql).ToList();
             }
 
             return domains;
-        }
-
-        /// <summary>
-        /// Returns the number of uses for a specific Domain Label.
-        /// </summary>
-        /// <param name="DomainID"></param>
-        /// <returns></returns>
-        public static int CountDomainLabelsUses(int DomainID)
-        {
-
-            int count;
-            string query = "SELECT Labels.FN_CountDomainUses(@domainID)";
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@domainID", DomainID);
-
-                try
-                {
-                    count = (int)sql.SelectCommand.ExecuteScalar();
-
-                }
-                catch (Exception)
-                {
-                    count = 0;
-                }
-            }
-
-            return count;
         }
 
         //
@@ -94,71 +42,18 @@ namespace ITCLib
         /// Returns the list of Topic Labels in the database.
         /// </summary>
         /// <returns></returns>
-        public static List<TopicLabel> GetTopicLabels()
+        public static List<TopicLabel> ListTopicLabels()
         {
             List<TopicLabel> topics = new List<TopicLabel>();
-            TopicLabel t;
-            string query = "SELECT * FROM Labels.FN_ListTopicLabels() ORDER BY Topic";
+            
+            string sql = "SELECT ID, Topic AS LabelText, Uses FROM Labels.FN_ListCountTopicLabels() ORDER BY Topic";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            t = new TopicLabel ( (int)rdr["ID"], (string)rdr["Topic"]);
-
-                            topics.Add(t);
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
+                topics = db.Query<TopicLabel>(sql).ToList();
             }
 
             return topics;
-        }
-
-        /// <summary>
-        /// Returns the number of uses for a specific Topic Label.
-        /// </summary>
-        /// <param name="DomainID"></param>
-        /// <returns></returns>
-        public static int CountTopicLabelsUses(int TopicID)
-        {
-
-            int count;
-            string query = "SELECT Labels.FN_CountTopicUses(@topicID)";
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@topicID", TopicID);
-
-                try
-                {
-                    count = (int)sql.SelectCommand.ExecuteScalar();
-
-                }
-                catch (Exception)
-                {
-                    count = 0;
-                }
-            }
-
-            return count;
         }
 
 
@@ -166,151 +61,101 @@ namespace ITCLib
         // Content Label
         //
 
+        
+
         /// <summary>
         /// Returns the list of Content Labels in the database.
         /// </summary>
         /// <returns></returns>
-        public static List<ContentLabel> GetContentLabels()
+        public static List<ContentLabel> ListContentLabels()
         {
             List<ContentLabel> contents = new List<ContentLabel>();
-            ContentLabel c;
-            string query = "SELECT * FROM Labels.FN_ListContentLabels() ORDER BY Content";
+            string sql = "SELECT ID, Content AS LabelText, Uses FROM Labels.FN_ListCountContentLabels() ORDER BY Content";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            c = new ContentLabel((int)rdr["ID"], (string)rdr["Content"]);
-                            
-
-                            contents.Add(c);
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
+                contents = db.Query<ContentLabel>(sql).ToList();
             }
 
             return contents;
         }
 
-        /// <summary>
-        /// Returns the number of uses for a specific Content Label.
-        /// </summary>
-        /// <param name="DomainID"></param>
-        /// <returns></returns>
-        public static int CountContentLabelsUses(int ContentID)
-        {
-
-            int count;
-            string query = "SELECT Labels.FN_CountContentUses(@contentID)";
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@contentID", ContentID);
-
-                try
-                {
-                    count = (int)sql.SelectCommand.ExecuteScalar();
-
-                }
-                catch (Exception)
-                {
-                    count = 0;
-                }
-            }
-
-            return count;
-        }
-
         //
         // Product Label
-
         //
+
         /// <summary>
         /// Returns the list of Product Labels in the database.
         /// </summary>
         /// <returns></returns>
-        public static List<ProductLabel> GetProductLabels()
+        public static List<ProductLabel> ListProductLabels()
         {
             List<ProductLabel> products = new List<ProductLabel>();
-            ProductLabel t;
-            string query = "SELECT * FROM Labels.FN_ListProductLabels() ORDER BY Product";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            string sql = "SELECT ID, Product AS LabelText, Uses FROM Labels.FN_ListCountProductLabels() ORDER BY Product";
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            t = new ProductLabel ((int)rdr["ID"],(string)rdr["Product"]);
-
-                            products.Add(t);
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
+                products = db.Query<ProductLabel>(sql).ToList();
             }
 
             return products;
         }
 
         /// <summary>
-        /// Returns the number of uses for a specific Product Label.
+        /// Returns the list of Product Labels used by a particular survey.
         /// </summary>
-        /// <param name="DomainID"></param>
+        /// <param name="surveyFilter"></param>
         /// <returns></returns>
-        public static int CountProductLabelsUses(int ProductID)
+        public static List<ProductLabel> GetProductLabels(string surveyFilter)
         {
+            List<ProductLabel> products = new List<ProductLabel>();
+           
+            string sql = "SELECT ID, Product AS LabelText FROM Labels.FN_ListProductLabelsBySurvey(@survey) ORDER BY Product";
 
-            int count;
-            string query = "SELECT Labels.FN_CountProductUses(@productID)";
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
+                products = db.Query<ProductLabel>(sql).ToList();
+            }
 
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@productID", ProductID);
+            return products;
+        }
 
-                try
-                {
-                    count = (int)sql.SelectCommand.ExecuteScalar();
+        /// <summary>
+        /// Returns the number of uses for a specific Keyword.
+        /// </summary>
+        /// <param name="KeywordID"></param>
+        /// <returns></returns>
+        public static int CountKeywordUses(int KeywordID)
+        {
+            int count;
+            var parameters = new { keywordID = KeywordID };
+            string sql = "SELECT Labels.FN_CountKeywordUses(@keywordID)";
 
-                }
-                catch (Exception)
-                {
-                    count = 0;
-                }
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            {
+                count = db.ExecuteScalar<int>(sql, parameters);
             }
 
             return count;
+        }
+
+        /// <summary>
+        /// Returns the list of Keywords in the database.
+        /// </summary>
+        /// <returns></returns>
+        public static List<Keyword> GetKeywords()
+        {
+            List<Keyword> keywords = new List<Keyword>();
+            
+            string sql = "SELECT ID, Keyword AS LabelText FROM Labels.FN_ListKeywords() ORDER BY Keyword";
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            {
+                keywords = db.Query<Keyword>(sql).ToList();
+            }
+
+            return keywords;
         }
     }
 }
