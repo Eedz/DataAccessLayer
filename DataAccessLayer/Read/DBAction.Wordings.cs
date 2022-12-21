@@ -159,6 +159,68 @@ namespace ITCLib
         /// </summary>
         /// <param name="fieldname"></param>
         /// <returns></returns>
+        public static List<ResponseSet> GetResponseSets(List<string> criteria, bool exactMatch)
+        {
+            List<ResponseSet> setList = new List<ResponseSet>();
+
+            string query = "SELECT * FROM qryRespOptions ";
+
+            if (criteria.Count > 0) query += "WHERE ";
+            for (int i = 0; i < criteria.Count; i++)
+            {
+                if (exactMatch)
+                    query += "RespOptions = @criteria" + i + " OR ";
+                else 
+                    query += "RespOptions LIKE '%' + @criteria" + i + " + '%' OR ";
+            }
+            query = query.Substring(0, query.Length - 3);
+            query += "ORDER BY RespName";
+
+            using (SqlDataAdapter sql = new SqlDataAdapter())
+            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            {
+                conn.Open();
+
+                sql.SelectCommand = new SqlCommand(query, conn);
+
+                for (int i = 0; i < criteria.Count; i++)
+                {
+                    sql.SelectCommand.Parameters.AddWithValue("@criteria" + i, criteria[i]);
+                }
+
+                try
+                {
+                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
+                    {
+                        while (rdr.Read())
+                        {
+                            ResponseSet rs = new ResponseSet
+                            {
+                                RespSetName = rdr.SafeGetString("RespName"),
+                                FieldName = "RespOptions",
+                                RespList = rdr.SafeGetString("RespOptions")
+
+                            };
+
+                            setList.Add(rs);
+                        }
+                    }
+                }
+                catch
+                {
+
+                }
+            }
+
+
+            return setList;
+        }
+
+        /// <summary>
+        /// Returns all response sets of a specific type.
+        /// </summary>
+        /// <param name="fieldname"></param>
+        /// <returns></returns>
         public static List<ResponseSet> GetNonResponseSets(List<string> criteria)
         {
             List<ResponseSet> setList = new List<ResponseSet>();
@@ -170,6 +232,66 @@ namespace ITCLib
             for (int i = 0; i < criteria.Count; i++)
             {
                 query += "NRCodes LIKE '%' + @criteria" + i + " + '%' OR ";
+            }
+            query = query.Substring(0, query.Length - 3);
+            query += "ORDER BY NRName";
+
+            using (SqlDataAdapter sql = new SqlDataAdapter())
+            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            {
+                conn.Open();
+
+                sql.SelectCommand = new SqlCommand(query, conn);
+
+                for (int i = 0; i < criteria.Count; i++)
+                {
+                    sql.SelectCommand.Parameters.AddWithValue("@criteria" + i, criteria[i]);
+                }
+
+                try
+                {
+                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
+                    {
+                        while (rdr.Read())
+                        {
+                            ResponseSet rs = new ResponseSet
+                            {
+                                RespSetName = rdr.SafeGetString("NRName"),
+                                FieldName = "NRCodes",
+                                RespList = rdr.SafeGetString("NRCodes")
+                            };
+
+                            setList.Add(rs);
+                        }
+                    }
+                }
+                catch
+                {
+
+                }
+            }
+            return setList;
+        }
+
+        /// <summary>
+        /// Returns all response sets of a specific type.
+        /// </summary>
+        /// <param name="fieldname"></param>
+        /// <returns></returns>
+        public static List<ResponseSet> GetNonResponseSets(List<string> criteria, bool exactMatch)
+        {
+            List<ResponseSet> setList = new List<ResponseSet>();
+
+            string query = "SELECT * FROM qryNonRespOptions ";
+
+            if (criteria.Count > 0) query += "WHERE ";
+
+            for (int i = 0; i < criteria.Count; i++)
+            {
+                if (exactMatch)
+                    query += "NRCodes = @criteria" + i + " OR ";
+                else
+                    query += "NRCodes LIKE '%' + @criteria" + i + " + '%' OR ";
             }
             query = query.Substring(0, query.Length - 3);
             query += "ORDER BY NRName";
