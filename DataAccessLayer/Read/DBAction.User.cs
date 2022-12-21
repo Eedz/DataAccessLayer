@@ -45,27 +45,27 @@ namespace ITCLib
                 List<FormStateRecord> states = grid.Read<FormStateRecord>().ToList();
                 prefs.FormStates = states;
 
-                //var grid2 = db.QueryMultiple(sql2, new { userid = prefs.userid });
-                
-                //var savedComments =  grid.Read<Comment, Note, Person, Person, CommentType, Comment>((comment, note, author, authority, type) =>
-                //{
-                //    comment.Notes = note;
-                //    comment.Author = author;
-                //    comment.Authority = authority;
-                //    comment.NoteType = type;
-                //    return comment;
-                //}, splitOn: "NoteID, AuthorID, AuthorityID, NotTypeID").ToList();
-                //var lastComment = grid.Read<Comment, Note, Person,  CommentType, Comment>((comment, note, author, type) =>
-                //{
-                //    comment.Notes = note;
-                //    comment.Author = author;
-                //    comment.NoteType = type;
-                //    return comment;
-                //}, splitOn: "NoteID, AuthorID, NotTypeID").FirstOrDefault();
-                //var sources = grid.Read<string>().ToList();
-                //prefs.SavedSources = sources;
-                //prefs.SavedComments = savedComments;
-                //prefs.LastUsedComment = lastComment;
+                var grid2 = db.QueryMultiple(sql2, new { userid = prefs.userid });
+
+                var savedComments = grid2.Read<Comment, Note, Person, Person, CommentType, Comment>((comment, note, author, authority, type) =>
+                {
+                    comment.Notes = note;
+                    comment.Author = author;
+                    comment.Authority = authority;
+                    comment.NoteType = type;
+                    return comment;
+                }, splitOn: "NoteID, AuthorID, AuthorityID, NoteTypeID").ToList();
+                var lastComment = grid2.Read<Comment, Note, Person, CommentType, Comment>((comment, note, author, type) =>
+                {
+                    comment.Notes = note;
+                    comment.Author = author;
+                    comment.NoteType = type;
+                    return comment;
+                }, splitOn: "NoteID, AuthorID, NoteTypeID").FirstOrDefault();
+                var sources = grid2.Read<string>().ToList();
+                prefs.SavedSources = sources;
+                prefs.SavedComments = savedComments;
+                prefs.LastUsedComment = lastComment;
 
             }
             return prefs;

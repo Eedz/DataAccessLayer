@@ -501,7 +501,7 @@ namespace ITCLib
 
                 try
                 {
-                    sql.UpdateCommand.ExecuteNonQuery();
+                    sql.InsertCommand.ExecuteNonQuery();
                 }
                 catch (Exception)
                 {

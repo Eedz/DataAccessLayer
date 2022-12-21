@@ -6,140 +6,27 @@ using System.Threading.Tasks;
 using System.Data;
 using System.Data.SqlClient;
 using System.Configuration;
-
+using Dapper;
 namespace ITCLib
 {
     partial class DBAction
     {
-        /// <summary>
-        /// Returns ID of the praccing record specified by the survey and issue number.
-        /// </summary>
-        /// <returns></returns>
-        public static int GetPraccingID(string surveyCode, int issueNo)
-        {
-            int praccID = 0;
-            string query = "SELECT ID FROM qryPraccingIssues WHERE Survey=@survey AND IssueNo=@issueNo";
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@survey", surveyCode);
-                sql.SelectCommand.Parameters.AddWithValue("@issueNo", issueNo);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            praccID = (int)rdr["ID"];
-                        }
-
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
-            }
-
-
-            return praccID;
-        }
 
         /// <summary>
-        /// Returns true if the praccing issue with the provided ID is resolved.
+        /// Returns the list of praccing issue categories.
         /// </summary>
         /// <returns></returns>
-        public static bool IsPraccingIssueResolved(int id)
+        public static List<PraccingCategory> GetPraccingCategories()
         {
-            bool resolved = false;
-            string query = "SELECT Resolved FROM qryPraccingIssues WHERE ID=@id";
+            List<PraccingCategory> categories = new List<PraccingCategory>();
+            string query = "SELECT ID, IssueType AS Category FROM qryIssuesCategory ORDER BY IssueType";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@id", id);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            resolved = (bool)rdr["Resolved"];
-                        }
-
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
+                categories = db.Query<PraccingCategory>(query).ToList();
             }
 
-
-            return resolved;
-        }
-
-
-        /// <summary>
-        /// Returns responses to the praccing record specified by the survey and issue number.
-        /// </summary>
-        /// <returns></returns>
-        public static List<PraccingResponse> GetPraccResponses(string surveyCode, int issueNo)
-        {
-            List<PraccingResponse> responses = new List<PraccingResponse>();
-            string query = "SELECT R.* FROM qryPraccingResponses AS R INNER JOIN qryPraccingIssues AS I ON R.IssueID = I.ID " +
-                "WHERE I.IssueNo = @issueNo AND I.Survey = @survey";
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@issueNo", issueNo);
-                sql.SelectCommand.Parameters.AddWithValue("@survey", surveyCode);
-
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            PraccingResponse r = new PraccingResponse();
-                            r.ID = (int)rdr["ID"];
-                            r.IssueID = (int)rdr["IssueID"];
-                            if (!rdr.IsDBNull(rdr.GetOrdinal("Date")))
-                                r.ResponseDate = (DateTime)rdr["Date"];
-                            else
-                                r.ResponseDate = null;
-
-                            r.Response = rdr.SafeGetString("Response");
-                            r.ResponseFrom = new Person(rdr.SafeGetString("ResponseFrom"), (int)rdr["From_By"]);
-                            r.ResponseTo = new Person(rdr.SafeGetString("ResponseTo"), (int)rdr["To"]);
-
-                            responses.Add(r);
-                        }
-
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
-            }
-
-
-            return responses;
+            return categories;
         }
 
         /// <summary>
@@ -193,91 +80,7 @@ namespace ITCLib
             return responses;
         }
 
-        /// <summary>
-        /// Returns ID of the praccing response record specified by the survey, issue number and response text.
-        /// </summary>
-        /// <returns></returns>
-        public static int GetPraccResponseID(string surveyCode, int issueNo, string response)
-        {
-            int praccID = 0;
-            string query = "SELECT R.ID FROM qryPraccingResponses AS R INNER JOIN qryPraccingIssues AS I ON R.IssueID = I.ID " +
-                "WHERE I.IssueNo = @issueNo AND I.Survey = @survey AND " +
-                "R.Comment = @response";
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@issueNo", issueNo);
-                sql.SelectCommand.Parameters.AddWithValue("@survey", surveyCode);
-                sql.SelectCommand.Parameters.AddWithValue("@response", response);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            praccID = (int)rdr["ID"];
-                        }
-
-                    }
-                }
-                catch (Exception)
-                {
-                    return 0;
-                }
-            }
-
-
-            return praccID;
-        }
-
-        /// <summary>
-        /// Returns the list of praccing issue categories.
-        /// </summary>
-        /// <returns></returns>
-        public static List<PraccingCategory> GetPraccingCategories()
-        {
-            List<PraccingCategory> categories = new List<PraccingCategory>();
-            PraccingCategory cat;
-            string query = "SELECT * FROM qryIssuesCategory ORDER BY IssueType";
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            cat = new PraccingCategory
-                            {
-                                ID = (int)rdr["ID"],
-                                Category = rdr.SafeGetString("IssueType")
-
-                            };
-
-                            categories.Add(cat);
-                        }
-
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
-            }
-
-            return categories;
-        }
+        
 
         /// <summary>
         /// Returns the next praccing issue number for the provided survey ID.
@@ -286,32 +89,13 @@ namespace ITCLib
         public static int GetNextPraccingIssueNo(int survID)
         {
             int nextIssueNo = -1;
-
             string query = "SELECT COALESCE(MAX(IssueNo), 0) + 1 AS Next FROM qryPraccingIssues WHERE SurvID = @survID";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
+                var parameters = new { survID = survID };
 
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@survID", survID);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            nextIssueNo = (int)rdr["next"];
-                        }
-
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
+                nextIssueNo = db.ExecuteScalar<int>(query, parameters);
             }
 
             return nextIssueNo;
@@ -323,33 +107,14 @@ namespace ITCLib
         /// <returns></returns>
         public static List<int> GetIssueNumbers(string surveyCode)
         {
-            List<int> issueNums = new List<int>();
-
+            List<int> issueNums;
             string query = "SELECT IssueNo FROM qryPraccingIssues WHERE Survey = @survey ORDER BY IssueNo";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
+                var parameters = new { survey = surveyCode };
 
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@survey", surveyCode);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            issueNums.Add((int)rdr["IssueNo"]);
-                        }
-
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
+                issueNums = db.Query<int>(query, parameters).ToList();
             }
 
             return issueNums;
@@ -361,57 +126,67 @@ namespace ITCLib
         /// <returns></returns>
         public static PraccingIssue GetPraccingIssue(int ID)
         {
-            PraccingIssue issue = new PraccingIssue();
+            PraccingIssue issue;
 
-            string query = "SELECT * FROM qryPraccingIssues WHERE ID = @id";
+            string query = "SELECT ID, IssueNo, VarNames, IssueDescription AS Description, Date AS IssueDate, Resolved, ResDate AS ResolvedDate, Language, EnteredOn " +
+                    "SurvID, SurvID AS SID, Survey AS SurveyCode, " +
+                    "[By], [By] AS ID, IssueFrom AS Name, " +
+                    "[To], [To] AS ID, IssueTo AS Name, " +
+                    "CategoryID, CategoryID AS ID, IssueType As Category, " +
+                    "ResInit, ResInit AS ID, ResolvedBy AS Name, " +
+                    "EnteredBy, EnteredBy AS ID, EnteredName AS Name " +
+                    "FROM qryPraccingIssues WHERE ID = @id ORDER BY IssueNo;" +
+                "SELECT M.ID, PraccID, ImagePath AS Path FROM tblPraccingImages AS M INNER JOIN qryPraccingIssues AS I ON M.PraccID =I.ID WHERE I.ID = @id;" +
+                "SELECT R.ID, R.IssueID, R.Date AS ResponseDate, R.Comment AS Response, " +
+                    "R.From_By, R.From_By AS ID, R.ResponseFrom AS Name, " +
+                    "R.[To], R.[To] AS ID, ResponseTo AS Name FROM qryPraccingResponses AS R INNER JOIN qryPraccingIssues AS I ON R.IssueID =I.ID WHERE I.ID = @id " +
+                    "ORDER BY ResponseDate;" +
+                "SELECT M.ID, PraccResponseID AS PraccID, ImagePath AS Path FROM tblPraccingResponseImages AS M " +
+                    "INNER JOIN qryPraccingResponses AS R ON R.ID = M.PraccResponseID " +
+                    "INNER JOIN qryPraccingIssues AS I ON R.IssueID =I.ID WHERE I.ID = @id;";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
+                var parameters = new { id = ID };
 
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@id", ID);
+                var results = db.QueryMultiple(query, parameters);
 
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
+                issue = results.Read<PraccingIssue, Survey, Person, Person, PraccingCategory, Person, Person, PraccingIssue>(
+                    (record, survey, from, to, category, resolvedby, enteredby) =>
                     {
-                        while (rdr.Read())
-                        {
-                            issue.ID = (int)rdr["ID"];
-                            issue.Survey = new Survey(rdr.SafeGetString("Survey"));
-                            issue.Survey.SID = (int)rdr["SurvID"];
+                        record.Survey = survey;
+                        record.IssueFrom = from;
+                        record.IssueTo = to;
+                        record.Category = category;
+                        record.ResolvedBy = resolvedby;
+                        record.EnteredBy = enteredby;
+                        return record;
+                    },
+                    splitOn: "SurvID, By, To, CategoryID, ResInit, EnteredBy").FirstOrDefault();
 
-                            issue.VarNames = rdr.SafeGetString("VarNames");
-                            issue.Description = rdr.SafeGetString("IssueDescription");
-                            if (!rdr.IsDBNull(rdr.GetOrdinal("IssueDate")))
-                                issue.IssueDate = (DateTime)rdr["IssueDate"];
+                if (issue == null)
+                    return null;
 
-                            issue.IssueFrom = new Person(rdr.SafeGetString("IssueFrom"), (int)rdr["By"]);
-                            issue.IssueTo = new Person(rdr.SafeGetString("IssueTo"), (int)rdr["To"]);
-                            if (!rdr.IsDBNull(rdr.GetOrdinal("CategoryID")))
-                                issue.Category = new PraccingCategory((int)rdr["CategoryID"], rdr.SafeGetString("IssueType"));
-                            else
-                                issue.Category = new PraccingCategory();
+                var images = results.Read<PraccingImage>();
 
-                            issue.Resolved = (bool)rdr["Resolved"];
+                issue.Images.AddRange(images);
 
-                            if (!rdr.IsDBNull(rdr.GetOrdinal("ResDate")))
-                                issue.ResolvedDate = (DateTime)rdr["ResDate"];
-
-                            if (!rdr.IsDBNull(rdr.GetOrdinal("ResInit")))
-                                issue.ResolvedBy = new Person(rdr.SafeGetString("ResolvedBy"), (int)rdr["ResInit"]);
-
-                            issue.Language = rdr.SafeGetString("Language");
-                        }
-
-                    }
-                }
-                catch (Exception)
+                var responses = results.Read<PraccingResponse, Person, Person, PraccingResponse>((response, from, to) =>
                 {
+                    response.ResponseFrom = from;
+                    response.ResponseTo = to;
+                    return response;
+                }, splitOn: "From_By, To").ToList();
 
+                var responseImages = results.Read<PraccingImage>();
+
+                foreach (var image in responseImages)
+                {
+                    PraccingResponse response = responses.Where(x => x.ID == image.PraccID).FirstOrDefault();
+                    response.Images.Add(image);
                 }
+
+                issue.Responses.AddRange(responses);
             }
 
             return issue;
@@ -425,65 +200,73 @@ namespace ITCLib
         {
             List<PraccingIssue> issues = new List<PraccingIssue>();
 
-            string query = "SELECT * FROM qryPraccingIssues WHERE SurvID = @survid ORDER BY IssueNo";
+            string query = "SELECT ID, IssueNo, VarNames, IssueDescription AS Description, Date AS IssueDate, Resolved, ResDate AS ResolvedDate, Language, EnteredOn " +
+                    "SurvID, SurvID AS SID, Survey AS SurveyCode, " +
+                    "[By], [By] AS ID, IssueFrom AS Name, " +
+                    "[To], [To] AS ID, IssueTo AS Name, " +
+                    "CategoryID, CategoryID AS ID, IssueType As Category, " + 
+                    "ResInit, ResInit AS ID, ResolvedBy AS Name, " +
+                    "EnteredBy, EnteredBy AS ID, EnteredName AS Name " +
+                    "FROM qryPraccingIssues WHERE SurvID = @survid ORDER BY IssueNo;" +
+                "SELECT M.ID, PraccID, ImagePath AS Path FROM tblPraccingImages AS M INNER JOIN qryPraccingIssues AS I ON M.PraccID =I.ID WHERE I.SurvID = @survid;" +
+                "SELECT R.ID, R.IssueID, R.Date AS ResponseDate, R.Comment AS Response, " + 
+                    "R.From_By, R.From_By AS ID, R.ResponseFrom AS Name, " +
+                    "R.[To], R.[To] AS ID, ResponseTo AS Name FROM qryPraccingResponses AS R INNER JOIN qryPraccingIssues AS I ON R.IssueID =I.ID WHERE SurvID = @survid " +
+                    "ORDER BY ResponseDate;" +
+                "SELECT M.ID, PraccResponseID AS PraccID, ImagePath AS Path FROM tblPraccingResponseImages AS M " +
+                    "INNER JOIN qryPraccingResponses AS R ON R.ID = M.PraccResponseID " +
+                    "INNER JOIN qryPraccingIssues AS I ON R.IssueID =I.ID WHERE I.SurvID = @survid;";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
+                var parameters = new { survid = SurvID };
 
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@survid", SurvID);
+                var results = db.QueryMultiple(query, parameters);
 
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
+                issues = results.Read<PraccingIssue, Survey, Person, Person, PraccingCategory, Person, Person, PraccingIssue>(
+                    (issue, survey, from, to, category, resolvedby, enteredby) =>
                     {
-                        while (rdr.Read())
-                        {
-                            PraccingIssue issue = new PraccingIssue();
-                            issue.ID = (int)rdr["ID"];
-                            issue.IssueNo = (int)rdr["IssueNo"];
-                            issue.Survey = new Survey(rdr.SafeGetString("Survey"));
-                            issue.Survey.SID = (int)rdr["SurvID"];
+                        issue.Survey = survey;
+                        issue.IssueFrom = from;
+                        issue.IssueTo = to;
+                        issue.Category = category;
+                        issue.ResolvedBy = resolvedby;
+                        issue.EnteredBy = enteredby;
+                        return issue;
+                    }, 
+                    splitOn: "SurvID, By, To, CategoryID, ResInit, EnteredBy").ToList();
 
-                            issue.VarNames = rdr.SafeGetString("VarNames");
-                            issue.Description = rdr.SafeGetString("IssueDescription");
-                            if (!rdr.IsDBNull(rdr.GetOrdinal("Date")))
-                                issue.IssueDate = (DateTime)rdr["Date"];
+                var images = results.Read<PraccingImage>();
 
-                            issue.IssueFrom = new Person(rdr.SafeGetString("IssueFrom"), (int)rdr["By"]);
-                            issue.IssueTo = new Person(rdr.SafeGetString("IssueTo"), (int)rdr["To"]);
-                            if (!rdr.IsDBNull(rdr.GetOrdinal("CategoryID")))
-                                issue.Category = new PraccingCategory((int)rdr["CategoryID"], rdr.SafeGetString("IssueType"));
-                            else
-                                issue.Category = new PraccingCategory();
-
-                            issue.Resolved = (bool)rdr["Resolved"];
-
-                            if (!rdr.IsDBNull(rdr.GetOrdinal("ResDate")))
-                                issue.ResolvedDate = (DateTime)rdr["ResDate"];
-
-                            if (!rdr.IsDBNull(rdr.GetOrdinal("ResInit")))
-                                issue.ResolvedBy = new Person(rdr.SafeGetString("ResolvedBy"), (int)rdr["ResInit"]);
-
-                            issue.Language = rdr.SafeGetString("Language");
-
-                            issue.EnteredBy = new Person(rdr.SafeGetString("EnteredName"), (int)rdr["EnteredBy"]);
-                            issue.EnteredOn = rdr.SafeGetDate("EnteredOn");
-
-                            issue.Responses = GetPraccResponses(issue.ID);
-                            issue.Images = GetPraccingImages(issue.ID);
-
-                            issues.Add(issue);
-                        }
-
-                    }
-                }
-                catch (Exception)
+                foreach(var image in images)
                 {
-
+                    PraccingIssue issue = issues.Where(x => x.ID == image.PraccID).FirstOrDefault();
+                    issue.Images.Add(image);
                 }
+
+                var responses = results.Read<PraccingResponse, Person, Person, PraccingResponse>((response, from, to) =>
+                {
+                    response.ResponseFrom = from;
+                    response.ResponseTo = to;
+                    return response;
+                }, splitOn: "From_By, To").ToList();
+
+                var responseImages = results.Read<PraccingImage>();
+
+                foreach (var image in responseImages)
+                {
+                    PraccingResponse response = responses.Where(x => x.ID == image.PraccID).FirstOrDefault();
+                    response.Images.Add(image);
+                }
+
+                foreach (PraccingResponse response in responses)
+                {
+                    PraccingIssue issue = issues.Where(x => x.ID == response.IssueID).FirstOrDefault();
+                    issue.Responses.Add(response);
+                }
+                
+
+                
             }
 
             return issues;
@@ -495,36 +278,15 @@ namespace ITCLib
         /// <returns></returns>
         public static List<PraccingImage> GetPraccingImages(int praccingID)
         {
-            List<PraccingImage> images = new List<PraccingImage>();
+            List<PraccingImage> images;
 
-            string query = "SELECT * FROM qryPraccingImages WHERE PraccID = @id";
+            string query = "SELECT ID, PraccID, ImagePath AS Path FROM qryPraccingImages WHERE PraccID = @id";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
+                var parameters = new { id = praccingID };
 
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@id", praccingID);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            PraccingImage image = new PraccingImage((int)rdr["ID"], (string)rdr["ImagePath"]);
-                            image.PraccID = (int)rdr["PraccID"];
-
-                            images.Add(image);
-                        }
-
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
+                images = db.Query<PraccingImage>(query, parameters).ToList();
             }
 
             return images;
@@ -538,34 +300,13 @@ namespace ITCLib
         {
             List<PraccingImage> images = new List<PraccingImage>();
 
-            string query = "SELECT * FROM tblPraccingResponseImages WHERE PraccResponseID = @id";
+            string query = "SELECT ID, PraccResponseID AS PraccID, ImagePath AS Path FROM tblPraccingResponseImages WHERE PraccResponseID = @id";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
+                var parameters = new { id = praccResponseID };
 
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@id", praccResponseID);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            PraccingImage image = new PraccingImage((int)rdr["ID"], (string)rdr["ImagePath"]);
-                            image.PraccID = (int)rdr["PraccResponseID"];
-
-                            images.Add(image);
-                        }
-
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
+                images = db.Query<PraccingImage>(query, parameters).ToList();
             }
 
             return images;

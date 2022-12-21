@@ -1085,7 +1085,7 @@ namespace ITCLib
         public static bool VarNameIsUsed(string varname)
         {
             bool result = false; ;
-            string query = "SELECT FN_VarNameUsed(@varname)";
+            string query = "SELECT dbo.FN_VarNameUsed (@varname)";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
             using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
