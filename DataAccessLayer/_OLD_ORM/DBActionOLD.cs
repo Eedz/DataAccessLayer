@@ -277,5 +277,51 @@ namespace DataAccessLayer._OLD_ORM
 
             return count;
         }
+
+        /// <summary>
+        /// Returns a list of survey waves.
+        /// </summary>
+        /// <returns></returns>
+        public static List<StudyWaveRecord> GetWaveInfoD()
+        {
+            List<StudyWaveRecord> waves = new List<StudyWaveRecord>();
+            StudyWaveRecord w;
+            string query = "SELECT * FROM FN_GetAllWaves() ORDER BY ISO_Code, Wave";
+
+            using (SqlDataAdapter sql = new SqlDataAdapter())
+            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            {
+                conn.Open();
+
+                sql.SelectCommand = new SqlCommand(query, conn);
+
+                try
+                {
+                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
+                    {
+                        while (rdr.Read())
+                        {
+                            w = new StudyWaveRecord()
+                            {
+                                ID = (int)rdr["WaveID"],
+                                ISO_Code = rdr.SafeGetString("ISO_Code"),
+                                Wave = (double)rdr["Wave"],
+                                StudyID = (int)rdr["CountryID"],
+                                EnglishRouting = (bool)rdr["EnglishRouting"],
+                                Countries = rdr.SafeGetString("Countries")
+                            };
+
+                            waves.Add(w);
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.Write(e.Message);
+                }
+            }
+
+            return waves;
+        }
     }
 }

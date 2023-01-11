@@ -419,92 +419,34 @@ namespace ITCLib
         /// Returns a list of survey waves.
         /// </summary>
         /// <returns></returns>
-        public static List<StudyWaveRecord> GetWaveInfoD()
-        {
-            List<StudyWaveRecord> waves = new List<StudyWaveRecord>();
-            StudyWaveRecord w;
-            string query = "SELECT * FROM FN_GetAllWaves() ORDER BY ISO_Code, Wave";
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            w = new StudyWaveRecord()
-                            {
-                                ID = (int)rdr["WaveID"],
-                                ISO_Code = rdr.SafeGetString("ISO_Code"),
-                                Wave = (double)rdr["Wave"],
-                                StudyID = (int)rdr["CountryID"],
-                                EnglishRouting = (bool)rdr["EnglishRouting"],
-                                Countries = rdr.SafeGetString("Countries")
-                            };
-
-                            waves.Add(w);
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    Console.Write(e.Message);
-                }
-            }
-
-            return waves;
-        }
-
-        /// <summary>
-        /// Returns a list of survey waves.
-        /// </summary>
-        /// <returns></returns>
         public static List<StudyWaveRecord> GetWaveInfo()
         {
             List<StudyWaveRecord> waves = new List<StudyWaveRecord>();
-  
+
             string sql = "SELECT W.ID, Wave, ISO_Code, Countries, EnglishRouting, W.CountryID AS StudyID " +
-                ",FieldworkStart AS [Start], FieldworkEnd AS [End] " +
                 "FROM tblProjectWaves AS W LEFT JOIN tblCountryCode AS C ON W.CountryID = C.ID " +
-                "LEFT JOIN tblFieldworkDates AS D ON W.ID = D.WaveID LEFT JOIN tblCountry AS C2 ON D.CountryID = C2.ID " +
-                "ORDER BY ISO_Code, Wave";
+                "ORDER BY ISO_Code, Wave;" +
+                "SELECT WaveID, StudyWave, Country, CountryID, FieldworkStart, FieldworkEnd FROM qryFieldworkDates";
 
             using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                Dictionary<int, StudyWaveRecord> finalList = new Dictionary<int, StudyWaveRecord>();
+                var results = db.QueryMultiple(sql);
 
-                db.Query<StudyWaveRecord>(sql,
-                    new[] {
-                        typeof(StudyWaveRecord),
-                        typeof(Fieldwork)
-                    },
-                    obj =>
+                waves = results.Read<StudyWaveRecord>().ToList();
+                var fieldworks = results.Read().Select(x => x as IDictionary<string, object>).ToList();
+
+                foreach (IDictionary<string, object> row in fieldworks)
                 {
-                    StudyWaveRecord wave = obj[0] as StudyWaveRecord;
-                    Fieldwork work = obj[1] as Fieldwork;
-                    // wave
-                    StudyWaveRecord waveEntity;
-                    // check dictionary
-                    if (!finalList.TryGetValue(wave.ID, out waveEntity))
-                        finalList.Add(wave.ID, waveEntity = wave);
-
-                    // fieldwork
-                    if (work != null)
+                    var w = waves.Where(x => x.ID == (int)row["WaveID"]).FirstOrDefault();
+                    if (w == null) continue;
+                    Fieldwork f = new Fieldwork()
                     {
-                        waveEntity.FieldworkDates.Add(work);
-                    }
-
-
-                    return waveEntity;
-                },
-                splitOn: "Start");
-                waves  = finalList.Values.ToList();
+                        Country = new ITCCountry() { CountryName = (string)row["Country"] },
+                        Start = (DateTime?)row["FieldworkStart"],
+                        End = (DateTime?)row["FieldworkEnd"]
+                    };
+                    w.FieldworkDates.Add(f);
+                }
             }
 
             return waves;
