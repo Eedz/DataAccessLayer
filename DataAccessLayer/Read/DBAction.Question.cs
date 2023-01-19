@@ -411,7 +411,7 @@ namespace ITCLib
 
 
             string sql = "SELECT ID, Survey AS SurveyCode, Qnum, PreP# AS PrePNum, PreP, PreI# AS PreINum, PreI, PreA# AS PreANum, PreA, LitQ# AS LitQNum, LitQ, " +
-                    "PstI# AS PstINum, PstI, PstP# AS PstPNum, RespName, RespOptions, NRName, NRCodes, TableFormat, CorrectedFlag, ScriptOnly, AltQnum, AltQnum2, AltQnum3, " +
+                    "PstI# AS PstINum, PstI, PstP# AS PstPNum, PstP, RespName, RespOptions, NRName, NRCodes, TableFormat, CorrectedFlag, ScriptOnly, AltQnum, AltQnum2, AltQnum3, " +
                     "VarName, VarLabel, " +
                     "DomainNum, DomainNum AS ID, Domain AS LabelText, " +
                     "TopicNum, TopicNum AS ID, Topic AS LabelText, " +
@@ -566,12 +566,13 @@ namespace ITCLib
             QuestionUsage q;
             string query = "SELECT refVarName, VarName, PreP, PreI, PreA, LitQ, PstI, PstP, RespOptions, NRCodes, STUFF((SELECT  ',' + Survey " +
                             "FROM qrySurveyQuestions SQ2 " +
-                            "WHERE VarName = sq1.VarName " +
+                            "WHERE VarName = sq1.VarName AND PreP = sq1.PreP AND PreI = sq1.PreI AND PreA = sq1.PreA AND LitQ=sq1.LitQ AND " +
+                                "PstI = sq1.PstI AND PstP = sq1.PstP AND Respoptions = sq1.RespOptions AND NRCodes = sq1.NRCodes " +
                             "GROUP BY SQ2.Survey " +
                             "ORDER BY Survey " +
                             "FOR XML PATH(''), TYPE).value('text()[1]', 'nvarchar(max)') ,1, LEN(','), '') AS SurveyList " +
                             "FROM qrySurveyQuestions Sq1 " +
-                            "WHERE refVarName = @varname " +
+                            "WHERE VarName = @varname " +
                             "GROUP BY sq1.refVarName, VarName, PreP, PreI, PreA, LitQ, PstI, PstP, RespOptions, NRCodes " +
                             "ORDER BY refVarName";
 
@@ -581,7 +582,7 @@ namespace ITCLib
                 conn.Open();
 
                 sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@varname", varname.RefVarName);
+                sql.SelectCommand.Parameters.AddWithValue("@varname", varname.VarName);
                 try
                 {
                     using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())

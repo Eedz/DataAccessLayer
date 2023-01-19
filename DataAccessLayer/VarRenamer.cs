@@ -142,7 +142,7 @@ namespace ITCLib
         private void UpdatePreA(RefVariableName oldname, RefVariableName newname, string survey)
         {
             // get a list of PreAs in this survey that contain the old name
-            List<Wording> preas = DBAction.GetSurveyPreI(oldname.RefVarName, survey);
+            List<Wording> preas = DBAction.GetSurveyPreA(oldname.RefVarName, survey);
 
             foreach (Wording w in preas)
             {
@@ -159,7 +159,7 @@ namespace ITCLib
         private void UpdateLitQ(RefVariableName oldname, RefVariableName newname, string survey)
         {
             // get a list of LitQs in this survey that contain the old name
-            List<Wording> litqs = DBAction.GetSurveyPreI(oldname.RefVarName, survey);
+            List<Wording> litqs = DBAction.GetSurveyLitQ(oldname.RefVarName, survey);
 
             foreach (Wording w in litqs)
             {
@@ -176,7 +176,7 @@ namespace ITCLib
         private void UpdatePstI(RefVariableName oldname, RefVariableName newname, string survey)
         {
             // get a list of PstIs in this survey that contain the old name
-            List<Wording> pstis = DBAction.GetSurveyPreI(oldname.RefVarName, survey);
+            List<Wording> pstis = DBAction.GetSurveyPstI(oldname.RefVarName, survey);
 
             foreach (Wording w in pstis)
             {
@@ -193,7 +193,7 @@ namespace ITCLib
         private void UpdatePstP(RefVariableName oldname, RefVariableName newname, string survey)
         {
             // get a list of PstPs in this survey that contain the old name
-            List<Wording> pstps = DBAction.GetSurveyPreI(oldname.RefVarName, survey);
+            List<Wording> pstps = DBAction.GetSurveyPstP(oldname.RefVarName, survey);
 
             foreach (Wording w in pstps)
             {

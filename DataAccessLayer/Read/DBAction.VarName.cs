@@ -905,7 +905,9 @@ namespace ITCLib
                 {
 #if DEBUG
                     Console.WriteLine(ex.ToString());
+
 #endif
+                    currentName = varname;
                 }
             }
 
