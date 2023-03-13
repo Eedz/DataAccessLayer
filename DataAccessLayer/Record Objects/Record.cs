@@ -238,6 +238,80 @@ namespace ITCLib
             }
             return null;
         }
+
+        /// <summary>
+        /// </summary>
+        protected override void Renumber(int start)
+        {
+            int qLet = 0;
+            int hcount = 0;
+            int i;
+            int counter = 0;
+            QuestionType qType;
+
+            int currQnum;
+            string newQnum;
+
+            currQnum = start;
+
+            foreach (SurveyQuestion sq in Questions)
+            {
+                qType = Utilities.GetQuestionType(sq);
+
+                // increment either the letter or the number, count headings
+                switch (qType)
+                {
+                    case QuestionType.Series:
+                        qLet++;
+                        hcount = 0;
+                        break;
+                    case QuestionType.Standalone:
+                        currQnum++;
+                        qLet = 1;
+                        hcount = 0;
+                        break;
+                    case QuestionType.Heading:
+                        hcount++;
+                        break;
+                    case QuestionType.Subheading:
+                        hcount++;
+                        break;
+                }
+
+                newQnum = currQnum.ToString("000");
+
+                if (qType != QuestionType.Standalone)
+                {
+                    newQnum += new string('z', (qLet - 1) / 26);
+                    newQnum += Char.ConvertFromUtf32(96 + qLet - 26 * ((qLet - 1) / 26));
+
+                }
+
+                if (hcount > 0)
+                    newQnum += "!" + hcount.ToString("000");
+
+                sq.Qnum = newQnum;
+
+                // add 'a' to series starters
+                if (qType == QuestionType.Standalone)
+                {
+                    i = counter;
+
+                    do
+                    {
+                        if (i < Questions.Count - 1)
+                            i++;
+                        else
+                            break;
+
+                    } while (Utilities.GetQuestionType(Questions[i]) == QuestionType.Heading || Utilities.GetQuestionType(Questions[i]) == QuestionType.InterviewerNote);
+
+                    if (Utilities.GetQuestionType(Questions[i]) == QuestionType.Series)
+                        sq.Qnum += "a";
+                }
+                counter++;
+            }
+        }
     }
 
     

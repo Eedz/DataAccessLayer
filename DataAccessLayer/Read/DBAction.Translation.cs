@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Data;
 using System.Data.SqlClient;
 using System.Configuration;
-
+using Dapper;
 namespace ITCLib
 {
     partial class DBAction
@@ -16,397 +14,169 @@ namespace ITCLib
         //
         // 
 
+        #region Reviewed
         /// <summary>
         /// Returns a list of translations for a particular survey and language.
         /// </summary>
-        /// <param name="SurvID"></param>
+        /// <param name="survey"></param>
         /// <param name="language"></param>
         /// <returns></returns>
-        public static List<Translation> GetSurveyTranslation(int SurvID, string language)
+        public static List<Translation> GetSurveyTranslation(string survey, string language)
         {
             List<Translation> ts = new List<Translation>();
-            Translation t;
-            string query = "SELECT * FROM Translations.FN_GetSurveyTranslations(@sid, @language)";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            string sql = "SELECT ID, QID, Survey, VarName, [Translation] AS TranslationText, LitQ, Bilingual, " +
+                "LanguageID, LanguageID AS ID, Lang AS LanguageName, Abbrev, ISOAbbrev, NonLatin, RTL, PreferredFont " +
+                "FROM qryTranslation WHERE Survey = @survey AND Lang = @language;";
+                
+            var parameters = new { survey, language };
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@sid", SurvID);
-                sql.SelectCommand.Parameters.AddWithValue("@language", language);
-
-                try
+                ts = db.Query<Translation, Language, Translation>(sql, (translation, lang) =>
                 {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            t = new Translation
-                            {
-                                ID = (int)rdr["ID"],
-                                QID = (int)rdr["QID"],
-                                Language = (string)rdr["Lang"],
-                                LanguageName = new Language() { LanguageName = (string)rdr["Lang"] },
-                                TranslationText = (string)rdr["Translation"],
-                                Bilingual = (bool)rdr["Bilingual"]
-                            };
+                    translation.LanguageName = lang;
+                    return translation;
+                }, parameters, splitOn: "LanguageID").ToList();
 
-                            if (t.Language.Equals("Arabic") || t.Language.Equals("Hebrew"))
-                                t.LanguageName.RTL = true;
-                                
-                            ts.Add(t);
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
             }
 
             return ts;
         }
 
         /// <summary>
-        /// Returns a list of translations for a particular survey and language.
+        /// Returns a list of translations for a particular survey, varname and language.
         /// </summary>
-        /// <param name="SurvID"></param>
+        /// <param name="survey"></param>
+        /// <param name="varname"></param>
         /// <param name="language"></param>
         /// <returns></returns>
         public static Translation GetSurveyTranslation(string survey, string varname, string language)
         {
-            Translation t = new Translation();
+            Translation t;
 
-            string query = "SELECT * FROM qryTranslation WHERE Survey= @survey AND VarName =@varname AND Lang= @language";
+            string sql = "SELECT ID, QID, Survey, VarName, [Translation] AS TranslationText, LitQ, Bilingual, " +
+                "LanguageID, LanguageID AS ID, Lang AS LanguageName, Abbrev, ISOAbbrev, NonLatin, RTL, PreferredFont " +
+                "FROM qryTranslation WHERE Survey = @survey AND VarName =@varname AND Lang = @language;";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            var parameters = new { survey, varname, language };
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@survey", survey);
-                sql.SelectCommand.Parameters.AddWithValue("@varname", varname);
-                sql.SelectCommand.Parameters.AddWithValue("@language", language);
-
-                try
+                t = db.Query<Translation, Language, Translation>(sql, (translation, lang) =>
                 {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            t.ID = (int)rdr["ID"];
-                            t.QID = (int)rdr["QID"];
-                            t.Language = rdr.SafeGetString("Lang");
-                            t.TranslationText = rdr.SafeGetString("Translation");
-                            t.Bilingual = (bool)rdr["Bilingual"];
-                           
-                     
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-                    return null;
-                }
+                    translation.LanguageName = lang;
+                    return translation;
+                }, parameters, splitOn: "LanguageID").FirstOrDefault();
+
             }
 
             return t;
         }
 
         /// <summary>
-        /// Returns the list of all languages used by surveys.
+        /// Returns the list of languages.
         /// </summary>
-        /// <param name="s"></param>
         /// <returns></returns>
-        public static List<string> GetLanguages()
+        public static List<Language> GetLanguages()
         {
-            List<string> langs = new List<string>();
-            string query = "SELECT Lang FROM qryTranslation GROUP BY Lang ORDER BY Lang";
+            List<Language> languages;
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            string sql = "SELECT ID, [Lang] AS LanguageName, [Abbrev], [ISOAbbrev], [NonLatin], [PreferredFont], [RTL] " +
+                "FROM tblLanguage ORDER BY Lang;";
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-                sql.SelectCommand = new SqlCommand(query, conn);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            if (!rdr.IsDBNull(rdr.GetOrdinal("Lang")))
-                                langs.Add((string)rdr["Lang"]);
-
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
+                languages = db.Query<Language>(sql).ToList();
             }
-            return langs;
+
+            return languages;
         }
 
         /// <summary>
-        /// Returns the list of languages used by a survey.
+        /// Returns the list of languages.
         /// </summary>
-        /// <param name="s"></param>
-        /// <returns></returns>
-        public static List<string> GetLanguages(Survey s)
-        {
-            List<string> langs = new List<string>();
-            string query = "SELECT Lang FROM Translations.FN_GetSurveyLanguages(@sid)";
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@sid", s.SID);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            if (!rdr.IsDBNull(rdr.GetOrdinal("Lang")))
-                                langs.Add((string)rdr["Lang"]);
-
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
-            }
-            return langs;
-        }
-
-        /// <summary>
-        /// Returns the list of all languages used by surveys.
-        /// </summary>
-        /// <param name="s"></param>
         /// <returns></returns>
         public static List<Language> ListLanguages()
         {
-            List<Language> langs = new List<Language>();
-            string query = "SELECT * FROM Translations.FN_GetLanguages() Lang ORDER BY Lang";
+            List<Language> languages;
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            string sql = "SELECT ID, [Lang] AS LanguageName, [Abbrev], [ISOAbbrev], [NonLatin], [PreferredFont], [RTL] " +
+                "FROM tblLanguage ORDER BY Lang;";
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-                sql.SelectCommand = new SqlCommand(query, conn);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            Language l = new Language();
-                            l.ID = (int)rdr["ID"];
-                            l.LanguageName = rdr.SafeGetString("Lang");
-                            l.Abbrev = rdr.SafeGetString("Abbrev");
-                            l.ISOAbbrev = rdr.SafeGetString("ISOAbbrev");
-                            l.NonLatin = (bool)rdr["NonLatin"];
-                            l.PreferredFont = rdr.SafeGetString("PreferredFont");
-                            l.RTL = (bool)rdr["RTL"];
-
-                            langs.Add(l);
-
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
+                languages = db.Query<Language>(sql).ToList();
             }
-            return langs;
-        }
 
-        /// <summary>
-        /// Returns the list of all languages used by surveys.
-        /// </summary>
-        /// <param name="s"></param>
-        /// <returns></returns>
-        public static List<Language> ListLanguages(Survey surv)
-        {
-            List<Language> langs = new List<Language>();
-            string query = "SELECT * FROM Translations.FN_GetLanguagesSID(@sid) ORDER BY Lang";
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@sid", surv.SID);
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            Language l = new Language();
-                            l.ID = (int)rdr["ID"];
-                            l.LanguageName = rdr.SafeGetString("Lang");
-                            l.Abbrev = rdr.SafeGetString("Abbrev");
-                            l.ISOAbbrev = rdr.SafeGetString("ISOAbbrev");
-                            l.NonLatin = (bool)rdr["NonLatin"];
-                            l.PreferredFont = rdr.SafeGetString("PreferredFont");
-                            l.RTL = (bool)rdr["RTL"];
-
-                            langs.Add(l);
-
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
-            }
-            return langs;
-        }
-
-        /// <summary>
-        /// Returns the list of all languages used by surveys.
-        /// </summary>
-        /// <param name="s"></param>
-        /// <returns></returns>
-        public static List<Language> ListLanguages(StudyWaveRecord wave)
-        {
-            List<Language> langs = new List<Language>();
-            string query = "SELECT * FROM Translations.FN_GetLanguagesWID(@wid) ORDER BY Lang";
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@wid", wave.ID);
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            Language l = new Language();
-                            l.ID = (int)rdr["ID"];
-                            l.LanguageName = rdr.SafeGetString("Lang");
-                            l.Abbrev = rdr.SafeGetString("Abbrev");
-                            l.ISOAbbrev = rdr.SafeGetString("ISOAbbrev");
-                            l.NonLatin = (bool)rdr["NonLatin"];
-                            l.PreferredFont = rdr.SafeGetString("PreferredFont");
-                            l.RTL = (bool)rdr["RTL"];
-
-                            langs.Add(l);
-
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
-            }
-            return langs;
+            return languages;
         }
 
         /// <summary>
         /// Returns the list of languages used by a survey.
+        /// </summary>
+        /// <param name="surv"></param>
+        /// <returns></returns>
+        public static List<Language> ListLanguages(Survey surv)
+        {
+            List<Language> languages = new List<Language>();
+            string sql = "SELECT ID, Lang AS LanguageName, Abbrev, ISOAbbrev, NonLatin, PreferredFont, RTL " +
+                "FROM Translations.FN_GetLanguagesSID(@sid) ORDER BY Lang;";
+            var parameters = new { sid = surv.SID };
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            {
+                languages = db.Query<Language>(sql, parameters).ToList();
+            }
+
+            return languages;
+        }
+
+        /// <summary>
+        /// Returns the list of languages used by surveys in a wave.
+        /// </summary>
+        /// <param name="wave"></param>
+        /// <returns></returns>
+        public static List<Language> ListLanguages(StudyWaveRecord wave)
+        {
+            List<Language> languages = new List<Language>();
+            string sql = "SELECT ID, Lang AS LanguageName, Abbrev, ISOAbbrev, NonLatin, PreferredFont, RTL " +
+                "FROM Translations.FN_GetLanguagesWID(@wid) ORDER BY Lang;";
+
+            var parameters = new { wid = wave.ID };
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            {
+                languages = db.Query<Language>(sql, parameters).ToList();
+            }
+
+            return languages;
+        }
+
+        /// <summary>
+        /// Returns the list of survey language records for a survey.
         /// </summary>
         /// <param name="s"></param>
         /// <returns></returns>
         public static List<SurveyLanguage> GetSurveyLanguages(Survey s)
         {
-            List<SurveyLanguage> langs = new List<SurveyLanguage>();
-            string query = "SELECT * FROM qrySurveyLanguages AS SL INNER JOIN qryLanguage AS L ON SL.LanguageID = L.ID WHERE SurvID = @sid";
+            List<SurveyLanguage> languages = new List<SurveyLanguage>();
+            string sql = "SELECT SL.ID, SL.SurvID, " +
+                "SL.LanguageID, L.ID, L.Lang AS LanguageName, L.Abbrev, L.ISOAbbrev, L.NonLatin, L.PreferredFont, L.RTL " +
+                "FROM qrySurveyLanguages AS SL INNER JOIN qryLanguage AS L ON SL.LanguageID = L.ID WHERE SurvID = @sid";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            var parameters = new { sid = s.SID };
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@sid", s.SID);
 
-                try
+                languages = db.Query<SurveyLanguage, Language, SurveyLanguage>(sql, (survLang, lang) =>
                 {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            SurveyLanguage sl = new SurveyLanguage();
-                            sl.ID = (int)rdr["ID"];
-                            sl.SurvID = (int)rdr["SurvID"];
-                            sl.SurvLanguage = new Language()
-                            {
-                                ID = (int)rdr["ID"],
-                                LanguageName = rdr.SafeGetString("Lang"),
-                                Abbrev = rdr.SafeGetString("Abbrev"),
-                                ISOAbbrev = rdr.SafeGetString("ISOAbbrev"),
-                                NonLatin = (bool)rdr["NonLatin"],
-                                PreferredFont = rdr.SafeGetString("PreferredFont"),
-                                RTL = (bool)rdr["RTL"]
-
-
-                        };
-
-                            langs.Add(sl); 
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
+                    survLang.SurvLanguage = lang;
+                    return survLang;
+                }, parameters, splitOn: "LanguageID").ToList();
+                
+               
             }
-            return langs;
-        }
-
-        /// <summary>
-        /// Returns the list of languages used by a survey.
-        /// </summary>
-        /// <param name="s"></param>
-        /// <returns></returns>
-        public static List<string> GetLanguages(StudyWaveRecord s)
-        {
-            List<string> langs = new List<string>();
-            string query = "SELECT Lang FROM Translations.FN_GetWaveLanguages(@wid) GROUP BY Lang";
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@wid", s.ID);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            if (!rdr.IsDBNull(rdr.GetOrdinal("Lang")))
-                                langs.Add((string)rdr["Lang"]);
-
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    Console.Write(e.Message);
-                }
-            }
-            return langs;
+            return languages;
         }
 
         /// <summary>
@@ -414,155 +184,55 @@ namespace ITCLib
         /// </summary>
         /// <param name="QID"></param>
         /// <returns></returns>
-        public static List<Translation> GetQuestionTranslations(int QID)
+        public static List<Translation> GetQuestionTranslations (int QID)
         {
-            Translation t;
             List<Translation> list = new List<Translation>();
-            string query = "SELECT * FROM Translations.FN_GetQuestionTranslations(@qid, null)";
+            string sql = "SELECT ID, QID, Survey, VarName, [Translation] AS TranslationText, LitQ, Bilingual, " +
+                "LanguageID, LanguageID AS ID, Lang AS LanguageName, Abbrev, ISOAbbrev, NonLatin, RTL, PreferredFont " +
+                "FROM qryTranslation WHERE QID = @qid;";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            var parameters = new { qid = QID };
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@qid", QID);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            t = new Translation
-                            {
-                                ID = (int)rdr["ID"],
-                                QID = (int)rdr["QID"],
-                                Survey = (string)rdr["Survey"],
-                                VarName = (string)rdr["VarName"],
-                                Language = (string)rdr["Lang"],
-                                LanguageName = new Language() { LanguageName = (string)rdr["Lang"] },
-                                TranslationText = (string)rdr["Translation"],
-                                Bilingual = (bool)rdr["Bilingual"]
-                            };
-
-                            if (t.Language.Equals("Arabic") || t.Language.Equals("Hebrew"))
-                                t.LanguageName.RTL = true;
-
-                            list.Add(t);
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
+                list = db.Query<Translation, Language, Translation> (sql, (translation, language) => {
+                        translation.LanguageName = language;
+                        return translation;
+                    }, parameters, splitOn: "LanguageID").ToList();
             }
 
             return list;
         }
 
         /// <summary>
-        /// Returns the list of translations for a single question.
+        /// Returns the translation for a single question in a specified language.
         /// </summary>
         /// <param name="QID"></param>
         /// <returns></returns>
-        public static List<TranslationRecord> GetQuestionTranslationRecords(int QID)
+        public static Translation GetQuestionTranslations(int QID, string language)
         {
-            TranslationRecord t;
-            List<TranslationRecord> list = new List<TranslationRecord>();
-            string query = "SELECT * FROM Translations.FN_GetQuestionTranslations(@qid, null)";
+            Translation translation;
+            string sql = "SELECT ID, QID, Survey, VarName, [Translation] AS TranslationText, LitQ, Bilingual, " +
+                "LanguageID, LanguageID AS ID, Lang AS LanguageName, Abbrev, ISOAbbrev, NonLatin, RTL, PreferredFont " +
+                "FROM qryTranslation WHERE QID = @qid AND Lang = @language;";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            var parameters = new { qid = QID, language };
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@qid", QID);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            t = new TranslationRecord
-                            {
-                                ID = (int)rdr["ID"],
-                                QID = (int)rdr["QID"],
-                                Survey = (string)rdr["Survey"],
-                                VarName = (string)rdr["VarName"],
-                                Language = (string)rdr["Lang"],
-                                LanguageName = new Language() { LanguageName = (string)rdr["Lang"] },
-                                TranslationText = (string)rdr["Translation"],
-                                Bilingual = (bool)rdr["Bilingual"]
-                            };
-
-                            if (t.Language.Equals("Arabic") || t.Language.Equals("Hebrew"))
-                                t.LanguageName.RTL = true;
-
-                            list.Add(t);
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
+                translation = db.Query<Translation, Language, Translation>(sql, (t, lang) => {
+                    t.LanguageName = lang;
+                    return t;
+                }, parameters, splitOn: "LanguageID").FirstOrDefault();
             }
 
-            return list;
+            return translation;
         }
+        #endregion
 
-        /// <summary>
-        /// Returns the list of translations for a single question.
-        /// </summary>
-        /// <param name="QID"></param>
-        /// <param name="language"></param>
-        /// <returns></returns>
-        public static List<Translation> GetQuestionTranslations(int QID, string language)
-        {
-            Translation t;
-            List<Translation> list = new List<Translation>();
-            string query = "SELECT * FROM Translations.FN_GetQuestionTranslations(@qid, @language)";
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@qid", QID);
-                sql.SelectCommand.Parameters.AddWithValue("@language", language);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            t = new Translation
-                            {
-                                ID = (int)rdr["ID"],
-                                QID = (int)rdr["QID"],
-                                Language = (string)rdr["Lang"],
-                                TranslationText = (string)rdr["Translation"],
-                                Bilingual = (bool)rdr["Bilingual"]
-                            };
-
-                            list.Add(t);
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
-            }
-
-            return list;
-        }
+        //
+        // Fill Methods
+        //
 
         /// <summary>
         /// Returns a list of questions from a backup database.
@@ -595,7 +265,11 @@ namespace ITCLib
                 t.ID = (int)r["ID"];
                 t.QID = (int)Math.Floor((double)r["QID"]);
                 if (!DBNull.Value.Equals(r["Translation"])) t.TranslationText = (string)r["Translation"];
-                if (!DBNull.Value.Equals(r["Lang"])) t.Language = (string)r["Lang"];
+                if (!DBNull.Value.Equals(r["Lang"]))
+                {
+                    t.Language = (string)r["Lang"];
+                    t.LanguageName = new Language() { LanguageName = "Lang" };
+                }
                 if (!DBNull.Value.Equals(r["LitQ"])) t.LitQ = (string)r["LitQ"];
 
                 SurveyQuestion q = s.QuestionByID(t.QID);
@@ -606,57 +280,5 @@ namespace ITCLib
                 q.Translations.Add(t);
             }
         }
-
-
-        //
-        // Fill Methods
-        //
-
-        /// <summary>
-        /// Populates the provided Survey's questions with translations.
-        /// </summary>
-        /// <param name="s"></param>
-        /// <param name="language"></param>
-        public static void FillTranslationsBySurvey(Survey s, string language)
-        {
-            Translation t;
-            string query = "SELECT * FROM Translations.FN_GetSurveyTranslations(@sid, @language)";
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@sid", s.SID);
-                sql.SelectCommand.Parameters.AddWithValue("@language", language);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            t = new Translation
-                            {
-                                ID = (int)rdr["ID"],
-                                QID = (int)rdr["QID"],
-                                Language = (string)rdr["Lang"],
-                                TranslationText = (string)rdr["Translation"],
-                                Bilingual = (bool)rdr["Bilingual"]
-                            };
-                            s.QuestionByID(t.QID).Translations.Add(t);
-
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-                    return;
-                }
-            }
-
-        }
-
-        
     }
 }

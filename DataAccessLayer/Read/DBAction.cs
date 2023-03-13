@@ -17,6 +17,8 @@ namespace ITCLib
     /// </summary>
     public static partial class DBAction
     {
+
+
         /// <summary>
         /// Returns the list of people.
         /// </summary>
@@ -426,7 +428,7 @@ namespace ITCLib
             string sql = "SELECT W.ID, Wave, ISO_Code, Countries, EnglishRouting, W.CountryID AS StudyID " +
                 "FROM tblProjectWaves AS W LEFT JOIN tblCountryCode AS C ON W.CountryID = C.ID " +
                 "ORDER BY ISO_Code, Wave;" +
-                "SELECT WaveID, StudyWave, Country, CountryID, FieldworkStart, FieldworkEnd FROM qryFieldworkDates";
+                "SELECT WaveID, StudyWave, Country, CountryID, FieldworkStart, FieldworkEnd FROM qryFieldworkDates WHERE NOT CountryID IS NULL";
 
             using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {

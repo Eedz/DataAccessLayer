@@ -11,6 +11,22 @@ namespace ITCLib
         public bool Dirty { get; set; }
         public bool NewRecord { get; set; }
 
+        public TranslationRecord() : base()
+        { }
+
+
+        public TranslationRecord (Translation t)
+        {
+            this.ID = t.ID;
+            this.Survey = t.Survey;
+            this.VarName = t.VarName;
+            this.Language = t.Language;
+            this.LanguageName = t.LanguageName;
+            this.LitQ = t.LitQ;
+            this.TranslationText = t.TranslationText;
+            this.Bilingual = t.Bilingual;
+        }
+
         public int SaveRecord()
         {
             if (NewRecord)

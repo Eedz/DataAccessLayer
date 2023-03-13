@@ -6,589 +6,358 @@ using System.Threading.Tasks;
 using System.Configuration;
 using System.Data.SqlClient;
 using System.Data;
-
+using Dapper;
+    
 namespace ITCLib
 {
     public static partial class DBAction
     {
-        public static int DeleteSurvey (SurveyRecord s)
+
+        /// <summary>
+        /// General form for delete methods
+        /// </summary>
+        /// <returns></returns>
+        //static public int DeleteRecord<T>(T record)
+        //{
+        //    int rowsAffected = 0;
+
+        //    string sql = "DELETE FROM [TableName] WHERE ID = @ID;";
+        //    var parameters = new { ID = record.ID };
+        //    using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+        //    {
+        //        rowsAffected = db.Execute(sql, parameters);
+        //    }
+        //    return rowsAffected;
+        //}
+
+        public static int DeleteRecord(StudyRecord r)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            int rowsAffected = 0;
+
+            string sql = "proc_deleteStudy";
+            var parameters = new { studyID = r.ID };
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.DeleteCommand = new SqlCommand("proc_deleteSurvey", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.DeleteCommand.Parameters.AddWithValue("@survID", s.SID);
-                
-
-                try
-                {
-                    sql.DeleteCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+                rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
             }
             return 0;
         }
 
-        public static int DeleteWave(StudyWaveRecord w)
+        public static int DeleteRecord(StudyWaveRecord r)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            int rowsAffected = 0;
+
+            string sql = "proc_deleteWave";
+            var parameters = new { ID = r.ID };
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
+                rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
+            }
 
-                sql.DeleteCommand = new SqlCommand("proc_deleteWave", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
+            return 0;
+        }
 
-                sql.DeleteCommand.Parameters.AddWithValue("@ID", w.ID);
+        public static int DeleteRecord(SurveyRecord r)
+        {
+            int rowsAffected = 0;
 
+            string sql = "proc_deleteSurvey";
+            var parameters = new { survID = r.SID };
 
-                try
-                {
-                    sql.DeleteCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            {
+                rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
             }
             return 0;
         }
 
-        public static int DeleteSurveyLanguage(SurveyLanguage survLang)
+        public static int DeleteRecord(SurveyLanguage r)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            int rowsAffected = 0;
+
+            string sql = "DELETE FROM tblSurveyLanguages WHERE ID = @ID";
+            var parameters = new { ID = r.ID };
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.DeleteCommand = new SqlCommand("DELETE FROM tblSurveyLanguages WHERE ID = @id", conn)
-                {
-                    CommandType = CommandType.Text
-                };
-
-                sql.DeleteCommand.Parameters.AddWithValue("@id", survLang.ID);
-
-
-                try
-                {
-                    sql.DeleteCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+                rowsAffected = db.Execute(sql, parameters);
             }
+
             return 0;
         }
 
-        public static int DeleteSurveyUserState(SurveyUserState userState)
+        public static int DeleteRecord(SurveyUserState r)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            int rowsAffected = 0;
+
+            string sql = "DELETE FROM tblSurveyUserStates WHERE ID = @ID";
+            var parameters = new { ID = r.ID };
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.DeleteCommand = new SqlCommand("DELETE FROM tblSurveyUserStates WHERE ID = @id", conn)
-                {
-                    CommandType = CommandType.Text
-                };
-
-                sql.DeleteCommand.Parameters.AddWithValue("@id", userState.ID);
-
-
-                try
-                {
-                    sql.DeleteCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+                rowsAffected = db.Execute(sql, parameters);
             }
+
             return 0;
         }
 
-        public static int DeleteSurveyScreenedProduct(SurveyScreenedProduct product)
+        public static int DeleteRecord(SurveyScreenedProduct r)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            int rowsAffected = 0;
+
+            string sql = "DELETE FROM tblScreenedProducts WHERE ID = @ID";
+            var parameters = new { ID = r.ID };
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.DeleteCommand = new SqlCommand("DELETE FROM tblScreendProducts WHERE ID = @id", conn)
-                {
-                    CommandType = CommandType.Text
-                };
-
-                sql.DeleteCommand.Parameters.AddWithValue("@id", product.ID);
-
-
-                try
-                {
-                    sql.DeleteCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+                rowsAffected = db.Execute(sql, parameters);
             }
+
             return 0;
         }
 
         public static int DeleteQuestion (string varname, string survey)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            int rowsAffected = 0;
+
+            string sql = "proc_deleteQuestion";
+            var parameters = new { survey, varname };
+
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.DeleteCommand = new SqlCommand("proc_deleteQuestion", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.DeleteCommand.Parameters.AddWithValue("@survey", survey);
-                sql.DeleteCommand.Parameters.AddWithValue("@varname", varname);
-                
-                try
-                {
-                    sql.DeleteCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+                rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
             }
             return 0;
-            
+
         }
 
         public static int DeleteVariable(string varname)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            int rowsAffected = 0;
+
+            string sql = "proc_deleteVariable";
+            var parameters = new { varname };
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.DeleteCommand = new SqlCommand("proc_deleteVariable", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                
-                sql.DeleteCommand.Parameters.AddWithValue("@varname", varname);
-                sql.DeleteCommand.Parameters.AddWithValue("@hard", true);
-                try
-                {
-                    sql.DeleteCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+                rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
             }
             return 0;
-
         }
 
-
-        public static int DeleteRegion (int regionID)
+        public static int DeleteRecord(VariableName r)
         {
-            return 1;
-        }
+            int rowsAffected = 0;
 
-        public static int DeleteStudy(int studyID)
-        {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            string sql = "proc_deleteVariable";
+            var parameters = new { varname = r.VarName };
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.DeleteCommand = new SqlCommand("proc_deleteStudy", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.DeleteCommand.Parameters.AddWithValue("@studyID", studyID);
-
-                try
-                {
-                    sql.DeleteCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+                rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
             }
             return 0;
-
         }
 
-
-        public static int DeleteNote(int noteID)
+        public static int DeleteRecord(NoteRecord r)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            int rowsAffected = 0;
+
+            string sql = "proc_deleteNote";
+            var parameters = new { ID = r.ID };
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.DeleteCommand = new SqlCommand("proc_deleteNote", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.DeleteCommand.Parameters.AddWithValue("@ID", noteID);
-
-                try
-                {
-                    sql.DeleteCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+                rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
             }
-            return 0;
 
+            return 0;
         }
 
-        public static int DeleteQuestionComment(int commentID)
+        public static int DeleteRecord(QuestionCommentRecord r)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            int rowsAffected = 0;
+
+            string sql = "proc_deleteComment";
+            var parameters = new { ID = r.ID };
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.DeleteCommand = new SqlCommand("proc_deleteComment", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.DeleteCommand.Parameters.AddWithValue("@ID", commentID);
-
-                try
-                {
-                    sql.DeleteCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+                rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
             }
-            return 0;
 
+            return 0;
         }
 
         public static int DeleteDeletedComment(int commentID)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            int rowsAffected = 0;
+
+            string sql = "proc_deleteDeletedVarComment";
+            var parameters = new { ID = commentID };
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.DeleteCommand = new SqlCommand("proc_deleteDeletedVarComment", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.DeleteCommand.Parameters.AddWithValue("@ID", commentID);
-
-                try
-                {
-                    sql.DeleteCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+                rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
             }
-            return 0;
 
+            return 0;
         }
 
-        public static int DeleteSurveyCheckRecord(int recordID)
+        public static int DeleteRecord(SurveyCheckRec r)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            int rowsAffected = 0;
+
+            string sql = "proc_deleteSurveyCheck";
+            var parameters = new { ID = r.ID };
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.DeleteCommand = new SqlCommand("proc_deleteSurveyCheck", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.DeleteCommand.Parameters.AddWithValue("@ID", recordID);
-
-                try
-                {
-                    sql.DeleteCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+                rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
             }
-            return 0;
 
+            return 0;
         }
 
-        public static int DeleteSurveyCheckRef(int recordID)
+        public static int DeleteRecord(SurveyCheckRefSurvey r)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            int rowsAffected = 0;
+
+            string sql = "proc_deleteSurveyCheckRefSurv";
+            var parameters = new { ID = r.ID };
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.DeleteCommand = new SqlCommand("proc_deleteSurveyCheckRefSurv", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.DeleteCommand.Parameters.AddWithValue("@ID", recordID);
-
-                try
-                {
-                    sql.DeleteCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+                rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
             }
-            return 0;
 
+            return 0;
         }
 
         public static int DeleteWording(string field, int wordID)
         {
+            int rowsAffected = 0;
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            string sql = "proc_deleteWording";
+            var parameters = new { fieldname = field, ID = wordID };
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.DeleteCommand = new SqlCommand("proc_deleteWording", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.DeleteCommand.Parameters.AddWithValue("@fieldname", field);
-                sql.DeleteCommand.Parameters.AddWithValue("@ID", wordID);
-
-                try
-                {
-                    sql.DeleteCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+                rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
             }
+
             return 0;
         }
 
-        public static int DeleteResponseSet(ResponseSet responseset)
+        public static int DeleteRecord(ResponseSet responseset)
         {
+            int rowsAffected = 0;
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            string sql = "proc_deleteResponseSet";
+            var parameters = new { fieldname = responseset.FieldName, ID = responseset.RespSetName };
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.DeleteCommand = new SqlCommand("proc_deleteResponseSet ", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.DeleteCommand.Parameters.AddWithValue("@fieldname", responseset.FieldName);
-                sql.DeleteCommand.Parameters.AddWithValue("@ID", responseset.RespSetName);
-
-                try
-                {
-                    sql.DeleteCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+                rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
             }
+
             return 0;
         }
 
-        public static int DeletePraccingIssue(int recordID)
+        public static int DeleteRecord(PraccingIssue r)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            int rowsAffected = 0;
+
+            string sql = "DELETE FROM tblIssuesTracking WHERE ID = @ID";
+            var parameters = new { ID = r.ID };
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.DeleteCommand = new SqlCommand("DELETE FROM tblIssuesTracking WHERE ID = @ID", conn)
-                {
-                    CommandType = CommandType.Text
-                };
-
-                sql.DeleteCommand.Parameters.AddWithValue("@ID", recordID);
-
-                try
-                {
-                    sql.DeleteCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+                rowsAffected = db.Execute(sql, parameters);
             }
-            return 0;
 
+            return 0;
         }
 
-        public static int DeletePraccingImage(int recordID)
+        public static int DeleteRecord(PraccingImage r)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            int rowsAffected = 0;
+
+            string sql = "DELETE FROM tblPraccingImages WHERE ID = @ID";
+            var parameters = new { ID = r.ID };
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.DeleteCommand = new SqlCommand("DELETE FROM tblPraccingImages WHERE ID = @ID", conn)
-                {
-                    CommandType = CommandType.Text
-                };
-
-                sql.DeleteCommand.Parameters.AddWithValue("@ID", recordID);
-
-                try
-                {
-                    sql.DeleteCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+                rowsAffected = db.Execute(sql, parameters);
             }
-            return 0;
 
+            return 0;
         }
 
-        public static int DeletePraccingResponse(int recordID)
+        public static int DeleteRecord(PraccingResponse r)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            int rowsAffected = 0;
+
+            string sql = "DELETE FROM tblIssuesResponses WHERE ID = @ID";
+            var parameters = new { ID = r.ID };
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.DeleteCommand = new SqlCommand("DELETE FROM tblIssuesResponses WHERE ID = @ID", conn)
-                {
-                    CommandType = CommandType.Text
-                };
-
-                sql.DeleteCommand.Parameters.AddWithValue("@ID", recordID);
-
-                try
-                {
-                    sql.DeleteCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+                rowsAffected = db.Execute(sql, parameters);
             }
-            return 0;
 
+            return 0;
         }
 
-        public static int DeletePraccingResponseImage(int recordID)
+        public static int DeletePraccResponseImage(PraccingImage r)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            int rowsAffected = 0;
+
+            string sql = "DELETE FROM tblPraccingResponseImages WHERE ID = @ID";
+            var parameters = new { ID = r.ID };
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.DeleteCommand = new SqlCommand("DELETE FROM tblPraccingResponseImages WHERE ID = @ID", conn)
-                {
-                    CommandType = CommandType.Text
-                };
-
-                sql.DeleteCommand.Parameters.AddWithValue("@ID", recordID);
-
-                try
-                {
-                    sql.DeleteCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+                rowsAffected = db.Execute(sql, parameters);
             }
-            return 0;
 
+            return 0;
         }
 
-        public static int DeleteSurveyProcessingDate(int recordID)
+        public static int DeleteRecord(SurveyProcessingDate r)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            int rowsAffected = 0;
+
+            string sql = "DELETE FROM tblSurveyProcessingDates WHERE ID = @ID";
+            var parameters = new { ID = r.ID };
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.DeleteCommand = new SqlCommand("DELETE FROM tblSurveyProcessingDates WHERE ID = @ID", conn)
-                {
-                    CommandType = CommandType.Text
-                };
-
-                sql.DeleteCommand.Parameters.AddWithValue("@ID", recordID);
-
-                try
-                {
-                    sql.DeleteCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+                rowsAffected = db.Execute(sql, parameters);
             }
-            return 0;
 
+            return 0;
         }
 
-
-        public static int DeleteSurveyProcessingNote(int recordID)
+        public static int DeleteRecord(SurveyProcessingNote r)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            int rowsAffected = 0;
+
+            string sql = "DELETE FROM tblSurveyProcessingNotes WHERE ID = @ID";
+            var parameters = new { ID = r.ID };
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.DeleteCommand = new SqlCommand("DELETE FROM tblSurveyProcessingNotes WHERE ID = @ID", conn)
-                {
-                    CommandType = CommandType.Text
-                };
-
-                sql.DeleteCommand.Parameters.AddWithValue("@ID", recordID);
-
-                try
-                {
-                    sql.DeleteCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+                rowsAffected = db.Execute(sql, parameters);
             }
-            return 0;
 
+            return 0;
         }
+
+        // continue dappering below
 
         public static int DeletePersonnelStudy(int recordID)
         {

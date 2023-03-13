@@ -60,7 +60,7 @@ namespace ITCLib
                 }
                 catch (Exception)
                 {
-                    
+
                 }
 
                 return changed;
@@ -77,8 +77,8 @@ namespace ITCLib
             string sql = "SELECT SurvID, Survey FROM qryRenumberedSurveys ORDER BY Survey";
             using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                var results = db.Query(sql).Select(x=>x as IDictionary<string,object>);
-                foreach (IDictionary<string,object> row in results)
+                var results = db.Query(sql).Select(x => x as IDictionary<string, object>);
+                foreach (IDictionary<string, object> row in results)
                 {
                     surveys.Add(new KeyValuePair<int, string>(Int32.Parse(row["SurvID"].ToString()), row["Survey"].ToString()));
                 }
@@ -95,15 +95,17 @@ namespace ITCLib
 
             List<SurveyRecord> surveys = new List<SurveyRecord>();
 
-            string sql = "SELECT ID AS SID, Survey AS SurveyCode, ISO_Code AS SurveyCodePrefix, SurveyTitle AS Title, CountryCode, Locked, EnglishRouting, HideSurvey, ReRun, NCT, Wave, WaveID, " +
+            string sql = "SELECT ID AS SID, Survey AS SurveyCode, ISO_Code AS SurveyCodePrefix, SurveyTitle AS Title, CountryCode, Locked, " +
+                "EnglishRouting, HideSurvey, ReRun, NCT, Wave, WaveID, " +
                 "SurveyFileName AS WebName, Languages, CreationDate " +
                 "CohortID, CohortID AS ID, Cohort, CohortCode AS Code," +
                 "Mode AS ModeID, Mode AS ID, ModeLong AS Mode, ModeAbbrev " +
-                "FROM Surveys.FN_ListAllSurveys() ORDER BY ISO_Code, Wave, Survey";
+                "FROM qrySurveyInfo ORDER BY ISO_Code, Wave, Survey;";
+                
 
             using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                surveys = db.Query<SurveyRecord, SurveyCohort, SurveyMode, SurveyRecord>(sql, 
+                surveys = db.Query<SurveyRecord, SurveyCohort, SurveyMode, SurveyRecord>(sql,
                 (survey, cohort, mode) =>
                 {
                     survey.Cohort = cohort;
@@ -124,7 +126,7 @@ namespace ITCLib
         /// <returns></returns>
         public static List<SurveyRecord> GetAllSurveysInfo()
         {
-            
+
             List<SurveyRecord> surveys = new List<SurveyRecord>();
             string query = "SELECT * FROM Surveys.FN_ListAllSurveys() ORDER BY ISO_Code, Wave, Survey";
 
@@ -158,7 +160,7 @@ namespace ITCLib
                             s.WaveID = (int)rdr["WaveID"];
                             s.WebName = rdr.SafeGetString("SurveyFileName");
                             s.CreationDate = rdr.SafeGetDate("CreationDate");
-                            
+
 
                             // language
                             if (!rdr.IsDBNull(rdr.GetOrdinal("Languages"))) s.Languages = (string)rdr["Languages"];
@@ -195,7 +197,7 @@ namespace ITCLib
             return surveys;
         }
 
-        
+
 
         /// <summary>
         /// Returns the list of survey codes in the specified wave in alpha order.
@@ -282,7 +284,7 @@ namespace ITCLib
                         // cohort
                         if (!rdr.IsDBNull(rdr.GetOrdinal("Cohort")))
                         {
-                            s.Cohort = new SurveyCohort((int)rdr["CohortID"], (string)rdr["Cohort"]);                         
+                            s.Cohort = new SurveyCohort((int)rdr["CohortID"], (string)rdr["Cohort"]);
                             if (!rdr.IsDBNull(rdr.GetOrdinal("CohortCode")))
                                 s.Cohort.Code = (string)rdr["CohortCode"];
                             else
@@ -314,7 +316,7 @@ namespace ITCLib
                 }
             }
 
-            
+
 
             return s;
         }
@@ -342,7 +344,8 @@ namespace ITCLib
                     {
                         while (rdr.Read())
                         {
-                            products.Add(new SurveyScreenedProduct(){
+                            products.Add(new SurveyScreenedProduct()
+                            {
                                 ID = (int)rdr["ID"],
                                 SurvID = (int)rdr["SurvID"],
                                 Product = new ScreenedProduct((int)rdr["ProductID"], rdr.SafeGetString("Product"))
@@ -421,8 +424,8 @@ namespace ITCLib
                 sql.SelectCommand.Parameters.AddWithValue("@survey", surveyCode);
                 try
                 {
-                    result = (bool) sql.SelectCommand.ExecuteScalar();
-}
+                    result = (bool)sql.SelectCommand.ExecuteScalar();
+                }
                 catch (Exception)
                 {
                     result = false;
@@ -533,7 +536,7 @@ namespace ITCLib
                 }
                 catch (Exception)
                 {
-                    
+
                 }
 
             }
@@ -548,7 +551,7 @@ namespace ITCLib
         /// <returns>Survey Code as string, empty string if Question ID is invalid.</returns>
         public static string GetSurveyCodeByQID(int qid)
         {
-            string surveyCode= "";
+            string surveyCode = "";
             string query = "SELECT Surveys.FN_SurveyByQID (@qid)";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
@@ -600,7 +603,7 @@ namespace ITCLib
                 }
                 catch (Exception)
                 {
-                    
+
                 }
 
             }
@@ -836,7 +839,7 @@ namespace ITCLib
         public static List<LockedSurveyRecord> GetUserLockedSurveys()
         {
             List<LockedSurveyRecord> records = new List<LockedSurveyRecord>();
-            
+
             string query = "SELECT * FROM qryUnlockedSurveys ORDER BY Survey";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
@@ -852,7 +855,7 @@ namespace ITCLib
                     {
                         while (rdr.Read())
                         {
-                            LockedSurveyRecord r  = new LockedSurveyRecord
+                            LockedSurveyRecord r = new LockedSurveyRecord
                             {
                                 ID = (int)rdr["ID"],
                                 SurvID = (int)rdr["SurvID"],
@@ -878,5 +881,55 @@ namespace ITCLib
             return records;
         }
 
+        public static List<SurveyImage> GetSurveyImages(Survey survey)
+        {
+            List<SurveyImage> images;
+
+            string sql = "SELECT ID, SID, ImagePath, ImageName FROM tblSurveyImages WHERE SID = @sid";
+
+            var parameters = new { sid = survey.SID };
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            {
+                images = db.Query<SurveyImage>(sql, parameters).ToList();
+            }
+
+            return images;
+        }
+
+        public static List<SurveyImage> GetSurveyImagesFromFolder(Survey survey)
+        {
+            string folder = @"\\psychfile\psych$\psych-lab-gfong\Country_Folders\" +
+                survey.SurveyCodePrefix + @"\" + survey.SurveyCode + @"\FIELDED_IMAGES";
+           
+
+            var files = System.IO.Directory.EnumerateFiles(folder, "*.*", System.IO.SearchOption.AllDirectories)
+            .Where(s => s.EndsWith(".png") || s.EndsWith(".jpg"));
+
+            List<SurveyImage> images = new List<SurveyImage>();
+
+            int id = 0;
+            foreach (var file in files) 
+            {
+                string filename = file.Substring(file.LastIndexOf(@"\") + 1);
+                if (images.Any(x => x.ImageName.Equals(filename)))
+                    continue;
+                    
+                SurveyImage img = new SurveyImage()
+                {
+                    ID = id,
+                    ImageName = file.Substring(file.LastIndexOf(@"\")+1),
+                    ImagePath = file
+                };
+                images.Add(img);
+                id++;
+            }
+
+            return images;
+        }
+
     }
+
+
+    
 }

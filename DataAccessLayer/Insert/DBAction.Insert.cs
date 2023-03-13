@@ -13,6 +13,33 @@ namespace ITCLib
     public static partial class DBAction
     {
 
+        public static int CopySurvey(string source, string destination)
+        {
+            using (SqlDataAdapter sql = new SqlDataAdapter())
+            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            {
+                conn.Open();
+
+                sql.InsertCommand = new SqlCommand("proc_copySurvey", conn)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+
+                sql.InsertCommand.Parameters.AddWithValue("@survey", source);
+                sql.InsertCommand.Parameters.AddWithValue("@newSurvey", destination);
+
+                try
+                {
+                    sql.InsertCommand.ExecuteNonQuery();
+                }
+                catch (Exception)
+                {
+                    return 1;
+                }
+            }
+            return 0;
+        }
+
         public static int InsertNote (Note record)
         {
             using (SqlDataAdapter sql = new SqlDataAdapter())
