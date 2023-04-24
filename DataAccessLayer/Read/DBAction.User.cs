@@ -24,7 +24,7 @@ namespace ITCLib
         public static UserRecord GetUser(string username)
         {
             UserRecord prefs;
-            string sql = "SELECT PersonnelID as userid, username, AccessLevel, ReportFolder AS ReportPath, ReportPrompt, WordingNumbers, CommentDetails FROM Users.FN_GetUserPrefs (@username);" +
+            string sql = "SELECT PersonnelID as userid, username, AccessLevel, ReportFolder AS ReportPath, ReportPrompt, WordingNumbers, CommentDetails FROM qryUserPrefs WHERE username = @username;" +
                             "SELECT PersonnelID, FormCode AS FormName, FormNumber AS FormNum, RecNum AS RecordPosition, Filter, SurvID AS FilterID FROM qryFormManager WHERE username = @username ORDER BY FormCode, FormNumber;";
 
             string sql2 = "SELECT ID, NoteDate, SourceInit AS SourceName, Source," +

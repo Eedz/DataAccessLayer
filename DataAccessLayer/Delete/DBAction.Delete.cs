@@ -754,5 +754,17 @@ namespace ITCLib
             }
             return 0;
         }
+
+        public static int DeleteParallelQuestion(int recordID)
+        {
+            string sql = "DELETE FROM tblParallelQuestions WHERE ID = @ID;";
+            var parameters = new { ID = recordID };
+
+            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            {
+                int rowsAffected = db.Execute(sql, parameters);
+            }
+            return 0;
+        }
     }
 }

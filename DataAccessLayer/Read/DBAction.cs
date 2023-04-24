@@ -10,15 +10,11 @@ using Dapper;
 
 namespace ITCLib
 {
-    
-    
     /// <summary>
-    /// Static class for interacting with the Database. TODO create stored procedures on server for each of these
+    /// Static class for interacting with the Database.
     /// </summary>
     public static partial class DBAction
     {
-
-
         /// <summary>
         /// Returns the list of people.
         /// </summary>
@@ -66,96 +62,24 @@ namespace ITCLib
         public static List<ScreenedProduct> GetScreenProducts()
         {
             List<ScreenedProduct> products = new List<ScreenedProduct>();
-            string query = "SELECT * FROM qryScreenedProducts ORDER BY Product";
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            string sql = "SELECT ID, Product AS ProductName FROM qryScreenedProducts ORDER BY Product";
+            
+            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            products.Add(new ScreenedProduct((int)rdr["ID"], rdr.SafeGetString("Product")));
-                        }
-
-                    }
-                }
-                catch (Exception e)
-                {
-                    Console.Write(e.Message);
-                }
+                products = db.Query<ScreenedProduct>(sql).ToList();
             }
-
             return products;
         }
 
         /// <summary>
-        /// Returns the list of screened products.
-        /// </summary>
-        /// <returns></returns>
-        public static List<ScreenedProduct> GetScreenProductsD()
-        {
-            List<ScreenedProduct> products = new List<ScreenedProduct>();
-            string sql = "SELECT ID, Product FROM qryScreenedProducts ORDER BY Product";
-
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                products = db.Query<ScreenedProduct>(sql).ToList();
-            }
-
-            return products;
-        }
-
-        // <summary>
         /// Returns the list of user states.
         /// </summary>
         /// <returns></returns>
         public static List<UserStateRecord> GetUserStates()
         {
             List<UserStateRecord> states = new List<UserStateRecord>();
-            string query = "SELECT * FROM qryUserStates ORDER BY UserState";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            states.Add(new UserStateRecord((int)rdr["ID"], rdr.SafeGetString("UserState")));
-                        }
-
-                    }
-                }
-                catch (Exception e)
-                {
-                    Console.Write(e.Message);
-                }
-            }
-
-            return states;
-        }
-
-        // <summary>
-        /// Returns the list of user states.
-        /// </summary>
-        /// <returns></returns>
-        public static List<UserStateRecord> GetUserStatesD()
-        {
-            List<UserStateRecord> states = new List<UserStateRecord>();
-            string sql = "SELECT ID, UserState FROM qryUserStates ORDER BY UserState";
+            string sql = "SELECT ID, UserState AS UserStateName FROM qryUserStates ORDER BY UserState";
 
             using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
@@ -166,153 +90,19 @@ namespace ITCLib
         }
 
         /// <summary>
-        /// Unlocks a survey for the specified time interval.
-        /// </summary>
-        /// <returns></returns>
-        public static int UnlockSurvey(Survey s, int interval)
-        {
-            int result = 0;
-            string query = "proc_unlockSurvey";
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.SelectCommand.Parameters.AddWithValue("@survey", s.SurveyCode);
-                sql.SelectCommand.Parameters.AddWithValue("@interval", interval);
-
-                try
-                {
-                    result = (int)sql.SelectCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    result = 1;
-                }
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Unlocks a survey for the specified time interval.
-        /// </summary>
-        /// <returns></returns>
-        public static int UnlockSurvey(string s, int interval)
-        {
-            int result = 0;
-            string query = "proc_unlockSurvey";
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.SelectCommand.Parameters.AddWithValue("@survey", s);
-                sql.SelectCommand.Parameters.AddWithValue("@interval", interval);
-
-                try
-                {
-                    result = (int)sql.SelectCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    result = 1;
-                }
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Locks a survey.
-        /// </summary>
-        /// <returns></returns>
-        public static int LockSurvey(Survey s)
-        {
-            int result = 0;
-            string query = "proc_lockSurvey";
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.SelectCommand.Parameters.AddWithValue("@survey", s.SurveyCode);
-
-                try
-                {
-                    result = (int)sql.SelectCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    result = 1;
-                }
-            }
-
-            return result;
-        }
-
-
-
-        /// <summary>
         /// Returns the list of regions.
         /// </summary>
         /// <returns></returns>
         public static List<RegionRecord> GetRegionInfo()
         {
             List<RegionRecord> regions = new List<RegionRecord>();
-            RegionRecord r;
-            string query = "SELECT R.ID, R.Region, P.ReservedPrefix FROM FN_GetAllRegions() AS R LEFT JOIN tblReservedPrefixes AS P ON R.ID = P.RegionID ORDER BY R.ID";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            string sql = "SELECT R.ID, R.Region AS RegionName, P.ReservedPrefix AS TempVarPrefix FROM tblRegion AS R LEFT JOIN tblReservedPrefixes AS P ON R.ID = P.RegionID ORDER BY R.ID";
+
+            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            r = new RegionRecord
-                            {
-                                ID = (int)rdr["ID"],
-                                RegionName = (string)rdr["Region"],
-                                TempVarPrefix = rdr.SafeGetString("ReservedPrefix")
-
-                            };
-
-                            regions.Add(r);
-                        }
-
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
+                regions = db.Query<RegionRecord>(sql).ToList();
             }
-
             return regions;
         }
 
@@ -323,46 +113,12 @@ namespace ITCLib
         public static List<StudyRecord> GetStudyInfo()
         {
             List<StudyRecord> studies = new List<StudyRecord>();
-            StudyRecord s;
-            string query = "SELECT * FROM FN_GetStudyInfo() ORDER BY Study";
+            
+            string sql = "SELECT ID, Country AS CountryName, Study AS StudyName, CountryCode, ISO_Code, AgeGroup, Cohort, Languages, RegionID FROM tblCountryCode ORDER BY Study";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-                
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            s = new StudyRecord();
-
-                            s.ID = (int)rdr["ID"];
-                            s.CountryName = rdr.SafeGetString("Country");
-                            s.StudyName = rdr.SafeGetString("Study");
-                            
-                            if (Int32.TryParse(rdr.SafeGetString("CountryCode"), out int cc))  
-                                s.CountryCode = cc;
-                            
-                            s.ISO_Code = rdr.SafeGetString("ISO_Code");
-                            s.AgeGroup = rdr.SafeGetString("AgeGroup");
-                            s.Cohort = (int)rdr["Cohort"];
-                            s.Languages = rdr.SafeGetString("Languages");
-                            s.RegionID = (int)rdr["RegionID"];
-
-                            studies.Add(s);
-                        }
-
-                    }
-                }
-                catch (Exception)
-                {
-                    
-                }
+                studies = db.Query<StudyRecord>(sql).ToList();
             }
 
             return studies;
@@ -371,47 +127,19 @@ namespace ITCLib
         /// <summary>
         /// Returns the studies for a particular region.
         /// </summary>
-        /// <param name="regionID"></param>
         /// <returns></returns>
-        public static List<StudyRecord> GetStudies(int regionID)
+        public static List<StudyRecord> GetStudyInfo(int regionID)
         {
             List<StudyRecord> studies = new List<StudyRecord>();
-            StudyRecord s;
-            string query = "SELECT * FROM FN_GetStudies(@regionID)";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            string sql = "SELECT ID, Country AS CountryName, Study AS StudyName, CountryCode, ISO_Code, AgeGroup, Cohort, Languages, RegionID FROM tblCountryCode " + 
+                "WHERE RegionID = @regionID ORDER BY Study";
+
+            var parameters = new { regionID };
+
+            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@regionID", regionID);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            s = new StudyRecord
-                            {
-                                ID = (int)rdr["ID"],
-                                CountryName = rdr.SafeGetString("Country"),
-                                StudyName = rdr.SafeGetString("Study"),
-                                CountryCode = Int32.Parse(rdr.SafeGetString("CountryCode")),
-                                ISO_Code = rdr.SafeGetString("ISO_Code"),
-                                AgeGroup = rdr.SafeGetString("AgeGroup")
-                            };
-
-                            studies.Add(s);
-                        }
-
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
+                studies = db.Query<StudyRecord>(sql, parameters).ToList();
             }
 
             return studies;
@@ -462,39 +190,14 @@ namespace ITCLib
         public static List<StudyWaveRecord> GetWaves(int studyID)
         {
             List<StudyWaveRecord> waves = new List<StudyWaveRecord>();
-            StudyWaveRecord w;
-            string query = "SELECT * FROM FN_GetWavesByStudy(@studyID)";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            string sql = "SELECT WaveID AS ID, Wave, ISO_Code FROM qryStudyWaves WHERE CountryID = @studyID;";
+
+            var parameters = new { studyID };
+
+            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@studyID", studyID);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            w = new StudyWaveRecord
-                            {
-                                ID = (int)rdr["WaveID"],
-                                ISO_Code = (string)rdr["ISO_Code"],
-                                Wave = (double)rdr["Wave"]
-                            };
-
-                            waves.Add(w);
-                        }
-
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
+                waves = db.Query<StudyWaveRecord>(sql, parameters).ToList();
             }
 
             return waves;
@@ -507,308 +210,136 @@ namespace ITCLib
         public static List<VariablePrefixRecord> GetVarPrefixes()
         {
             List<VariablePrefixRecord> prefixes = new List<VariablePrefixRecord>();
+
+            string sql = "SELECT ID, Prefix, PrefixName, ProductType, RelatedPrefixes, DomainName AS Description, Comments, InactiveDomain AS Inactive FROM qryDomainList ORDER BY Prefix;" +
+                "SELECT ID, PrefixID, VarNumLow AS Lower, VarNumHigh AS Upper, Description FROM qryDomainRanges ORDER BY VarNumLow;" +
+                "SELECT R.ID, R.PrefixID, R.RelatedPrefixID AS RelatedID, D.Prefix FROM qryDomainListRelated AS R INNER JOIN qryDomainList AS D ON R.RelatedPrefixID = D.ID";  
             
-            string query = "SELECT * FROM qryDomainList ORDER BY Prefix";
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
+                var results = db.QueryMultiple(sql);
 
-                sql.SelectCommand = new SqlCommand(query, conn);
-                
-                try
+                prefixes = results.Read<VariablePrefixRecord>().ToList();
+                var ranges = results.Read<VariableRangeRecord>().ToList();
+                var parallel = results.Read<ParallelPrefixRecord>().ToList();
+
+                foreach (VariableRangeRecord p in ranges)
+                    p.NewRecord = false;
+                foreach (ParallelPrefixRecord p in parallel)
+                    p.NewRecord = false;
+
+                foreach (VariablePrefixRecord p in prefixes)
                 {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            VariablePrefixRecord p = new VariablePrefixRecord
-                            {
-                                ID = (int)rdr["ID"],
-                                Prefix = rdr.SafeGetString("Prefix"),
-                                PrefixName = rdr.SafeGetString("PrefixName"),
-                                ProductType = rdr.SafeGetString("ProductType"),
-                                RelatedPrefixes = rdr.SafeGetString("RelatedPrefixes"),
-                                Description = rdr.SafeGetString("DomainName"),
-                                Comments = rdr.SafeGetString("Comments"),
-                                Inactive = (bool)rdr["InactiveDomain"]
-                            };
-
-                            prefixes.Add(p);
-                        }
-
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
-
-                query = "SELECT * FROM qryDomainRanges ORDER BY VarNumLow";
-                sql.SelectCommand = new SqlCommand(query, conn);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            VariablePrefixRecord p = prefixes.Where(x => x.ID == (int)rdr["PrefixID"]).FirstOrDefault();
-                            VariableRangeRecord range = new VariableRangeRecord();
-                            range.ID = (int)rdr["ID"];
-                            range.PrefixID = (int)rdr["PrefixID"];
-                            range.Lower =rdr.SafeGetString("VarNumLow");
-                            range.Upper = rdr.SafeGetString("VarNumHigh");
-                            range.Description = rdr.SafeGetString("Description");
-                            range.NewRecord = false;
-
-                            if (p != null)
-                                p.Ranges.Add(range);
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
-
-                query = "SELECT R.*, D.Prefix FROM qryDomainListRelated AS R INNER JOIN qryDomainList AS D ON R.RelatedPrefixID = D.ID";
-                sql.SelectCommand = new SqlCommand(query, conn);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            VariablePrefixRecord p = prefixes.Where(x => x.ID == (int)rdr["PrefixID"]).FirstOrDefault();
-                            ParallelPrefixRecord parallel = new ParallelPrefixRecord();
-                            parallel.ID = (int)rdr["ID"];
-                            parallel.PrefixID = (int)rdr["PrefixID"];
-                            parallel.RelatedID = (int)rdr["RelatedPrefixID"];
-                            parallel.Prefix = rdr.SafeGetString("Prefix");
-                            parallel.NewRecord = false;
-                            
-                            if (p != null)
-                                p.ParallelPrefixes.Add(parallel);
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-
+                    p.NewRecord = false;
+                    p.ParallelPrefixes = parallel.Where(x => x.PrefixID == p.ID).ToList();
+                    p.Ranges = ranges.Where(x => x.PrefixID == p.ID).ToList();
                 }
             }
             return prefixes;
         }
 
         /// <summary>
-        /// Returns the list of bug reports.
-        /// </summary>
-        /// <returns></returns>
-        public static List<BugReport> GetBugReports()
-        {
-            List<BugReport> bugs = new List<BugReport>();
-            BugReport br;
-            string query = "SELECT * FROM qryBugReports ORDER BY ID";
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            br = new BugReport
-                            {
-                                ID = (int)rdr["ID"],
-                                Title =rdr.SafeGetString("Title"),
-                                Description = rdr.SafeGetString("Description"),
-                                Application = rdr.SafeGetString("Application"),
-                                Form = rdr.SafeGetString("Form"),
-                                
-                                Survey = rdr.SafeGetString("Survey"),
-                                
-                            };
-                            
-                            if (!rdr.IsDBNull(rdr.GetOrdinal("Priority")))
-                                br.Priority = (PriorityLevel)rdr["Priority"];
-                            if (!rdr.IsDBNull(rdr.GetOrdinal("SubDate")))
-                                br.BugDate = (DateTime)rdr["SubDate"];
-                            if (!rdr.IsDBNull(rdr.GetOrdinal("SubInit")))
-                                br.Submitter = new Person((int)rdr["SubInit"]);
-                            if (!rdr.IsDBNull(rdr.GetOrdinal("FixDate")))
-                                br.FixDate = (DateTime)rdr["FixDate"];
-                            if (!rdr.IsDBNull(rdr.GetOrdinal("FixInit")))
-                                br.Fixer = new Person((int)rdr["FixInit"]);
-                            if (!rdr.IsDBNull(rdr.GetOrdinal("ResDate")))
-                                br.ResolutionDate = (DateTime)rdr["ResDate"];
-                            if (!rdr.IsDBNull(rdr.GetOrdinal("ResInit")))
-                                br.Resolver = new Person((int)rdr["ResInit"]);
-
-                            br.Responses = DBAction.GetBugResponses(br.ID);
-                            bugs.Add(br);
-                        }
-
-                    }
-                }
-                catch (Exception)
-                {
-                    
-                }
-            }
-            
-
-            return bugs;
-        }
-
-        /// <summary>
-        /// Returns the list of responses for a bug report.
-        /// </summary>
-        /// <returns></returns>
-        public static List<BugResponse> GetBugResponses(int bugID)
-        {
-            List<BugResponse> responses = new List<BugResponse>();
-            BugResponse br;
-            string query = "SELECT * FROM qryBugResponses WHERE BugID = " + bugID + " ORDER BY RespDate DESC";
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            br = new BugResponse
-                            {
-                                ID = (int)rdr["ID"],
-                                BugID = (int)rdr["BugID"],
-                                Response = (string)rdr["Response"],
-                                ResponseDate = (DateTime)rdr["RespDate"],
-                                Responder = new Person((int)rdr["User"])
-                            };
-                            
-                            responses.Add(br);
-                        }
-
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
-            }
-
-            return responses;
-        }
-
-
-
-
-        
-
-        
-
-        /// <summary>
-        /// 
+        /// Returns the list of Survey Processing Records, complete with dates and notes
         /// </summary>
         /// <returns></returns>
         public static List<SurveyProcessingRecord> GetSurveyProcessingRecords()
         {
             List<SurveyProcessingRecord> records = new List<SurveyProcessingRecord>();
 
-            string query = "SELECT * FROM qrySurveyProcessing ORDER BY Survey, NewID";
+            string sql = "SELECT ID, NA AS NotApplicable, Done, SurvID, SurvID AS SID, Survey AS SurveyCode, Stage, Stage AS ID, StageName FROM qrySurveyProcessing ORDER BY Survey, NewID;" +
+                "SELECT ID, StageID, StageDate, EntryDate, StageInit, StageInit AS ID, EnteredBy AS Name, StageContact, StageContact AS ID, ContactName AS Name  FROM qrySurveyProcessingDates;" +
+                "SELECT ID, StageID AS DateID, CommentDate AS NoteDate, Note, EnteredBy, EnteredBy AS ID, EnteredByName AS Name FROM qrySurveyProcessingNotes;";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
+                var results = db.QueryMultiple(sql);
 
-                sql.SelectCommand = new SqlCommand(query, conn);
-                
-
-                try
+                records = results.Read<SurveyProcessingRecord, Survey, SurveyProcessingStage, SurveyProcessingRecord>((record, survey, stage) =>
                 {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            SurveyProcessingRecord record = new SurveyProcessingRecord();
-                            record.ID = (int)rdr["ID"];
-                            record.SurveyID = new Survey() { SID = (int)rdr["SurvID"], SurveyCode = rdr.SafeGetString("Survey") };
-                            record.Stage = new SurveyProcessingStage() { ID = (int)rdr["Stage"], StageName = rdr.SafeGetString("StageName") };
-                            record.NotApplicable = (bool)rdr["NA"];
-                            record.Done = (bool)rdr["Done"];
+                    record.SurveyID = survey;
+                    record.Stage = stage;
+                    return record;
+                }, splitOn: "SurvID, Stage").ToList();
 
-                            record.StageDates = GetSurveyProcessingDates(record.ID);
-
-                            records.Add(record);
-                        }
-
-                    }
-                }
-                catch (Exception)
+                var dates = results.Read<SurveyProcessingDate, Person, Person, SurveyProcessingDate>((date, person1, person2) =>
                 {
+                    date.EnteredBy = person1;
+                    date.Contact = person2;
+                    return date;
+                }, splitOn: "StageInit, StageContact");
+
+                var notes = results.Read<SurveyProcessingNote, Person, SurveyProcessingNote>((note, person1) =>
+                {
+                    note.Author = person1;
+                    return note;
+                }, splitOn: "EnteredBy").ToList();
+
+                foreach (SurveyProcessingDate d in dates)
+                {
+                    d.Notes = notes.Where(x => x.DateID == d.ID).ToList();
 
                 }
+                var dateswithnots = dates.Where(x => x.Notes.Count > 0);
+                foreach (SurveyProcessingRecord r in records)
+                {
+                    r.StageDates = dates.Where(x => x.StageID == r.ID).ToList();
+                    
+                }
+                var stageswithdates = records.Where(x => x.StageDates.Count > 0);
             }
 
             return records;
         }
 
         /// <summary>
-        /// 
+        /// Returns the list of Survey Processing Records, complete with dates and notes, for the specified survey
         /// </summary>
+        /// <param name="survID"></param>
         /// <returns></returns>
         public static List<SurveyProcessingRecord> GetSurveyProcessingRecords(int survID)
         {
             List<SurveyProcessingRecord> records = new List<SurveyProcessingRecord>();
 
-            string query = "SELECT * FROM qrySurveyProcessing WHERE SurvID = @survID ORDER BY NewID";
+            string sql = "SELECT ID, NA AS NotApplicable, Done, SurvID, SurvID AS SID, Survey AS SurveyCode, Stage, Stage AS ID, StageName FROM qrySurveyProcessing " +
+                            "WHERE SurvID = @survID ORDER BY Survey, NewID;" +
+                "SELECT ID, StageID, StageDate, EntryDate, StageInit, StageInit AS ID, EnteredBy AS Name, StageContact, StageContact AS ID, ContactName AS Name  FROM qrySurveyProcessingDates;" +
+                "SELECT ID, StageID AS DateID, CommentDate AS NoteDate, Note, EnteredBy, EnteredBy AS ID, EnteredByName AS Name FROM qrySurveyProcessingNotes;";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            var parameters = new { survID };
+
+            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
+                var results = db.QueryMultiple(sql, parameters);
 
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@survID", survID);
-
-                try
+                records = results.Read<SurveyProcessingRecord, Survey, SurveyProcessingStage, SurveyProcessingRecord>((record, survey, stage) =>
                 {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            SurveyProcessingRecord record = new SurveyProcessingRecord();
-                            record.ID = (int)rdr["ID"];
-                            record.SurveyID = new Survey() { SID = (int)rdr["SurvID"], SurveyCode = rdr.SafeGetString("Survey") };
-                            record.Stage = new SurveyProcessingStage() { ID = (int)rdr["Stage"], StageName = rdr.SafeGetString("StageName") };
-                            record.NotApplicable = (bool)rdr["NA"];
-                            record.Done = (bool)rdr["Done"];
+                    record.SurveyID = survey;
+                    record.Stage = stage;
+                    return record;
+                }, splitOn: "SurvID, Stage").ToList();
 
-                            record.StageDates = GetSurveyProcessingDates(record.ID);
+                var dates = results.Read<SurveyProcessingDate, Person, Person, SurveyProcessingDate>((date, person1, person2) =>
+                {
+                    date.EnteredBy = person1;
+                    date.Contact = person2;
+                    return date;
+                }, splitOn: "StageInit, StageContact");
 
-                            records.Add(record);
-                        }
+                var notes = results.Read<SurveyProcessingNote, Person, SurveyProcessingNote>((note, person1) =>
+                {
+                    note.Author = person1;
+                    return note;
+                }, splitOn: "EnteredBy").ToList();
 
-                    }
+                foreach (SurveyProcessingDate d in dates)
+                {
+                    d.Notes = notes.Where(x => x.DateID == d.ID).ToList();
+
                 }
-                catch (Exception)
+
+                foreach (SurveyProcessingRecord r in records)
                 {
+                    r.StageDates = dates.Where(x => x.StageID == r.ID).ToList();
 
                 }
             }
@@ -817,100 +348,28 @@ namespace ITCLib
         }
 
         /// <summary>
-        /// 
+        /// Returns a data table of questions matching all of the specified criteria.
         /// </summary>
-        /// <returns></returns>
-        public static List<SurveyProcessingDate> GetSurveyProcessingDates(int stageID)
-        {
-            List<SurveyProcessingDate> records = new List<SurveyProcessingDate>();
-
-            string query = "SELECT * FROM qrySurveyProcessingDates WHERE StageID = @stageID";
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@stageID", stageID);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            SurveyProcessingDate record = new SurveyProcessingDate();
-                            record.ID = (int)rdr["ID"];
-                            record.StageID = (int)rdr["StageID"];
-                            record.StageDate = rdr.SafeGetDate("StageDate");
-                            record.EntryDate = rdr.SafeGetDate("EntryDate");
-                            record.EnteredBy = new Person(rdr.SafeGetString("EnteredBy"),(int)rdr["StageInit"]);
-                            record.Contact = new Person(rdr.SafeGetString("ContactName"), (int)rdr["StageContact"]);
-                            record.Notes = GetSurveyProcessingNotes(record.ID);
-
-                            records.Add(record);
-                        }
-
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
-            }
-
-            return records;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public static List<SurveyProcessingNote> GetSurveyProcessingNotes(int dateID)
-        {
-            List<SurveyProcessingNote> records = new List<SurveyProcessingNote>();
-
-            string query = "SELECT * FROM qrySurveyProcessingNotes WHERE StageID = @stageID";
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@stageID", dateID);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            SurveyProcessingNote record = new SurveyProcessingNote();
-                            record.ID = (int)rdr["ID"];
-                            record.DateID = (int)rdr["StageID"];
-                            record.NoteDate = rdr.SafeGetDate("CommentDate");
-                            record.Author = new Person(rdr.SafeGetString("EnteredByName"), (int)rdr["EnteredBy"]);
-                            record.Note = rdr.SafeGetString("Note");
-
-                            records.Add(record);
-                        }
-
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
-            }
-
-            return records;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <param name="varnames"></param>
+        /// <param name="prep"></param>
+        /// <param name="prei"></param>
+        /// <param name="prea"></param>
+        /// <param name="litq"></param>
+        /// <param name="psti"></param>
+        /// <param name="pstp"></param>
+        /// <param name="respname"></param>
+        /// <param name="nrname"></param>
+        /// <param name="translation"></param>
+        /// <param name="varlabel"></param>
+        /// <param name="domain"></param>
+        /// <param name="topic"></param>
+        /// <param name="content"></param>
+        /// <param name="product"></param>
+        /// <param name="englishRouting"></param>
+        /// <param name="lang"></param>
+        /// <param name="showProjects"></param>
+        /// <param name="surveysFilter"></param>
+        /// <param name="itconly"></param>
         /// <returns></returns>
         public static DataTable GetHarmonyData(List<string> varnames, bool prep, bool prei, bool @prea, bool @litq, bool @psti, bool pstp, bool respname, bool nrname,
                 bool translation, bool varlabel, bool domain, bool topic, bool content, bool product, bool englishRouting, string lang, bool showProjects, List<string> surveysFilter,

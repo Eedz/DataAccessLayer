@@ -41,6 +41,7 @@
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -49,6 +50,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DapperExtensions.cs" />
+    <Compile Include="Other\DBAction.Other.cs" />
     <Compile Include="Record Objects\DraftRecords.cs" />
     <Compile Include="ObjectDataRetriever.cs" />
     <Compile Include="DataRetriever.cs" />

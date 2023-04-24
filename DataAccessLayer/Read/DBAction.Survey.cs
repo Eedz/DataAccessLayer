@@ -7,6 +7,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Configuration;
 using Dapper;
+
 namespace ITCLib
 {
     partial class DBAction
@@ -99,7 +100,7 @@ namespace ITCLib
                 "EnglishRouting, HideSurvey, ReRun, NCT, Wave, WaveID, " +
                 "SurveyFileName AS WebName, Languages, CreationDate " +
                 "CohortID, CohortID AS ID, Cohort, CohortCode AS Code," +
-                "Mode AS ModeID, Mode AS ID, ModeLong AS Mode, ModeAbbrev " +
+                "ModeID, ModeID AS ID, ModeLong AS Mode, ModeAbbrev " +
                 "FROM qrySurveyInfo ORDER BY ISO_Code, Wave, Survey;";
                 
 
@@ -160,10 +161,6 @@ namespace ITCLib
                             s.WaveID = (int)rdr["WaveID"];
                             s.WebName = rdr.SafeGetString("SurveyFileName");
                             s.CreationDate = rdr.SafeGetDate("CreationDate");
-
-
-                            // language
-                            if (!rdr.IsDBNull(rdr.GetOrdinal("Languages"))) s.Languages = (string)rdr["Languages"];
 
                             // cohort
                             if (!rdr.IsDBNull(rdr.GetOrdinal("Cohort")))
@@ -278,9 +275,6 @@ namespace ITCLib
                             CreationDate = rdr.SafeGetDate("ISISCreationDate")
                         };
 
-                        // language
-                        if (!rdr.IsDBNull(rdr.GetOrdinal("Languages"))) s.Languages = (string)rdr["Languages"];
-
                         // cohort
                         if (!rdr.IsDBNull(rdr.GetOrdinal("Cohort")))
                         {
@@ -299,8 +293,8 @@ namespace ITCLib
                         s.Group.UserGroup = rdr.SafeGetString("GroupName");
 
                         // mode
-                        if (!rdr.IsDBNull(rdr.GetOrdinal("Mode")))
-                            s.Mode = new SurveyMode((int)rdr["Mode"], (string)rdr["ModeLong"], (string)rdr["ModeAbbrev"]);
+                        if (!rdr.IsDBNull(rdr.GetOrdinal("ModeID")))
+                            s.Mode = new SurveyMode((int)rdr["ModeID"], (string)rdr["ModeLong"], (string)rdr["ModeAbbrev"]);
 
 
                         // check for corrected wordings
@@ -474,9 +468,6 @@ namespace ITCLib
                             Wave = (double)rdr["Wave"]
                         };
 
-                        // language
-                        if (!rdr.IsDBNull(rdr.GetOrdinal("Languages"))) s.Languages = (string)rdr["Languages"];
-
                         // cohort
                         if (!rdr.IsDBNull(rdr.GetOrdinal("Cohort")))
                         {
@@ -488,7 +479,7 @@ namespace ITCLib
                         }
 
                         // mode
-                        if (!rdr.IsDBNull(rdr.GetOrdinal("Mode")))
+                        if (!rdr.IsDBNull(rdr.GetOrdinal("ModeID")))
                             s.Mode = new SurveyMode((int)rdr["Mode"], (string)rdr["ModeLong"], (string)rdr["ModeAbbrev"]);
 
 
@@ -615,7 +606,7 @@ namespace ITCLib
         /// Returns the list of survey modes in the database.
         /// </summary>
         /// <returns></returns>
-        public static List<SurveyMode> GetModeInfo()
+        public static List<SurveyMode> GetModeInfo_old()
         {
             List<SurveyMode> modes = new List<SurveyMode>();
             SurveyMode m;
@@ -651,43 +642,35 @@ namespace ITCLib
         }
 
         /// <summary>
+        /// Returns the list of survey modes in the database.
+        /// </summary>
+        /// <returns></returns>
+        public static List<SurveyMode> GetModeInfo()
+        {
+            List<SurveyMode> modes = new List<SurveyMode>();
+            
+            string sql = "SELECT ID, Mode, ModeAbbrev FROM tblMode ORDER BY Mode";
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            {
+                modes = db.Query<SurveyMode>(sql).ToList();
+            }
+            return modes;
+        }
+
+        /// <summary>
         /// Returns the list of survey cohorts in the database.
         /// </summary>
         /// <returns></returns>
         public static List<SurveyCohortRecord> GetCohortInfo()
         {
             List<SurveyCohortRecord> cohorts = new List<SurveyCohortRecord>();
-            SurveyCohortRecord c;
-            string query = "SELECT * FROM Surveys.FN_GetCohortInfo() ORDER BY Cohort";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            string sql = "SELECT ID, Cohort, Code, WebName FROM tblCohort ORDER BY Cohort";
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            c = new SurveyCohortRecord((int)rdr["ID"], (string)rdr["Cohort"]);
-
-                            c.Code = (string)rdr["Code"];
-                            c.WebName = (string)rdr["WebName"];
-
-                            cohorts.Add(c);
-
-                        }
-
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
+                cohorts = db.Query<SurveyCohortRecord>(sql).ToList();
             }
             return cohorts;
         }
@@ -699,43 +682,118 @@ namespace ITCLib
         public static List<SurveyUserGroup> GetGroupInfo()
         {
             List<SurveyUserGroup> groups = new List<SurveyUserGroup>();
-            SurveyUserGroup g;
-            string query = "SELECT * FROM Surveys.FN_GetGroupInfo() ORDER BY [Group]";
+
+            string sql = "SELECT ID, [Group] AS UserGroup, [Code], WebName FROM tblGroup ORDER BY [Group]";
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            {
+                groups = db.Query<SurveyUserGroup>(sql).ToList();
+            }
+            return groups;
+        }
+
+        /// <summary>
+        /// Unlocks a survey for the specified time interval.
+        /// </summary>
+        /// <returns></returns>
+        public static int UnlockSurvey(Survey s, int interval)
+        {
+            int result = 0;
+            string query = "proc_unlockSurvey";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
             using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
                 conn.Open();
 
-                sql.SelectCommand = new SqlCommand(query, conn);
+                sql.SelectCommand = new SqlCommand(query, conn)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+
+                sql.SelectCommand.Parameters.AddWithValue("@survey", s.SurveyCode);
+                sql.SelectCommand.Parameters.AddWithValue("@interval", interval);
 
                 try
                 {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            g = new SurveyUserGroup
-                            {
-                                ID = (int)rdr["ID"],
-                                UserGroup = (string)rdr["Group"],
-                                Code = (string)rdr["Code"],
-                                WebName = (string)rdr["WebName"],
-
-                            };
-
-                            groups.Add(g);
-
-                        }
-
-                    }
+                    result = (int)sql.SelectCommand.ExecuteNonQuery();
                 }
                 catch (Exception)
                 {
-
+                    result = 1;
                 }
             }
-            return groups;
+
+            return result;
+        }
+
+        /// <summary>
+        /// Unlocks a survey for the specified time interval.
+        /// </summary>
+        /// <returns></returns>
+        public static int UnlockSurvey(string s, int interval)
+        {
+            int result = 0;
+            string query = "proc_unlockSurvey";
+
+            using (SqlDataAdapter sql = new SqlDataAdapter())
+            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            {
+                conn.Open();
+
+                sql.SelectCommand = new SqlCommand(query, conn)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+
+                sql.SelectCommand.Parameters.AddWithValue("@survey", s);
+                sql.SelectCommand.Parameters.AddWithValue("@interval", interval);
+
+                try
+                {
+                    result = (int)sql.SelectCommand.ExecuteNonQuery();
+                }
+                catch (Exception)
+                {
+                    result = 1;
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Locks a survey.
+        /// </summary>
+        /// <returns></returns>
+        public static int LockSurvey(Survey s)
+        {
+            int result = 0;
+            string query = "proc_lockSurvey";
+
+            using (SqlDataAdapter sql = new SqlDataAdapter())
+            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            {
+                conn.Open();
+
+                sql.SelectCommand = new SqlCommand(query, conn)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+
+                sql.SelectCommand.Parameters.AddWithValue("@survey", s.SurveyCode);
+
+                try
+                {
+                    result = (int)sql.SelectCommand.ExecuteNonQuery();
+                }
+                catch (Exception)
+                {
+                    result = 1;
+                }
+            }
+
+            return result;
         }
 
         public static string GetTempPrefix(Survey s)
@@ -881,28 +939,11 @@ namespace ITCLib
             return records;
         }
 
-        public static List<SurveyImage> GetSurveyImages(Survey survey)
-        {
-            List<SurveyImage> images;
-
-            string sql = "SELECT ID, SID, ImagePath, ImageName FROM tblSurveyImages WHERE SID = @sid";
-
-            var parameters = new { sid = survey.SID };
-
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                images = db.Query<SurveyImage>(sql, parameters).ToList();
-            }
-
-            return images;
-        }
-
         public static List<SurveyImage> GetSurveyImagesFromFolder(Survey survey)
         {
-            string folder = @"\\psychfile\psych$\psych-lab-gfong\Country_Folders\" +
-                survey.SurveyCodePrefix + @"\" + survey.SurveyCode + @"\FIELDED_IMAGES";
+            string folder = @"\\psychfile\psych$\psych-lab-gfong\SMG\Survey Images\" +
+                survey.SurveyCodePrefix + @" Images\" + survey.SurveyCode;
            
-
             var files = System.IO.Directory.EnumerateFiles(folder, "*.*", System.IO.SearchOption.AllDirectories)
             .Where(s => s.EndsWith(".png") || s.EndsWith(".jpg"));
 
@@ -911,15 +952,48 @@ namespace ITCLib
             int id = 0;
             foreach (var file in files) 
             {
+                int iWidth = 0;
+                int iHeight = 0;
+                using (System.Drawing.Bitmap bmp = new System.Drawing.Bitmap(file))
+                {
+                    iWidth = bmp.Width;
+                    iHeight = bmp.Height;
+                    iWidth = (int)Math.Round((decimal)iWidth * 9525);
+                    iHeight = (int)Math.Round((decimal)iHeight * 9525);
+                }
+
                 string filename = file.Substring(file.LastIndexOf(@"\") + 1);
                 if (images.Any(x => x.ImageName.Equals(filename)))
                     continue;
-                    
+
+                string varname = string.Empty;
+                string description = string.Empty;
+                if (file.IndexOf('_') > 0)
+                {
+                    int first_ = file.IndexOf('_') + 1;
+                    int second_ = file.IndexOf('_', first_);
+
+                    if (second_ == -1 || first_ == -1)
+                    {
+                        varname = file.Substring(file.LastIndexOf(@"\") + 1);
+                        description = file.Substring(file.LastIndexOf(@"\") + 1);
+                    }
+                    else
+                    {
+                        varname = file.Substring(first_, second_ - first_);
+                        description = file.Substring(second_ + 1);
+                    }
+                }
+
                 SurveyImage img = new SurveyImage()
                 {
                     ID = id,
-                    ImageName = file.Substring(file.LastIndexOf(@"\")+1),
-                    ImagePath = file
+                    ImageName = file.Substring(file.LastIndexOf(@"\") + 1),
+                    ImagePath = file,
+                    Width = iWidth,
+                    Height= iHeight,
+                    Description = description,
+                    VarName = varname
                 };
                 images.Add(img);
                 id++;

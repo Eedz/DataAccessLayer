@@ -30,59 +30,6 @@ namespace ITCLib
         }
 
         /// <summary>
-        /// Returns responses to the praccing record specified by the ID.
-        /// </summary>
-        /// <returns></returns>
-        public static List<PraccingResponse> GetPraccResponses(int id)
-        {
-            List<PraccingResponse> responses = new List<PraccingResponse>();
-            string query = "SELECT R.* FROM qryPraccingResponses AS R INNER JOIN qryPraccingIssues AS I ON R.IssueID = I.ID " +
-                "WHERE I.ID = @id ORDER BY Date";
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@id", id);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            PraccingResponse r = new PraccingResponse();
-                            r.ID = (int)rdr["ID"];
-                            r.IssueID = (int)rdr["IssueID"];
-                            if (!rdr.IsDBNull(rdr.GetOrdinal("Date")))
-                                r.ResponseDate = (DateTime)rdr["Date"];
-                            else
-                                r.ResponseDate = null;
-
-                            r.Response = rdr.SafeGetString("Comment").Replace("&nbsp;", " ");
-                            r.ResponseFrom = new Person(rdr.SafeGetString("ResponseFrom"), (int)rdr["From_By"]);
-                            r.ResponseTo = new Person(rdr.SafeGetString("ResponseTo"), (int)rdr["To"]);
-                            r.Images = GetPraccResponseImages(r.ID);
-                            responses.Add(r);
-                        }
-
-                    }
-                }
-                catch (Exception)
-                {
-                    Console.Write("Error getting praccing responses.");
-                }
-            }
-
-
-            return responses;
-        }
-
-        
-
-        /// <summary>
         /// Returns the next praccing issue number for the provided survey ID.
         /// </summary>
         /// <returns></returns>
@@ -264,9 +211,6 @@ namespace ITCLib
                     PraccingIssue issue = issues.Where(x => x.ID == response.IssueID).FirstOrDefault();
                     issue.Responses.Add(response);
                 }
-                
-
-                
             }
 
             return issues;
@@ -317,101 +261,39 @@ namespace ITCLib
         {
             List<PraccingIssue> issues = new List<PraccingIssue>();
 
-            string query;
+            string sql = "SELECT ID, IssueNo, VarNames, IssueDescription AS Description, Date AS IssueDate, Resolved, ResDate AS ResolvedDate, LastUpdate, Language, Fixed,Notify, EnteredOn " +
+                    "SurvID, SurvID AS SID, Survey AS SurveyCode, " +
+                    "[By], [By] AS ID, IssueFrom AS Name, " +
+                    "[To], [To] AS ID, [IssueTo] AS Name, " +
+                    "CategoryID, CategoryID AS ID, IssueType AS Category, " +
+                    "ResInit, ResInit AS ID, ResolvedBy AS Name, " +
+                    "EnteredBy, EnteredBy AS ID, EnteredName AS Name " +
+                    "FROM FN_PraccingCommentSearch(@survey,@varname,@LDate,@UDate,@author,@commentText,@commentType);";
+                
 
-            query = "SELECT * FROM FN_PraccingCommentSearch(" +
-                    "@survey,@varname,@LDate,@UDate,@author,@commentText,@commentType)";
+            DynamicParameters parameters = new DynamicParameters();
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            parameters.Add("@survey", survey);
+            parameters.Add("@varname", varname);
+            parameters.Add("@LDate", commentDateLower);
+            parameters.Add("@UDate", commentDateUpper);
+            parameters.AddNullableParameter("@author", commentAuthor);
+            parameters.Add("@commentText", commentText);
+            parameters.Add("@commentType", commentType);
+
+            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand();
-                sql.SelectCommand.Connection = conn;
-                sql.SelectCommand.CommandType = CommandType.Text;
-                sql.SelectCommand.CommandText = query;
-
-                if (string.IsNullOrEmpty(survey))
-                    sql.SelectCommand.Parameters.AddWithValue("@survey", DBNull.Value);
-                else
-                    sql.SelectCommand.Parameters.AddWithValue("@survey", survey);
-
-                if (string.IsNullOrEmpty(varname))
-                    sql.SelectCommand.Parameters.AddWithValue("@varname", DBNull.Value);
-                else
-                    sql.SelectCommand.Parameters.AddWithValue("@varname", varname);
-
-                if (commentDateLower == null)
-                    sql.SelectCommand.Parameters.AddWithValue("@LDate", DBNull.Value);
-                else
-                    sql.SelectCommand.Parameters.AddWithValue("@LDate", commentDateLower);
-
-                if (commentDateLower == null)
-                    sql.SelectCommand.Parameters.AddWithValue("@UDate", DBNull.Value);
-                else
-                    sql.SelectCommand.Parameters.AddWithValue("@UDate", commentDateLower);
-
-                if (commentAuthor == 0)
-                    sql.SelectCommand.Parameters.AddWithValue("@author", DBNull.Value);
-                else
-                    sql.SelectCommand.Parameters.AddWithValue("@author", commentAuthor);
-
-                if (string.IsNullOrEmpty(commentText))
-                    sql.SelectCommand.Parameters.AddWithValue("@commentText", DBNull.Value);
-                else
-                    sql.SelectCommand.Parameters.AddWithValue("@commentText", commentText);
-
-                if (string.IsNullOrEmpty(commentType))
-                    sql.SelectCommand.Parameters.AddWithValue("@commentType", DBNull.Value);
-                else
-                    sql.SelectCommand.Parameters.AddWithValue("@commentType", commentType);
-
-                try
+                
+                issues = db.Query<PraccingIssue, Survey, Person, Person, PraccingCategory, Person, Person, PraccingIssue>(sql, (issue, surv, by, to, category, resolved, entered) =>
                 {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            PraccingIssue issue = new PraccingIssue();
-                            issue.ID = (int)rdr["ID"];
-                            issue.IssueNo = (int)rdr["IssueNo"];
-                            issue.Survey = new Survey(rdr.SafeGetString("Survey"));
-                            issue.Survey.SID = (int)rdr["SurvID"];
-
-                            issue.VarNames = rdr.SafeGetString("VarNames");
-                            issue.Description = rdr.SafeGetString("IssueDescription");
-                            if (!rdr.IsDBNull(rdr.GetOrdinal("Date")))
-                                issue.IssueDate = (DateTime)rdr["Date"];
-
-                            issue.IssueFrom = new Person(rdr.SafeGetString("IssueFrom"), (int)rdr["By"]);
-                            issue.IssueTo = new Person(rdr.SafeGetString("IssueTo"), (int)rdr["To"]);
-                            if (!rdr.IsDBNull(rdr.GetOrdinal("CategoryID")))
-                                issue.Category = new PraccingCategory((int)rdr["CategoryID"], rdr.SafeGetString("IssueType"));
-                            else
-                                issue.Category = new PraccingCategory();
-
-                            issue.Resolved = (bool)rdr["Resolved"];
-
-                            if (!rdr.IsDBNull(rdr.GetOrdinal("ResDate")))
-                                issue.ResolvedDate = (DateTime)rdr["ResDate"];
-
-                            if (!rdr.IsDBNull(rdr.GetOrdinal("ResInit")))
-                                issue.ResolvedBy = new Person(rdr.SafeGetString("ResolvedBy"), (int)rdr["ResInit"]);
-
-                            issue.Language = rdr.SafeGetString("Language");
-
-                            issue.Responses = GetPraccResponses(issue.ID);
-                            issue.Images = GetPraccingImages(issue.ID);
-
-                            issues.Add(issue);
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
+                    issue.Survey = surv;
+                    issue.IssueFrom = by;
+                    issue.IssueTo = to;
+                    issue.Category = category;
+                    issue.ResolvedBy = resolved;
+                    issue.EnteredBy = entered;
+                    return issue;
+                }, parameters, splitOn: "SurvID, By, To, CategoryID, ResInit, EnteredBy").ToList();
             }
 
             return issues;

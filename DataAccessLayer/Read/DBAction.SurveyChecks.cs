@@ -24,7 +24,9 @@ namespace ITCLib
         {
             List<Survey> records = new List<Survey>();
 
-            string query = "SELECT SurvID, Survey FROM FN_GetSurveyChecks() GROUP BY Survey, SurvID ORDER BY Survey ";
+            string query = "SELECT SurvID, Survey " +
+                "FROM tblSurveyChecks AS SC LEFT JOIN tblStudyAttributes AS SA ON SC.SurvID = SA.ID " +
+                "GROUP BY Survey, SurvID ORDER BY Survey;";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
             using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
@@ -68,7 +70,11 @@ namespace ITCLib
         {
             List<SurveyCheckRec> records = new List<SurveyCheckRec>();
             
-            string query = "SELECT * FROM FN_GetSurveyChecks() ORDER BY CheckDate";
+            string query = "SELECT SC.*, P.[Name], SA.Survey,CT.CheckType " +
+                "FROM ((tblSurveyChecks AS SC LEFT JOIN tblStudyAttributes AS SA ON SC.SurvID = SA.ID) " +
+                "LEFT JOIN qryIssueInit AS P ON SC.CheckInit = P.ID) " +
+                "LEFT JOIN dbo.tblSurveyCheckTypes AS CT ON SC.CheckTypeID = CT.ID " +
+                "ORDER BY CheckDate;";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
             using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))

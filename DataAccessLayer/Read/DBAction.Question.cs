@@ -475,6 +475,7 @@ namespace ITCLib
             return qs;
         }
 
+        
 
         /// <summary>
         /// Retrieves a set of records for a particular VarName and returns a list of SurveyQuestion objects. 
@@ -1109,7 +1110,41 @@ namespace ITCLib
             return result;
         }
 
+        public static List<ParallelQuestion> GetParallelQuestions (string surveyCode)
+        {
+            List<ParallelQuestion> questions = new List<ParallelQuestion>();
 
+            string sql = "SELECT tblParallelQuestions.ID, MatchID, QID, Survey, tblVariableInformation.VarName, tblProduct.ID AS ProductID, Product " + 
+                "FROM tblParallelQuestions INNER JOIN tblSurveyNumbers ON tblParallelQuestions.QID = tblSurveyNumbers.ID " +
+                    "INNER JOIN tblVariableInformation ON tblSurveyNumbers.VarName = tblVariableInformation.VarName " +
+                    "INNER JOIN tblProduct ON tblVariableInformation.ProductNum = tblProduct.ID " +
+                "WHERE Survey = @survey " +
+                "ORDER BY MatchID";
+
+            var parameters = new { survey = surveyCode };
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            {
+                var results = db.Query(sql, parameters).Select(x => x as IDictionary<string, object>).ToList();
+                
+                foreach (IDictionary<string, object> row in results)
+                {
+                    ParallelQuestion pq = new ParallelQuestion();
+                    pq.ID  = (int)row["ID"];
+                    pq.MatchID = (int)row["MatchID"];
+
+                    ProductLabel product = new ProductLabel((int)row["ProductID"], (string)row["Product"]);
+                    SurveyQuestion sq = new SurveyQuestion((string)row["Survey"], (string)row["VarName"], product);
+                    pq.Question = sq;
+
+                    questions.Add(pq);
+                }
+            }
+
+            return questions;
+        }
+
+        
 
         //
         // Fill Methods
@@ -1198,6 +1233,26 @@ namespace ITCLib
                     return;
                 }
             }
+
+            FillQuestionTimeFrames(s);
+        }
+
+        public static void FillQuestionTimeFrames(Survey s)
+        {
+            string sql = "SELECT Q.ID, QID, TimeFrame FROM tblQuestionTimeFrames AS Q LEFT JOIN tblSurveyNumbers AS N ON Q.QID = N.ID WHERE N.Survey =@survey;";
+            var parameters = new { survey = s.SID };
+            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            {
+                var timeframes = db.Query<QuestionTimeFrame>(sql, parameters).ToList();
+
+                foreach (QuestionTimeFrame tf in timeframes)
+                {
+                    var q = s.Questions.FirstOrDefault(x => x.ID == tf.QID);
+                    if (q != null)
+                        q.TimeFrames.Add(tf);
+                }
+            }
+
         }
 
         /// <summary>

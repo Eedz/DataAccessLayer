@@ -24,7 +24,7 @@ namespace ITCLib
             {
                 conn.Open();
 
-                sql.UpdateCommand = new SqlCommand("UPDATE tblStudyAttributes SET Survey=@surveycode, SurveyTitle=@title, Cohort=@cohort, Mode2=@mode, " +
+                sql.UpdateCommand = new SqlCommand("UPDATE tblStudyAttributes SET Survey=@surveycode, SurveyTitle=@title, Cohort=@cohort, Mode=@mode, " +
                         "SurveyFileName=@filename, NCT=@nct, ReRun=@rerun, HideSurvey=@hide, Locked=@locked, ITCSurvey=@itc, ISISCreationDate=@date WHERE ID = @SID", conn)
                 {
                     CommandType = CommandType.Text
@@ -209,7 +209,7 @@ namespace ITCLib
                 {
                     sql.UpdateCommand.ExecuteNonQuery();
                 }
-                catch (Exception)
+                catch 
                 {
                     return 1;
                 }
@@ -237,7 +237,7 @@ namespace ITCLib
                 {
                     sql.UpdateCommand.ExecuteNonQuery();
                 }
-                catch (Exception)
+                catch 
                 {
                     return 1;
                 }
@@ -269,12 +269,15 @@ namespace ITCLib
                 sql.UpdateCommand.Parameters.AddWithValue("@ageGroup", study.AgeGroup);
                 sql.UpdateCommand.Parameters.AddWithValue("@countryCode", study.CountryCode);
                 sql.UpdateCommand.Parameters.AddWithValue("@ISO_Code", study.ISO_Code);
+                sql.UpdateCommand.Parameters.AddWithValue("@region", study.RegionID);
+                sql.UpdateCommand.Parameters.AddWithValue("@cohort", study.Cohort);
+                sql.UpdateCommand.Parameters.AddWithValue("@languages", study.Languages);
 
                 try
                 {
                     sql.UpdateCommand.ExecuteNonQuery();
                 }
-                catch (Exception)
+                catch 
                 {
                     return 1;
                 }

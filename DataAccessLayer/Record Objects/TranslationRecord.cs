@@ -20,7 +20,6 @@ namespace ITCLib
             this.ID = t.ID;
             this.Survey = t.Survey;
             this.VarName = t.VarName;
-            this.Language = t.Language;
             this.LanguageName = t.LanguageName;
             this.LitQ = t.LitQ;
             this.TranslationText = t.TranslationText;

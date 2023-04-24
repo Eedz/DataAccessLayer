@@ -6,897 +6,476 @@ using System.Threading.Tasks;
 using System.Data;
 using System.Data.SqlClient;
 using System.Configuration;
+using Dapper;
 
 namespace ITCLib
-
 {
     public static partial class DBAction
     {
-
-        public static int CopySurvey(string source, string destination)
+        public static int SP_Insert(string procedureName, DynamicParameters parameters, out int newID)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            int rowsAffected=0;
+            newID = 0;
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.InsertCommand = new SqlCommand("proc_copySurvey", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.InsertCommand.Parameters.AddWithValue("@survey", source);
-                sql.InsertCommand.Parameters.AddWithValue("@newSurvey", destination);
-
                 try
                 {
-                    sql.InsertCommand.ExecuteNonQuery();
+                    rowsAffected = db.Execute(procedureName, parameters, commandType: CommandType.StoredProcedure);
+
+                    if (parameters.ParameterNames.Contains("newID"))
+                    {
+                        var output = parameters.Get<dynamic>("@newID");
+                        if (output != null)
+                            newID = parameters.Get<int>("@newID");
+                    }
                 }
-                catch (Exception)
+                catch (SqlException)
                 {
                     return 1;
                 }
+                catch 
+                {
+
+                }
             }
-            return 0;
+
+            return rowsAffected;
+
         }
 
-        public static int InsertNote (Note record)
+        public static int InsertNote(Note record)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            string sql = "proc_createNote";
+
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@noteText", record.NoteText);
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+            int rowsAffected;
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.InsertCommand = new SqlCommand("proc_createNote", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.InsertCommand.Parameters.AddWithValue("@noteText", record.NoteText);
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+                rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
+                record.ID = parameters.Get<int>("@newID");
             }
-            return 0;
+
+            if (rowsAffected == 0)
+                return 1;
+            else
+                return 0;
         }
 
-        public static int InsertQuestion (string surveyCode, SurveyQuestion question)
+        public static int InsertQuestion(string surveyCode, SurveyQuestion question)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            string sql = "proc_createQuestion";
+
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@survey", surveyCode);
+            parameters.Add("@varname", question.VarName.VarName);
+            parameters.Add("@qnum", question.Qnum);
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+            int rowsAffected;
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.InsertCommand = new SqlCommand("proc_createQuestion", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.InsertCommand.Parameters.AddWithValue("@survey", surveyCode);
-                sql.InsertCommand.Parameters.AddWithValue("@varname", question.VarName.VarName);
-                sql.InsertCommand.Parameters.AddWithValue("@qnum", question.Qnum);
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    question.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
+                rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
+                question.ID = parameters.Get<int>("@newID");
             }
-            return 0;
+
+            if (rowsAffected == 0)
+                return 1;
+            else
+                return 0;
         }
 
         public static int InsertVariable(VariableName varname)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@varname", varname.VarName);
+            parameters.Add("@varlabel", varname.VarLabel);
+            parameters.Add("@content", varname.Content.ID);
+            parameters.Add("@topic", varname.Topic.ID);
+            parameters.Add("@domain", varname.Domain.ID);
+            parameters.Add("@product", varname.Product.ID);
+            
+            int recordsAffected = SP_Insert("proc_createVariableLabeled", parameters, out int id);
 
-                sql.InsertCommand = new SqlCommand("proc_createVariableLabeled", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.InsertCommand.Parameters.AddWithValue("@varname", varname.VarName);
-                sql.InsertCommand.Parameters.AddWithValue("@varlabel", varname.VarLabel);
-                sql.InsertCommand.Parameters.AddWithValue("@content", varname.Content.ID);
-                sql.InsertCommand.Parameters.AddWithValue("@topic", varname.Topic.ID);
-                sql.InsertCommand.Parameters.AddWithValue("@domain", varname.Domain.ID);
-                sql.InsertCommand.Parameters.AddWithValue("@product", varname.Product.ID);
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
-            }
-            return 0;
+            return recordsAffected;
         }
 
         /// <summary>
-        /// Saves Qnum field for a specified question.
+        /// Creates a new Domain label.
         /// </summary>
-        /// <param name="sq"></param>
-        /// <returns></returns>
-        public static int InsertLabel(string labelType, string newLabel)
-        {
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
-
-                sql.InsertCommand = new SqlCommand("proc_createLabel", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.InsertCommand.Parameters.AddWithValue("@type", labelType);
-                sql.InsertCommand.Parameters.AddWithValue("@label", newLabel);
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-            }
-            return 0;
-        }
-
-        /// <summary>
-        /// Creates a new domain label.
-        /// </summary>
-        /// <param name="sq"></param>
+        /// <param name="newLabel"></param>
         /// <returns></returns>
         public static int InsertDomainLabel(DomainLabel newLabel)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@type", "Domain");
+            parameters.Add("@label", newLabel.LabelText);
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-                sql.InsertCommand = new SqlCommand("proc_createLabel", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
+            int recordsAffected = SP_Insert("proc_createLabel", parameters, out int newID);
 
-                sql.InsertCommand.Parameters.AddWithValue("@type", "Domain");
-                sql.InsertCommand.Parameters.AddWithValue("@label", newLabel.LabelText);
+            newLabel.ID = newID;
 
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    newLabel.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-            }
-            return 0;
+            return recordsAffected;
         }
 
         /// <summary>
-        /// Creates a new topic label.
+        /// Creates a new Topic label.
         /// </summary>
-        /// <param name="sq"></param>
+        /// <param name="newLabel"></param>
         /// <returns></returns>
         public static int InsertTopicLabel(TopicLabel newLabel)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@type", "Topic");
+            parameters.Add("@label", newLabel.LabelText);
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-                sql.InsertCommand = new SqlCommand("proc_createLabel", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
+            int recordsAffected = SP_Insert("proc_createLabel", parameters, out int newID);
 
-                sql.InsertCommand.Parameters.AddWithValue("@type", "Topic");
-                sql.InsertCommand.Parameters.AddWithValue("@label", newLabel.LabelText);
+            newLabel.ID = newID;
 
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    newLabel.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-            }
-            return 0;
+            return recordsAffected;
         }
 
         /// <summary>
-        /// Creates a new topic label.
+        /// Creates a new Content label.
         /// </summary>
-        /// <param name="sq"></param>
+        /// <param name="newLabel"></param>
         /// <returns></returns>
         public static int InsertContentLabel(ContentLabel newLabel)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@type", "Content");
+            parameters.Add("@label", newLabel.LabelText);
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-                sql.InsertCommand = new SqlCommand("proc_createLabel", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
+            int recordsAffected = SP_Insert("proc_createLabel", parameters, out int newID);
 
-                sql.InsertCommand.Parameters.AddWithValue("@type", "Content");
-                sql.InsertCommand.Parameters.AddWithValue("@label", newLabel.LabelText);
+            newLabel.ID = newID;
 
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    newLabel.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-            }
-            return 0;
+            return recordsAffected;
         }
 
         /// <summary>
-        /// Creates a new product label.
+        /// Creates a new Product label.
         /// </summary>
-        /// <param name="sq"></param>
+        /// <param name="newLabel"></param>
         /// <returns></returns>
         public static int InsertProductLabel(ProductLabel newLabel)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@type", "Product");
+            parameters.Add("@label", newLabel.LabelText);
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-                sql.InsertCommand = new SqlCommand("proc_createLabel", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
+            int recordsAffected = SP_Insert("proc_createLabel", parameters, out int newID);
 
-                sql.InsertCommand.Parameters.AddWithValue("@type", "Product");
-                sql.InsertCommand.Parameters.AddWithValue("@label", newLabel.LabelText);
+            newLabel.ID = newID;
 
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    newLabel.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-            }
-            return 0;
+            return recordsAffected;
         }
 
         /// <summary>
-        /// Creates a new keyword.
+        /// Creates a new Keyword.
         /// </summary>
-        /// <param name="sq"></param>
+        /// <param name="newKeyword"></param>
         /// <returns></returns>
         public static int InsertKeyword(Keyword newKeyword)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@type", "Keyword");
+            parameters.Add("@label", newKeyword.LabelText);
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-                sql.InsertCommand = new SqlCommand("proc_createLabel", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
+            int recordsAffected = SP_Insert("proc_createLabel", parameters, out int newID);
 
-                sql.InsertCommand.Parameters.AddWithValue("@type", "Keyword");
-                sql.InsertCommand.Parameters.AddWithValue("@label", newKeyword.LabelText);
+            newKeyword.ID = newID;
 
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    newKeyword.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-            }
-            return 0;
+            return recordsAffected;
         }
 
+       
+        /// <summary>
+        /// Creates a new Region and Reserved Prefix for that region.
+        /// </summary>
+        /// <param name="region"></param>
+        /// <returns></returns>
         public static int InsertRegion(RegionRecord region)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@regionName", region.RegionName);
+            parameters.Add("@tempPrefix", region.TempVarPrefix);
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-                sql.InsertCommand = new SqlCommand("proc_createRegion", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
+            int recordsAffected = SP_Insert("proc_createRegion", parameters, out int newID);
 
-                sql.InsertCommand.Parameters.AddWithValue("@regionName", region.RegionName);
-                sql.InsertCommand.Parameters.AddWithValue("@tempPrefix", region.TempVarPrefix);
-               
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
+            region.ID = newID;
 
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    region.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-            }
-            return 0;
+            return recordsAffected;
         }
 
         /// <summary>
         /// Inserts a new study record.
         /// </summary>
-        /// <param name="u"></param>
+        /// <param name="newStudy"></param>
         /// <returns></returns>
         public static int InsertCountry(StudyRecord newStudy)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@studyName", newStudy.StudyName);
+            parameters.Add("@countryName", newStudy.CountryName);
+            parameters.Add("@ageGroup", newStudy.AgeGroup);
+            parameters.Add("@countryCode", newStudy.CountryCode);
+            parameters.Add("@ISO_Code", newStudy.ISO_Code);
+            parameters.Add("@region", newStudy.RegionID);
+            parameters.Add("@cohort", newStudy.Cohort);
+            parameters.Add("@languages", newStudy.Languages);
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-                sql.InsertCommand = new SqlCommand("proc_createStudy", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
+            int recordsAffected = SP_Insert("proc_createStudy", parameters, out int newID);
 
-                sql.InsertCommand.Parameters.AddWithValue("@studyName", newStudy.StudyName);
-                sql.InsertCommand.Parameters.AddWithValue("@countryName", newStudy.CountryName);
-                sql.InsertCommand.Parameters.AddWithValue("@ageGroup", newStudy.AgeGroup);
-                sql.InsertCommand.Parameters.AddWithValue("@countryCode", newStudy.CountryCode);
-                sql.InsertCommand.Parameters.AddWithValue("@ISO_Code", newStudy.ISO_Code);
-                sql.InsertCommand.Parameters.AddWithValue("@region", newStudy.RegionID);
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
+            newStudy.ID = newID;
 
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    newStudy.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-            }
-            return 0;
+            return recordsAffected;
         }
 
         /// <summary>
         /// Inserts a new wave record.
         /// </summary>
-        /// <param name="u"></param>
+        /// <param name="newWave"></param>
         /// <returns></returns>
         public static int InsertStudyWave(StudyWaveRecord newWave)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@studyID", newWave.StudyID);
+            parameters.Add("@waveNum", newWave.Wave);
+            parameters.Add("@countries", newWave.Countries);
+            parameters.Add("@englishRouting", newWave.EnglishRouting);
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-                sql.InsertCommand = new SqlCommand("proc_createWave", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
+            int recordsAffected = SP_Insert("proc_createWave", parameters, out int newID);
 
-                sql.InsertCommand.Parameters.AddWithValue("@studyID", newWave.StudyID);
-                sql.InsertCommand.Parameters.AddWithValue("@waveNum", newWave.Wave);
-                sql.InsertCommand.Parameters.AddWithValue("@countries", newWave.Countries);
-                sql.InsertCommand.Parameters.AddWithValue("@englishRouting", newWave.EnglishRouting);
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
+            newWave.ID = newID;
 
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    newWave.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-            }
-            return 0;
-        }
-
-
-
-        public static int InsertWording(Wording wording)
-        {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
-
-                sql.InsertCommand = new SqlCommand("proc_createWording", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.InsertCommand.Parameters.AddWithValue("@wording", wording.WordingText);
-                sql.InsertCommand.Parameters.AddWithValue("@fieldname", wording.FieldName);
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    wording.WordID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-            }
-            return 0;
-        }
-
-        public static int InsertResponseSet(ResponseSet respSet)
-        {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
-
-                sql.InsertCommand = new SqlCommand("proc_createResponseSet", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.InsertCommand.Parameters.AddWithValue("@wording", respSet.RespList);
-                sql.InsertCommand.Parameters.AddWithValue("@setname", respSet.RespSetName);
-                sql.InsertCommand.Parameters.AddWithValue("@fieldname", respSet.FieldName);
-               
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-            }
-            return 0;
+            return recordsAffected;
         }
 
         /// <summary>
-        /// 
+        /// Inserts a new wording record.
         /// </summary>
-        /// <param name="sq"></param>
+        /// <param name="wording"></param>
         /// <returns></returns>
-        public static int BackupComments(int QID)
+        public static int InsertWording(Wording wording)
         {
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@wording", wording.WordingText);
+            parameters.Add("@fieldname", wording.FieldName);
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
+            int recordsAffected = SP_Insert("proc_createWording", parameters, out int newID);
 
-                sql.InsertCommand = new SqlCommand("proc_backupComments", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
+            wording.WordID = newID;
 
-                sql.InsertCommand.Parameters.AddWithValue("@QID", QID);
-                
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-            }
-            return 0;
+            return recordsAffected;
         }
 
-        public static int InsertSurveyDraft(SurveyDraft draft)
+        /// <summary>
+        /// Inserts a response set record.
+        /// </summary>
+        /// <param name="respSet"></param>
+        /// <returns></returns>
+        public static int InsertResponseSet(ResponseSet respSet)
         {
-            int newID;
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@wording", respSet.RespList);
+            parameters.Add("@setname", respSet.RespSetName);
+            parameters.Add("@fieldname", respSet.FieldName);
 
-                sql.InsertCommand = new SqlCommand("proc_createSurveyDraft", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
+            int recordsAffected = SP_Insert("proc_createResponseSet", parameters, out int newID);          
 
-                sql.InsertCommand.Parameters.AddWithValue("@SurvID", draft.SurvID);
-                sql.InsertCommand.Parameters.AddWithValue("@DraftTitle", draft.DraftTitle);
-                sql.InsertCommand.Parameters.AddWithValue("@DraftDate", draft.DraftDate);
-                sql.InsertCommand.Parameters.AddWithValue("@DraftComments", draft.DraftComments);
-                sql.InsertCommand.Parameters.Add(new SqlParameter("@newID", SqlDbType.Int)).Direction = ParameterDirection.Output;
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    newID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return -1;
-                }
-            }
-            return newID;
+            return recordsAffected;
         }
 
+        /// <summary>
+        /// Inserts a new survey draft record.
+        /// </summary>
+        /// <param name="draft"></param>
+        /// <returns></returns>
+        public static int InsertSurveyDraft(SurveyDraftRecord draft)
+        {
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@SurvID", draft.SurvID);
+            parameters.Add("@DraftTitle", draft.DraftTitle);
+            parameters.Add("@DraftDate", draft.DraftDate);
+            parameters.Add("@DraftComments", draft.DraftComments);
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+            int recordsAffected = SP_Insert("proc_createSurveyDraft", parameters, out int newID);
+            draft.ID = newID;
+
+            return recordsAffected;
+        }
+
+        /// <summary>
+        /// Inserts extra field label information for a specified draft.
+        /// </summary>
+        /// <param name="draftID"></param>
+        /// <param name="extraFieldNum"></param>
+        /// <param name="extraFieldLabel"></param>
+        /// <returns></returns>
         public static int InsertSurveyDraftExtraInfo(int draftID, int extraFieldNum, string extraFieldLabel)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@DraftID", draftID);
+            parameters.Add("@ExtraFieldNum", extraFieldNum);
+            parameters.Add("@ExtraFieldLabel", extraFieldLabel);
 
-                sql.InsertCommand = new SqlCommand("proc_createSurveyDraftExtraInfo", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.InsertCommand.Parameters.AddWithValue("@DraftID", draftID);
-                sql.InsertCommand.Parameters.AddWithValue("@ExtraFieldNum", extraFieldNum);
-                sql.InsertCommand.Parameters.AddWithValue("@ExtraFieldLabel", extraFieldLabel);
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-            }
-            return 0;
+            SP_Insert("proc_createSurveyDraftExtraInfo", parameters, out int result);
+            return result;
         }
 
+        /// <summary>
+        /// Inserts a new survey draft question. TODO set ID 
+        /// </summary>
+        /// <param name="dq"></param>
+        /// <returns></returns>
         public static int InsertDraftQuestion(DraftQuestionRecord dq)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@DraftID", dq.DraftID);
+            parameters.Add("@SortBy", dq.SortBy);
+            parameters.Add("@Qnum", dq.Qnum);
+            parameters.Add("@AltQnum", dq.AltQnum);
+            parameters.Add("@VarName", dq.VarName);
+            parameters.Add("@QuestionText", dq.QuestionText);
+            parameters.Add("@Comment", dq.Comments);
+            parameters.Add("@Extra1", dq.Extra1);
+            parameters.Add("@Extra2", dq.Extra2);
+            parameters.Add("@Extra3", dq.Extra3);
+            parameters.Add("@Extra4", dq.Extra4);
+            parameters.Add("@Extra5", dq.Extra5);
+            parameters.Add("@Inserted", dq.Inserted);
+            parameters.Add("@Deleted", dq.Deleted);
 
-                sql.InsertCommand = new SqlCommand("proc_createSurveyDraftQuestion", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.InsertCommand.Parameters.AddWithValue("@DraftID", dq.DraftID);
-                sql.InsertCommand.Parameters.AddWithValue("@SortBy", dq.SortBy);
-                sql.InsertCommand.Parameters.AddWithValue("@Qnum", dq.Qnum);
-                sql.InsertCommand.Parameters.AddWithValue("@AltQnum", dq.AltQnum);
-                sql.InsertCommand.Parameters.AddWithValue("@VarName", dq.VarName);
-                sql.InsertCommand.Parameters.AddWithValue("@QuestionText", dq.QuestionText);
-                sql.InsertCommand.Parameters.AddWithValue("@Comment", dq.Comments);
-                sql.InsertCommand.Parameters.AddWithValue("@Extra1", dq.Extra1);
-                sql.InsertCommand.Parameters.AddWithValue("@Extra2", dq.Extra2);
-                sql.InsertCommand.Parameters.AddWithValue("@Extra3", dq.Extra3);
-                sql.InsertCommand.Parameters.AddWithValue("@Extra4", dq.Extra4);
-                sql.InsertCommand.Parameters.AddWithValue("@Extra5", dq.Extra5);
-                sql.InsertCommand.Parameters.AddWithValue("@Inserted", dq.Inserted);
-                sql.InsertCommand.Parameters.AddWithValue("@Deleted", dq.Deleted);
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-            }
-            return 0;
+            SP_Insert("proc_createSurveyDraftQuestion", parameters, out int result);
+            return result;
         }
-        
-        // TODO add LitQ
+
+        /// <summary>
+        /// Inserts a new translation record.
+        /// </summary>
+        /// <param name="tq"></param>
+        /// <returns></returns>
         public static int InsertTranslation(Translation tq)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@qid", tq.QID);
+            parameters.Add("@text", tq.TranslationText);
+            parameters.Add("@lang", tq.LanguageName.ID);
+            parameters.Add("@languageName", tq.Language);
+            parameters.Add("@bilingual", tq.Bilingual);
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-                sql.InsertCommand = new SqlCommand("proc_createTranslationQID", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
+            int recordsAffected = SP_Insert("proc_createTranslation", parameters, out int newID);
+            tq.ID = newID;
 
-                sql.InsertCommand.Parameters.AddWithValue("@qid", tq.QID);
-                sql.InsertCommand.Parameters.AddWithValue("@text", tq.TranslationText);
-                sql.InsertCommand.Parameters.AddWithValue("@lang", tq.Language);
-                sql.InsertCommand.Parameters.AddWithValue("@bilingual", tq.Bilingual);
-
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    tq.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newId"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-            }
-            return 0;
+            return recordsAffected;
         }
 
-        // TODO optimization: insert the ref Surveys in this method, so the whole record + related records are inserted in one action
+        /// <summary>
+        /// Inserts a new survey check record.
+        /// </summary>
+        /// <param name="record"></param>
+        /// <returns></returns>
         public static int InsertSurveyCheckRecord(SurveyCheckRec record)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-               
-                conn.Open();
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@checkDate", record.CheckDate);
+            parameters.Add("@checkInit", record.Name.ID);
+            parameters.Add("@comments", record.Comments);
+            parameters.Add("@survID", record.SurveyCode.SID);
+            parameters.Add("@checkType", record.CheckType.ID);
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-                sql.InsertCommand = new SqlCommand("proc_createSurveyCheckRecord", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
+            //sql.InsertCommand.Parameters.AddWithValue("@sendDate", record.SentOn);
+            //sql.InsertCommand.Parameters.AddWithValue("@sendTo", record.SentTo.ID);
+            //sql.InsertCommand.Parameters.AddWithValue("@reviewed", record.Reviewed);
+            //sql.InsertCommand.Parameters.AddWithValue("@reviewedBy", record.ReviewedBy.ID);
+            //sql.InsertCommand.Parameters.AddWithValue("@reviewDetails", record.ReviewDetails);
+            //sql.InsertCommand.Parameters.AddWithValue("@editsMadeDate", record.Edited);
 
-                sql.InsertCommand.Parameters.AddWithValue("@checkDate", record.CheckDate);
-                sql.InsertCommand.Parameters.AddWithValue("@checkInit", record.Name.ID);
-                //sql.InsertCommand.Parameters.AddWithValue("@sendDate", record.SentOn);
-                //sql.InsertCommand.Parameters.AddWithValue("@sendTo", record.SentTo.ID);
-                //sql.InsertCommand.Parameters.AddWithValue("@reviewed", record.Reviewed);
-                //sql.InsertCommand.Parameters.AddWithValue("@reviewedBy", record.ReviewedBy.ID);
-                //sql.InsertCommand.Parameters.AddWithValue("@reviewDetails", record.ReviewDetails);
-                //sql.InsertCommand.Parameters.AddWithValue("@editsMadeDate", record.Edited);
-                sql.InsertCommand.Parameters.AddWithValue("@comments", record.Comments);
-                sql.InsertCommand.Parameters.AddWithValue("@survID", record.SurveyCode.SID);
-                sql.InsertCommand.Parameters.AddWithValue("@checkType", record.CheckType.ID);
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@NewId"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-                
-            }
-            return 0;
+            int recordsAffected = SP_Insert("proc_createSurveyCheckRecord", parameters, out int newID);
+            record.ID = newID;
+
+            return recordsAffected;
         }
 
+        /// <summary>
+        /// Inserts a new survey check reference survey record.
+        /// </summary>
+        /// <param name="record"></param>
+        /// <returns></returns>
         public static int InsertSurveyCheckRef(SurveyCheckRefSurvey record)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@checkID", record.CheckID);
+            parameters.Add("@survID", record.SID);
+            parameters.Add("@survDate", record.SurveyDate);
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-                conn.Open();
+            //sql.InsertCommand.Parameters.AddWithValue("@sendDate", record.SentOn);
+            //sql.InsertCommand.Parameters.AddWithValue("@sendTo", record.SentTo.ID);
+            //sql.InsertCommand.Parameters.AddWithValue("@reviewed", record.Reviewed);
+            //sql.InsertCommand.Parameters.AddWithValue("@reviewedBy", record.ReviewedBy.ID);
+            //sql.InsertCommand.Parameters.AddWithValue("@reviewDetails", record.ReviewDetails);
+            //sql.InsertCommand.Parameters.AddWithValue("@editsMadeDate", record.Edited);
 
-                sql.InsertCommand = new SqlCommand("proc_createSurveyCheckRef", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
+            int recordsAffected = SP_Insert("proc_createSurveyCheckRef", parameters, out int newID);
+            record.ID = newID;
 
-                sql.InsertCommand.Parameters.AddWithValue("@checkID", record.CheckID);
-                sql.InsertCommand.Parameters.AddWithValue("@survID", record.SID);
-                if (record.SurveyDate == null)
-                    sql.InsertCommand.Parameters.AddWithValue("@survDate", DBNull.Value);
-                else 
-                    sql.InsertCommand.Parameters.AddWithValue("@survDate", record.SurveyDate);
-
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
-            }
-            return 0;
+            return recordsAffected;
         }
 
-        public static int InsertBugReport(BugReport record)
-        {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-
-                conn.Open();
-
-                sql.InsertCommand = new SqlCommand("proc_createBugReport", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                //sql.InsertCommand.Parameters.AddWithValue("@checkDate", record.CheckDate);
-                //sql.InsertCommand.Parameters.AddWithValue("@checkInit", record.Name.ID);
-                //sql.InsertCommand.Parameters.AddWithValue("@sendDate", record.SentOn);
-                //sql.InsertCommand.Parameters.AddWithValue("@sendTo", record.SentTo.ID);
-                //sql.InsertCommand.Parameters.AddWithValue("@reviewed", record.Reviewed);
-                //sql.InsertCommand.Parameters.AddWithValue("@reviewedBy", record.ReviewedBy.ID);
-                //sql.InsertCommand.Parameters.AddWithValue("@reviewDetails", record.ReviewDetails);
-                //sql.InsertCommand.Parameters.AddWithValue("@editsMadeDate", record.Edited);
-                //sql.InsertCommand.Parameters.AddWithValue("@comments", record.Comments);
-                //sql.InsertCommand.Parameters.AddWithValue("@survID", record.SurveyCode.SID);
-                //sql.InsertCommand.Parameters.AddWithValue("@checkType", record.CheckType.ID);
-                //sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@NewId"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
-            }
-            return 0;
-
-           
-        }
-
-        public static int InsertBugResponse(BugResponse record)
-        {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-
-                conn.Open();
-
-                sql.InsertCommand = new SqlCommand("proc_createBugResponse", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                //sql.InsertCommand.Parameters.AddWithValue("@checkDate", record.CheckDate);
-                //sql.InsertCommand.Parameters.AddWithValue("@checkInit", record.Name.ID);
-                //sql.InsertCommand.Parameters.AddWithValue("@sendDate", record.SentOn);
-                //sql.InsertCommand.Parameters.AddWithValue("@sendTo", record.SentTo.ID);
-                //sql.InsertCommand.Parameters.AddWithValue("@reviewed", record.Reviewed);
-                //sql.InsertCommand.Parameters.AddWithValue("@reviewedBy", record.ReviewedBy.ID);
-                //sql.InsertCommand.Parameters.AddWithValue("@reviewDetails", record.ReviewDetails);
-                //sql.InsertCommand.Parameters.AddWithValue("@editsMadeDate", record.Edited);
-                //sql.InsertCommand.Parameters.AddWithValue("@comments", record.Comments);
-                //sql.InsertCommand.Parameters.AddWithValue("@survID", record.SurveyCode.SID);
-                //sql.InsertCommand.Parameters.AddWithValue("@checkType", record.CheckType.ID);
-                //sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@NewId"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
-            }
-            return 0;
-
-
-        }
-
+        /// <summary>
+        /// Inserts a new language.
+        /// </summary>
+        /// <param name="record"></param>
+        /// <returns></returns>
         public static int InsertLanguage(Language record)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@language", record.LanguageName);
+            parameters.Add("@abbrev", record.Abbrev);
+            parameters.Add("@isoabbrev", record.ISOAbbrev);
+            parameters.Add("@nonLatin", record.NonLatin);
+            parameters.Add("@font", record.PreferredFont);
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-                conn.Open();
+            int recordsAffected = SP_Insert("proc_createLanguage", parameters, out int newID);
+            record.ID = newID;
 
-                sql.InsertCommand = new SqlCommand("proc_createLanguage", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                
-                sql.InsertCommand.Parameters.AddWithValue("@language", record.LanguageName);
-                sql.InsertCommand.Parameters.AddWithValue("@abbrev", record.Abbrev);
-                sql.InsertCommand.Parameters.AddWithValue("@isoabbrev", record.ISOAbbrev);
-                sql.InsertCommand.Parameters.AddWithValue("@nonLatin", record.NonLatin);
-                sql.InsertCommand.Parameters.AddWithValue("@font", record.PreferredFont);
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
-            }
-            return 0;
-
-
+            return recordsAffected;
         }
 
+        /// <summary>
+        /// Inserts a new language.
+        /// </summary>
+        /// <param name="record"></param>
+        /// <returns></returns>
         public static int InsertSurveyLanguage(SurveyLanguage record)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@survID", record.SurvID);
+            parameters.Add("@langID", record.SurvLanguage.ID);
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-                conn.Open();
+            int recordsAffected = SP_Insert("proc_createSurveyLanguage", parameters, out int newID);
+            record.ID = newID;
 
-                sql.InsertCommand = new SqlCommand("proc_createSurveyLanguage", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-
-                sql.InsertCommand.Parameters.AddWithValue("@survID", record.SurvID);
-                sql.InsertCommand.Parameters.AddWithValue("@langID", record.SurvLanguage.ID);
-             
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
-            }
-            return 0;
-
-
+            return recordsAffected;
         }
 
         public static int InsertSurveyUserState(SurveyUserState record)
@@ -2038,6 +1617,54 @@ namespace ITCLib
             return 0;
         }
 
-        
+        public static int InsertParallelQuestion(ParallelQuestion record)
+        {
+            string sql = "proc_createParallelQuestion";
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@matchID", record.MatchID);
+            parameters.Add("@qid", record.Question.ID);
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+            int rowsAffected = SP_Insert(sql, parameters, out int newID);
+            record.ID = newID;
+
+            return rowsAffected;
+        }
+
+        /// <summary>
+        /// Inserts a set of parallel questions but inserting the first one, then applying the matchID to the subsequent members.
+        /// </summary>
+        /// <param name="records"></param>
+        /// <returns></returns>
+        public static int InsertParallelQuestion(List<ParallelQuestion> records)
+        {
+            string sql = "proc_createParallelQuestionMatch";
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@qid", records[0].Question.ID);
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
+            parameters.Add("@matchID", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+            int rowsAffected = 0;
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            {
+                rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
+                records[0].ID = parameters.Get<int>("@newID");
+                records[0].MatchID = parameters.Get<int>("@matchID");
+            }
+                    
+            sql = "proc_createParallelQuestion";
+
+            foreach (ParallelQuestion record in records)
+            {
+                if (record.ID > 0) continue;
+                parameters = new DynamicParameters();
+                parameters.Add("@matchID", records[0].MatchID);
+                parameters.Add("@qid", record.Question.ID);
+                parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
+                rowsAffected += SP_Insert(sql, parameters, out int newID);
+                record.ID = newID;
+            }
+            return rowsAffected;
+        }
     }
 }

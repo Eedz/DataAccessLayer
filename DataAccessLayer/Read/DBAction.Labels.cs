@@ -110,12 +110,13 @@ namespace ITCLib
         public static List<ProductLabel> GetProductLabels(string surveyFilter)
         {
             List<ProductLabel> products = new List<ProductLabel>();
-           
-            string sql = "SELECT ID, Product AS LabelText FROM Labels.FN_ListProductLabelsBySurvey(@survey) ORDER BY Product";
 
+            var parameters = new { survey = surveyFilter };
+            string sql = "SELECT ID, Product AS LabelText FROM Labels.FN_ListProductLabelsBySurvey(@survey) ORDER BY Product";
+            
             using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                products = db.Query<ProductLabel>(sql).ToList();
+                products = db.Query<ProductLabel>(sql, parameters).ToList();
             }
 
             return products;

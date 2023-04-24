@@ -267,8 +267,7 @@ namespace ITCLib
                 if (!DBNull.Value.Equals(r["Translation"])) t.TranslationText = (string)r["Translation"];
                 if (!DBNull.Value.Equals(r["Lang"]))
                 {
-                    t.Language = (string)r["Lang"];
-                    t.LanguageName = new Language() { LanguageName = "Lang" };
+                    t.LanguageName = new Language() { LanguageName = (string)r["Lang"] };
                 }
                 if (!DBNull.Value.Equals(r["LitQ"])) t.LitQ = (string)r["LitQ"];
 
