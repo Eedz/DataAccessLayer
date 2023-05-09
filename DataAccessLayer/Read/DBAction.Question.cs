@@ -1135,6 +1135,7 @@ namespace ITCLib
 
                     ProductLabel product = new ProductLabel((int)row["ProductID"], (string)row["Product"]);
                     SurveyQuestion sq = new SurveyQuestion((string)row["Survey"], (string)row["VarName"], product);
+                    sq.ID = (int)row["QID"];
                     pq.Question = sq;
 
                     questions.Add(pq);

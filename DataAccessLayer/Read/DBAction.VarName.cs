@@ -1085,6 +1085,91 @@ namespace ITCLib
         }
 
         /// <summary>
+        /// Returns the list of all variables in use by a list of surveys.
+        /// </summary>
+        /// <param name="surveyFilter"></param>
+        /// <returns></returns>
+        public static DataTable GetSurveysVariableListAltQnum(List<string> surveys, List<string> vars, List<string> additionalColumns, List<string> exclusions)
+        {
+            DataTable result = new DataTable();
+
+            result.Columns.Add(new DataColumn("refVarName", Type.GetType("System.String")));
+            foreach (string s in additionalColumns)
+                result.Columns.Add(new DataColumn(s, Type.GetType("System.String")));
+            foreach (string s in surveys)
+                result.Columns.Add(new DataColumn(s, Type.GetType("System.String")));
+
+
+            string columns = "[" + string.Join("],[", surveys) + "]";
+            string filter = "'" + string.Join("','", surveys) + "'";
+            string varFilter = "'" + string.Join("','", vars) + "'";
+            string addColumns = ", " + string.Join(", ", additionalColumns);
+            addColumns = addColumns.TrimEnd(new char[] { ',', ' ' });
+            string exclusionList = "(" + string.Join(") AND (", exclusions) + ")";
+
+            StringBuilder sb = new StringBuilder();
+            sb.Append("SELECT * FROM ");
+            sb.Append("(SELECT Survey, refVarName, ALtQnum2" + addColumns + " ");
+
+            sb.Append("FROM qrySurveyQuestions ");
+            if (surveys.Count > 0 || exclusions.Count > 0 || vars.Count > 0)
+            {
+                exclusionList = " AND " + exclusionList;
+                sb.Append("WHERE ");
+            }
+
+            if (surveys.Count > 0)
+                sb.Append("Survey IN (" + filter + ")");
+            if (exclusions.Count > 0)
+                sb.Append(exclusionList);
+            if (vars.Count > 0)
+                sb.Append(" AND refVarName IN (" + varFilter + ")");
+
+            sb.Append(") as j ");
+            sb.Append("PIVOT " +
+                                "(Max(AltQnum2) FOR Survey IN (" + columns + ")) AS p ORDER BY refVarName;");
+
+            string query = sb.ToString();
+
+            //"SELECT * FROM " +
+            //                   "(SELECT Survey, refVarName, Qnum" + addColumns +
+            //                      " FROM qrySurveyQuestions WHERE Survey IN (" + filter + ")) AS j " +
+            //             "PIVOT " +
+            //                "(Count(Qnum) FOR Survey IN (" + columns + ")) AS p ORDER BY refVarName;"; 
+
+            using (SqlDataAdapter sql = new SqlDataAdapter())
+            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            {
+                conn.Open();
+
+                sql.SelectCommand = new SqlCommand(query, conn);
+
+                try
+                {
+                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
+                    {
+                        while (rdr.Read())
+                        {
+                            DataRow r = result.Rows.Add();
+                            for (int i = 0; i < result.Columns.Count; i++)
+                            {
+                                r[i] = rdr[i];
+                            }
+
+
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.Write(e.Message);
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Returns the list of all variables in use by a list of waves.
         /// </summary>
         /// <param name="surveyFilter"></param>
