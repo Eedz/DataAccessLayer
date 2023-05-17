@@ -312,6 +312,7 @@ namespace ITCLib
                 counter++;
             }
         }
+
     }
 
     
@@ -326,6 +327,7 @@ namespace ITCLib
         public bool DirtyLabels { get; set; }
         public bool DirtyQnum { get; set; }
         public bool DirtyAltQnum { get; set; }
+        public bool DirtyPlainFilter { get; set; }
 
         public bool NewRecord { get; set; }
         public bool Dirty { get; set; }
@@ -358,7 +360,7 @@ namespace ITCLib
 
         public bool IsEdited()
         {
-            return Dirty || DirtyQnum || DirtyLabels || DirtyAltQnum;
+            return Dirty || DirtyQnum || DirtyLabels || DirtyAltQnum || DirtyPlainFilter;
         }
 
         public int SaveRecord()
@@ -383,6 +385,14 @@ namespace ITCLib
                     return 1;
 
                 Dirty = false;
+            }
+
+            if (DirtyPlainFilter)
+            {
+                if (DBAction.UpdatePlainFilter(this) == 1)
+                    return 1;
+
+                DirtyPlainFilter = false;
             }
 
             if (DirtyQnum)

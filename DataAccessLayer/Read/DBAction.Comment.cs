@@ -91,7 +91,7 @@ namespace ITCLib
             List<DeletedComment> comments = new List<DeletedComment>();
             
             string sql = "SELECT ID, Survey, VarName, NoteDate, SourceName, Source, " +
-                "CID, CID AS ID, Notes " +
+                "CID, CID AS ID, Notes, " +
                 "NoteInit, NoteInit AS ID, Name, " + 
                 "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName " +
                 "FROM Comments.FN_GetDeletedComments (@survey, @varname);";
@@ -100,8 +100,9 @@ namespace ITCLib
 
             using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                comments = db.Query<DeletedComment, Person, CommentType, DeletedComment>(sql, (comment, author, type) =>
+                comments = db.Query<DeletedComment, Note, Person, CommentType, DeletedComment>(sql, (comment, note, author, type) =>
                 {
+                    comment.Notes = note;
                     comment.Author = author;
                     comment.NoteType = type;
                     return comment;
@@ -111,9 +112,8 @@ namespace ITCLib
             return comments;
         }
 
-
         /// <summary>
-        /// Returns true if the provided comment exists for the survey.
+        /// Returns true if the provided comment exists for the deleted question.
         /// </summary>
         /// <param name="s"></param>
         /// <param name="CID"></param>
@@ -122,33 +122,13 @@ namespace ITCLib
         {
             bool exists = false;
 
-            string query;
+            string query = "SELECT dbo.FN_DeletedCommentExists(@survey, @varname, @cid)";
 
-            query = "SELECT dbo.FN_DeletedCommentExists(@survey, @varname, @cid)";
+            var parameters = new { survey = question.SurveyCode, varname = question.VarName, cid = CID };
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand();
-                sql.SelectCommand.Connection = conn;
-                sql.SelectCommand.CommandType = CommandType.Text;
-                sql.SelectCommand.CommandText = query;
-
-
-                sql.SelectCommand.Parameters.AddWithValue("@survey", question.SurveyCode);
-                sql.SelectCommand.Parameters.AddWithValue("@varname", question.VarName);
-                sql.SelectCommand.Parameters.AddWithValue("@cid", CID);
-
-                try
-                {
-                    exists = (bool)sql.SelectCommand.ExecuteScalar();
-                }
-                catch (Exception)
-                {
-
-                }
+                exists = (bool)db.ExecuteScalar(query, parameters);
             }
 
             return exists;
@@ -159,9 +139,9 @@ namespace ITCLib
         //
 
         /// <summary>
-        /// Returns true if the provided comment exists for the survey.
+        /// Returns true if the provided comment exists for the question.
         /// </summary>
-        /// <param name="s"></param>
+        /// <param name="question"></param>
         /// <param name="CID"></param>
         /// <returns></returns>
         public static bool QuestionCommentExists(SurveyQuestion question, int CID)
@@ -171,30 +151,11 @@ namespace ITCLib
             string query;
 
             query = "SELECT dbo.FN_QuestionCommentExists(@survey, @varname, @cid)";
+            var parameters = new { survey = question.SurveyCode, varname = question.VarName.VarName, cid = CID };
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand();
-                sql.SelectCommand.Connection = conn;
-                sql.SelectCommand.CommandType = CommandType.Text;
-                sql.SelectCommand.CommandText = query;
-
-
-                sql.SelectCommand.Parameters.AddWithValue("@survey", question.SurveyCode);
-                sql.SelectCommand.Parameters.AddWithValue("@varname", question.VarName.VarName);
-                sql.SelectCommand.Parameters.AddWithValue("@cid", CID);
-
-                try
-                {
-                    exists = (bool)sql.SelectCommand.ExecuteScalar();
-                }
-                catch (Exception)
-                {
-
-                }
+                exists = (bool)db.ExecuteScalar(query, parameters);
             }
 
             return exists;
@@ -208,48 +169,24 @@ namespace ITCLib
         public static List<QuestionCommentRecord> GetQuesCommentsByCID (int CID)
         {
             List<QuestionCommentRecord> cs = new List<QuestionCommentRecord>();
-            QuestionCommentRecord c;
-            string query = "SELECT * FROM Comments.FN_GetQuesCommentsByCID (@cid)";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            string query = "SELECT ID, QID, SurvID, Survey, VarName, NoteDate, SourceName, Source, " + 
+                "CID, CID AS ID, Notes AS NoteText, " + 
+                "NoteInit, NoteInit AS ID, Name, " +
+                "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, ShortForm " +
+                "FROM Comments.FN_GetQuesCommentsByCID (@cid);";
+
+            var parameters = new { cid = CID };
+
+            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@cid", CID);
-                try
+                cs = db.Query<QuestionCommentRecord, Note, Person, CommentType, QuestionCommentRecord>(query, (record, note, person, type) =>
                 {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            c = new QuestionCommentRecord
-                            {
-                                ID = (int)rdr["ID"],
-                                Notes = new Note((int)rdr["CID"], (string)rdr["Notes"]),
-                                QID = (int)rdr["QID"],
-                                SurvID = (int)rdr["SurvID"],
-                                Survey = (string)rdr["Survey"],
-                                VarName = (string)rdr["VarName"],
-                                NoteDate = (DateTime)rdr["NoteDate"],
-                                SourceName = rdr.SafeGetString("SourceName"),
-                                Source = rdr.SafeGetString("Source"),
-                            };
-                            c.Author.ID = (int)rdr["NoteInit"];
-                            c.Author.Name = rdr.SafeGetString("Name");
-                            c.NoteType.ID = rdr.SafeGetInt("NoteTypeID");
-                            c.NoteType.TypeName = rdr.SafeGetString("CommentType");
-                            c.NoteType.ShortForm = rdr.SafeGetString("ShortForm");
-
-                            cs.Add(c);
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-                    
-                }
+                    record.Notes = note;
+                    record.Author = person;
+                    record.NoteType = type;
+                    return record;
+                }, parameters, splitOn: "CID, NoteInit, NoteTypeID").ToList();
             }
 
             return cs;
@@ -260,133 +197,64 @@ namespace ITCLib
         /// </summary>
         /// <param name="SurvID"></param>
         /// <returns></returns>
-        public static List<QuestionComment> GetQuesCommentsBySurvey(int SurvID)
+        public static List<QuestionComment> GetQuesCommentsBySurvey(Survey survey)
         {
             List<QuestionComment> cs = new List<QuestionComment>();
-            QuestionComment c;
-            string query = "SELECT * FROM Comments.FN_GetQuesCommentsBySurvID(@sid)";
+            
+            string query = "SELECT ID, QID, SurvID, Survey, VarName, NoteDate, SourceName, Source, " +
+                "CID, CID AS ID, Notes AS NoteText, " +
+                "NoteInit, NoteInit AS ID, Name, " +
+                "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, ShortForm " +
+                "FROM Comments.FN_GetQuesCommentsBySurvID(@sid);";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            var parameters = new { sid = survey.SID };
+
+            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@sid", SurvID);
-                try
+                cs = db.Query<QuestionComment, Note, Person, CommentType, QuestionComment>(query, (record, note, person, type) =>
                 {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            c = new QuestionComment
-                            {
-                                ID = (int)rdr["ID"],
-                                Notes = new Note((int)rdr["CID"], (string)rdr["Notes"]),
-                                QID = (int)rdr["QID"],
-                                SurvID = (int)rdr["SurvID"],
-                                Survey = (string)rdr["Survey"],
-                                VarName = (string)rdr["VarName"],
-                                NoteDate = (DateTime)rdr["NoteDate"],
-                                SourceName = (string)rdr["SourceName"],
-                                Source = (string)rdr["Source"],
-                            };
-                            c.Author.ID = (int)rdr["NoteInit"];
-                            c.Author.Name = rdr.SafeGetString("Name");
-                            c.NoteType.ID = (int)rdr["NoteTypeID"];
-                            c.NoteType.TypeName = rdr.SafeGetString("CommentType");
-                            c.NoteType.ShortForm = rdr.SafeGetString("ShortForm");
-
-                            cs.Add(c);
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-                    return null;
-                }
+                    record.Notes = note;
+                    record.Author = person;
+                    record.NoteType = type;
+                    return record;
+                }, parameters, splitOn: "CID, NoteInit, NoteTypeID").ToList();
             }
 
             return cs;
         }
 
         /// <summary>
-        /// Returns question comments for the specified survey.
-        /// </summary>
-        /// <param name="survey">Survey object.</param>
-        /// <returns></returns>
-        public static List<QuestionComment> GetQuesCommentsBySurvey(Survey survey)
-        {
-            return GetQuesCommentsBySurvey(survey.SID);
-        }
-
-        /// <summary>
         /// Returns comments for the specified question.
         /// </summary>
-        /// <param name="QID"></param>
-        /// <returns></returns>
-        public static List<QuestionComment> GetQuesCommentsByQID(int QID)
-        {
-            List<QuestionComment> comments = new List<QuestionComment>();
-            QuestionComment c;
-            string query = "SELECT * FROM Comments.FN_GetQuesCommentsByQID(@qid)";
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@qid", QID);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            c = new QuestionComment
-                            {
-                                ID = (int)rdr["ID"],
-                                Notes = new Note((int)rdr["CID"], (string)rdr["Notes"]),
-                                QID = (int)rdr["QID"],
-                                SurvID = (int)rdr["SurvID"],
-                                Survey = (string)rdr["Survey"],
-                                VarName = (string)rdr["VarName"],
-                                NoteDate = (DateTime)rdr["NoteDate"],
-                                SourceName = (string)rdr["SourceName"],
-                                Source = (string)rdr["Source"],
-                            };
-                            c.Author.ID = (int)rdr["NoteInit"];
-                            c.Author.Name = rdr.SafeGetString("Name");
-                            c.NoteType.ID = rdr.SafeGetInt("NoteTypeID");
-                            c.NoteType.TypeName = rdr.SafeGetString("CommentType");
-                            c.NoteType.ShortForm = rdr.SafeGetString("ShortForm");
-
-                            comments.Add(c);
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-
-                    return comments;
-                }
-
-            }
-            return comments;
-        }
-
-        /// <summary>
-        /// Returns comments for the specified question.
-        /// </summary>
-        /// <param name="QID"></param>
+        /// <param name="question"></param>
         /// <returns></returns>
         public static List<QuestionComment> GetQuesCommentsByQID(SurveyQuestion question)
         {
-            return GetQuesCommentsByQID(question.ID);
+            List<QuestionComment> cs = new List<QuestionComment>();
+
+            string query = "SELECT ID, QID, SurvID, Survey, VarName, NoteDate, SourceName, Source, " +
+                "CID, CID AS ID, Notes AS NoteText, " +
+                "NoteInit, NoteInit AS ID, Name, " +
+                "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, ShortForm " +
+                "FROM Comments.FN_GetQuesCommentsByQID(@qid);";
+
+            var parameters = new { qid = question.ID };
+
+            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            {
+                cs = db.Query<QuestionComment, Note, Person, CommentType, QuestionComment>(query, (record, note, person, type) =>
+                {
+                    record.Notes = note;
+                    record.Author = person;
+                    record.NoteType = type;
+                    return record;
+                }, parameters, splitOn: "CID, NoteInit, NoteTypeID").ToList();
+            }
+
+            return cs;
         }
 
+        // TODO Dapper
         // TODO replace with server function
         /// <summary>
         /// 
@@ -472,6 +340,7 @@ namespace ITCLib
             return cs;
         }
 
+        // TODO Dapper
         /// <summary>
         /// Returns a list of Question Comments matching the provided criteria.
         /// </summary>
@@ -593,41 +462,24 @@ namespace ITCLib
         /// <param name="s"></param>
         /// <param name="CID"></param>
         /// <returns></returns>
-        public static bool SurveyCommentExists(Survey s, int CID)
+        public static bool SurveyCommentExists(Survey survey, int CID)
         {
             bool exists = false;
 
             string query;
 
             query = "SELECT dbo.FN_SurveyCommentExists(@survey,@cid)";
+            var parameters = new { survey = survey.SurveyCode, cid = CID };
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand();
-                sql.SelectCommand.Connection = conn;
-                sql.SelectCommand.CommandType = CommandType.Text;
-                sql.SelectCommand.CommandText = query;
-
-                
-                sql.SelectCommand.Parameters.AddWithValue("@survey", s.SurveyCode);
-                sql.SelectCommand.Parameters.AddWithValue("@cid", CID);
-
-                try
-                {
-                    exists = (bool)sql.SelectCommand.ExecuteScalar();
-                }
-                catch (Exception)
-                {
-                    
-                }
+                exists = (bool)db.ExecuteScalar(query, parameters);
             }
 
             return exists;
         }
 
+        // TODO Dapper
         /// <summary>
         /// Returns a list of Question Comments matching the provided criteria.
         /// </summary>
@@ -736,46 +588,24 @@ namespace ITCLib
         public static List<SurveyCommentRecord> GetSurvCommentsByCID(int CID)
         {
             List<SurveyCommentRecord> cs = new List<SurveyCommentRecord>();
-            SurveyCommentRecord c;
-            string query = "SELECT * FROM Comments.FN_GetSurvCommentsByCID(@cid)";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            string query = "SELECT ID, SurvID, Survey, NoteDate, SourceName, Source, " +
+                "CID, CID AS ID, Notes AS NoteText, " +
+                "NoteInit, NoteInit AS ID, Name, " +
+                "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, ShortForm " +
+                "FROM Comments.FN_GetSurvCommentsByCID (@cid);";
+
+            var parameters = new { cid = CID };
+
+            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@cid", CID);
-                try
+                cs = db.Query<SurveyCommentRecord, Note, Person, CommentType, SurveyCommentRecord>(query, (record, note, person, type) =>
                 {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            c = new SurveyCommentRecord
-                            {
-                                ID = (int)rdr["ID"],
-                                Notes = new Note((int)rdr["CID"], rdr.SafeGetString("Notes")),
-                                SurvID = (int)rdr["SurvID"],
-                                Survey = rdr.SafeGetString("Survey"),
-                                NoteDate = rdr.SafeGetDate("NoteDate").Value,
-                                SourceName = (string)rdr["SourceName"],
-                                Source = rdr.SafeGetString("Source"),
-                            };
-
-                            c.Author.ID = (int)rdr["NoteInit"];
-                            c.Author.Name = rdr.SafeGetString("Name");
-                            c.NoteType.ID = (int)rdr["NoteTypeID"];
-                            c.NoteType.TypeName = rdr.SafeGetString("CommentType");
-
-                            cs.Add(c);
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-                    
-                }
+                    record.Notes = note;
+                    record.Author = person;
+                    record.NoteType = type;
+                    return record;
+                }, parameters, splitOn: "CID, NoteInit, NoteTypeID").ToList();
             }
 
             return cs;
@@ -785,66 +615,35 @@ namespace ITCLib
         /// <summary>
         /// Returns survey comments for the specified survey.
         /// </summary>
-        /// <param name="SurvID"></param>
-        /// <returns></returns>
-        public static List<SurveyComment> GetSurvCommentsBySurvey(int SurvID)
-        {
-            List<SurveyComment> cs = new List<SurveyComment>();
-            SurveyComment c;
-            string query = "SELECT * FROM Comments.FN_GetSurvCommentsBySurvID (@sid)";
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
-            {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@sid", SurvID);
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            c = new SurveyComment
-                            {
-                                ID = (int)rdr["ID"],
-                                Notes = new Note((int)rdr["CID"], rdr.SafeGetString("Notes")),
-                                SurvID = (int)rdr["SurvID"],
-                                Survey = rdr.SafeGetString("Survey"),
-                                NoteDate = rdr.SafeGetDate("NoteDate").Value,
-                                SourceName = (string)rdr["SourceName"],
-                                Source = rdr.SafeGetString("Source"),
-                            };
-
-                            c.Author.ID = (int)rdr["NoteInit"];
-                            c.Author.Name = rdr.SafeGetString("Name");
-                            c.NoteType.ID = (int)rdr["NoteTypeID"];
-                            c.NoteType.TypeName = rdr.SafeGetString("CommentType");
-
-                            cs.Add(c);
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.Message);
-                }
-            }
-
-            return cs;
-        }
-
-        /// <summary>
-        /// Returns survey comments for the specified survey.
-        /// </summary>
-        /// <param name="SurvID"></param>
+        /// <param name="survey"></param>
         /// <returns></returns>
         public static List<SurveyComment> GetSurvCommentsBySurvey(Survey survey)
         {
-            return GetSurvCommentsBySurvey(survey.SID);
+            List<SurveyComment> cs = new List<SurveyComment>();
+
+            string query = "SELECT ID, SurvID, Survey, NoteDate, SourceName, Source, " +
+                "CID, CID AS ID, Notes AS NoteText, " +
+                "NoteInit, NoteInit AS ID, Name, " +
+                "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, ShortForm " +
+                "FROM Comments.FN_GetSurvCommentsBySurvID (@sid);";
+
+            var parameters = new { sid = survey.SID };
+
+            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            {
+                cs = db.Query<SurveyComment, Note, Person, CommentType, SurveyComment>(query, (record, note, person, type) =>
+                {
+                    record.Notes = note;
+                    record.Author = person;
+                    record.NoteType = type;
+                    return record;
+                }, parameters, splitOn: "CID, NoteInit, NoteTypeID").ToList();
+            }
+
+            return cs;
         }
 
+        // TODO Dapper
         // TODO replace with server function
         /// <summary>
         /// 

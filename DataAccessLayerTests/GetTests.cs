@@ -183,5 +183,132 @@ namespace DataAccessLayerTests
             Assert.IsTrue(records != null && records.Count == 1);
         }
 
+        [TestMethod]
+        [TestCategory("Comments")]
+        public void DeletedCommentExists_True()
+        {
+            DeletedQuestion dq = new DeletedQuestion();
+            dq.SurveyCode = "JP1";
+            dq.VarName = "BR23353";
+            
+            bool exists = DBAction.DeletedCommentExists(dq, 54860);
+
+            Assert.IsTrue(exists);
+        }
+
+        [TestMethod]
+        [TestCategory("Comments")]
+        public void DeletedCommentExists_False()
+        {
+            DeletedQuestion dq = new DeletedQuestion();
+            dq.SurveyCode = "JP1";
+            dq.VarName = "BR23353";
+
+            bool exists = DBAction.DeletedCommentExists(dq, 0);
+
+            Assert.IsFalse(exists);
+        }
+
+
+        [TestMethod]
+        [TestCategory("Comments")]
+        public void QuestionCommentExists_True()
+        {
+            SurveyQuestion dq = new SurveyQuestion();
+            dq.SurveyCode = "4C6-C";
+            dq.VarName.VarName = "SM544";
+
+            bool exists = DBAction.QuestionCommentExists(dq, 23121);
+
+            Assert.IsTrue(exists);
+        }
+
+        [TestMethod]
+        [TestCategory("Comments")]
+        public void QuestionCommentExists_False()
+        {
+            SurveyQuestion dq = new SurveyQuestion();
+            dq.SurveyCode = "4C6-C";
+            dq.VarName.VarName = "SM544";
+
+            bool exists = DBAction.QuestionCommentExists(dq, 0);
+
+            Assert.IsFalse(exists);
+        }
+
+        [TestMethod]
+        [TestCategory("Comments")]
+        public void GetQuestionComments_CID()
+        {
+            var records = DBAction.GetQuesCommentsByCID(23121);
+
+            Assert.IsTrue(records != null && records.Count == 1);
+        }
+
+        [TestMethod]
+        [TestCategory("Comments")]
+        public void GetQuestionComments_Survey()
+        {
+            Survey survey = new Survey() { SID = 930 };
+            var records = DBAction.GetQuesCommentsBySurvey(survey);
+
+            Assert.IsTrue(records != null && records.Count == 196);
+        }
+
+        [TestMethod]
+        [TestCategory("Comments")]
+        public void GetQuestionComments_QID()
+        {
+            SurveyQuestion question = new SurveyQuestion() { ID = 155500 };
+            var records = DBAction.GetQuesCommentsByQID(question);
+
+            Assert.IsTrue(records != null && records.Count == 1);
+        }
+
+        [TestMethod]
+        [TestCategory("Comments")]
+        public void SurveyCommentExists_True()
+        {
+            Survey dq = new Survey();
+            dq.SurveyCode = "4CV1";
+
+            bool exists = DBAction.SurveyCommentExists(dq, 45798);
+
+            Assert.IsTrue(exists);
+        }
+
+        [TestMethod]
+        [TestCategory("Comments")]
+        public void SurveyCommentExists_False()
+        {
+            Survey dq = new Survey();
+            dq.SurveyCode = "4CV1";
+
+            bool exists = DBAction.SurveyCommentExists(dq, 0);
+
+            Assert.IsFalse(exists);
+        }
+
+        [TestMethod]
+        [TestCategory("Comments")]
+        public void GetSurveyComments_CID()
+        {
+            var records = DBAction.GetSurvCommentsByCID(45784);
+
+            Assert.IsTrue(records != null && records.Count == 1);
+        }
+
+        [TestMethod]
+        [TestCategory("Comments")]
+        public void GetSurveyComments_Survey()
+        {
+            Survey dq = new Survey();
+            dq.SurveyCode = "4CV1";
+            dq.SID = 748;
+
+            var records = DBAction.GetSurvCommentsBySurvey(dq);
+
+            Assert.IsTrue(records != null && records.Count == 11);
+        }
     }
 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Data;
 using System.Data.SqlClient;
 using System.Configuration;
-
+using Dapper;
 
 namespace ITCLib
 {
@@ -97,6 +97,25 @@ namespace ITCLib
                 {
                     return 1;
                 }
+            }
+            return 0;
+        }
+
+        /// <summary>
+        /// Updates/inserts the plain filter for the provided question. 
+        /// </summary>
+        /// <param name="question"></param>
+        /// <returns></returns>
+        public static int UpdatePlainFilter(SurveyQuestion question)
+        {
+            string sql = "proc_upsertPlainFilter";
+
+            var parameters = new { QID = question.ID, filter = question.FilterDescription };
+            int rowsAffected = 0;
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            {
+                rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
             }
             return 0;
         }

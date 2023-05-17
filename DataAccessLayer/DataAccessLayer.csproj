@@ -52,6 +52,8 @@
   <ItemGroup>
     <Compile Include="DapperExtensions.cs" />
     <Compile Include="Other\DBAction.Other.cs" />
+    <Compile Include="Read\DBAction.Questions.Backups.cs" />
+    <Compile Include="Read\DBAction.Translation.Backups.cs" />
     <Compile Include="Record Objects\DraftRecords.cs" />
     <Compile Include="ObjectDataRetriever.cs" />
     <Compile Include="DataRetriever.cs" />

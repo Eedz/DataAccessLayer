@@ -1666,5 +1666,21 @@ namespace ITCLib
             }
             return rowsAffected;
         }
+
+        public static int InsertPlainLanguageFilter(int qid, string filter)
+        {
+            string sql = "INSERT INTO tblFilterDescriptions (QID, FilterDescription) VALUES (@QID, @filter)";
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@QID", qid);
+            parameters.Add("@filter", filter);
+
+            int rowsAffected = 0;
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            {
+                rowsAffected = db.Execute(sql, parameters);
+            }
+
+            return rowsAffected;
+        }
     }
 }
