@@ -1682,5 +1682,19 @@ namespace ITCLib
 
             return rowsAffected;
         }
+
+        public static int InsertQuestionTimeFrame(QuestionTimeFrame record)
+        {
+            string sql = "proc_createQuestionTimeFrame";
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@QID", record.QID);
+            parameters.Add("@timeframe", record.TimeFrame);
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+            int rowsAffected = SP_Insert(sql, parameters, out int newID);
+            record.ID = newID;
+
+            return rowsAffected;
+        }
     }
 }

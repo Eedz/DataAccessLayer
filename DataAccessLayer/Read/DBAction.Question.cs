@@ -65,7 +65,7 @@ namespace ITCLib
             SurveyQuestion question = new SurveyQuestion();
 
             string query = "SELECT ID, Survey AS SurveyCode, Qnum, PreP# AS PrePNum, PreP, PreI# AS PreINum, PreI, PreA# AS PreANum, PreA, LitQ# AS LitQNum, LitQ, " +
-                    "PstI# AS PstINum, PstI, PstP# AS PstPNum, PstP, RespName, RespOptions, NRName, NRCodes, CorrectedFlag, ScriptOnly, AltQnum, AltQnum2, AltQnum3, " +
+                    "PstI# AS PstINum, PstI, PstP# AS PstPNum, PstP, RespName, RespOptions, NRName, NRCodes, CorrectedFlag, ScriptOnly, AltQnum, AltQnum2, AltQnum3, FilterDescription, " +
                     "VarName, VarLabel, " +
                     "DomainNum, DomainNum AS ID, Domain AS LabelText, " +
                     "TopicNum, TopicNum AS ID, Topic AS LabelText, " +
@@ -99,19 +99,19 @@ namespace ITCLib
             List<SurveyQuestion> qs = new List<SurveyQuestion>();
 
             string sql = "SELECT ID, Survey AS SurveyCode, Qnum, PreP# AS PrePNum, PreP, PreI# AS PreINum, PreI, PreA# AS PreANum, PreA, LitQ# AS LitQNum, LitQ, " +
-                    "PstI# AS PstINum, PstI, PstP# AS PstPNum, RespName, RespOptions, NRName, NRCodes, TableFormat, CorrectedFlag, ScriptOnly, AltQnum, AltQnum2, AltQnum3, " +
+                    "PstI# AS PstINum, PstI, PstP# AS PstPNum, RespName, RespOptions, NRName, NRCodes, TableFormat, CorrectedFlag, ScriptOnly, AltQnum, AltQnum2, AltQnum3, FilterDescription, " +
                     "VarName, VarLabel, " +
                     "DomainNum, DomainNum AS ID, Domain AS LabelText, " +
                     "TopicNum, TopicNum AS ID, Topic AS LabelText, " +
                     "ContentNum, ContentNum AS ID, Content AS LabelText, " +
                     "ProductNum, ProductNum AS ID, Product AS LabelText " +
-                    "FROM Questions.FN_GetSurveyQuestions(@SID) ORDER BY Qnum";
+                    "FROM Questions.FN_GetSurveyQuestions(@SID) ORDER BY Qnum;";
 
             var parameters = new { s.SID };
 
             using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
             {
-                var results = db.Query<SurveyQuestion, VariableName, DomainLabel, TopicLabel, ContentLabel, ProductLabel, SurveyQuestion>(sql,
+                qs = db.Query<SurveyQuestion, VariableName, DomainLabel, TopicLabel, ContentLabel, ProductLabel, SurveyQuestion>(sql,
                     (question, varname, domain, topic, content, product) =>
                     {
                         varname.Domain = domain;
@@ -121,8 +121,6 @@ namespace ITCLib
                         question.VarName = varname;
                         return question;
                     }, parameters, splitOn: "VarName, DomainNum, TopicNum, ContentNum, ProductNum").ToList();
-
-                qs = results;
             }
             return qs;
         }

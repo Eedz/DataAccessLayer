@@ -580,5 +580,19 @@ namespace ITCLib
             }
             return 0;
         }
+
+        public static int DeleteRecord(QuestionTimeFrame r)
+        {
+            int rowsAffected = 0;
+
+            string sql = "DELETE FROM tblQuestionTimeFrames WHERE ID = @ID";
+            var parameters = new { ID = r.ID };
+
+            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            {
+                rowsAffected = db.Execute(sql, parameters);
+            }
+            return 0;
+        }
     }
 }

@@ -337,9 +337,14 @@ namespace ITCLib
         //public string SurveyCode { get; set; }
         public int SurvID { get; set; }
 
+        public List<QuestionTimeFrame> AddTimeFrames;
+        public List<QuestionTimeFrame> DeleteTimeFrames;
+
         public QuestionRecord() : base()
         {
             Translations = new List<TranslationRecord>();
+            AddTimeFrames = new List<QuestionTimeFrame>();
+            DeleteTimeFrames = new List<QuestionTimeFrame>();
         }
 
         public override event PropertyChangedEventHandler PropertyChanged;
@@ -360,7 +365,7 @@ namespace ITCLib
 
         public bool IsEdited()
         {
-            return Dirty || DirtyQnum || DirtyLabels || DirtyAltQnum || DirtyPlainFilter;
+            return Dirty || DirtyQnum || DirtyLabels || DirtyAltQnum || DirtyPlainFilter || AddTimeFrames.Count>0 || DeleteTimeFrames.Count>0;
         }
 
         public int SaveRecord()
@@ -415,6 +420,18 @@ namespace ITCLib
                 DirtyLabels = false;
             }
             
+            foreach(QuestionTimeFrame qtf in AddTimeFrames)
+            {
+                DBAction.InsertQuestionTimeFrame(qtf);
+            }
+            AddTimeFrames.Clear();
+
+            foreach (QuestionTimeFrame qtf in DeleteTimeFrames)
+            {
+                DBAction.DeleteRecord(qtf);
+            }
+            DeleteTimeFrames.Clear();
+
             return 0;
         }
 

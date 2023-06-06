@@ -13,6 +13,24 @@ namespace ITCLib
     partial class DBAction
     {
         /// <summary>
+        /// Updates the VarLabel of the given VarName.
+        /// </summary>
+        /// <param name="varname"></param>
+        /// <param name="varlabel"></param>
+        /// <returns></returns>
+        public static int UpdateVarLabel(string varname, string varlabel)
+        {
+            int rowsAffected = 0;
+            string sql = "UPDATE tblVariableInformation SET VarLabel = @varlabel WHERE VarName = @varname";
+            var parameters = new { varname, varlabel };
+            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            {
+                rowsAffected = db.Execute(sql, parameters);
+            }
+            return rowsAffected;
+        }
+
+        /// <summary>
         /// Updates the survey record matching the provided survey object.
         /// </summary>
         /// <param name="survey"></param>
