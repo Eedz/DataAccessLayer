@@ -31,7 +31,7 @@ namespace ITCLib
                 
             var parameters = new { survey, language };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 ts = db.Query<Translation, Language, Translation>(sql, (translation, lang) =>
                 {
@@ -61,7 +61,7 @@ namespace ITCLib
 
             var parameters = new { survey, varname, language };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 t = db.Query<Translation, Language, Translation>(sql, (translation, lang) =>
                 {
@@ -85,7 +85,7 @@ namespace ITCLib
             string sql = "SELECT ID, [Lang] AS LanguageName, [Abbrev], [ISOAbbrev], [NonLatin], [PreferredFont], [RTL] " +
                 "FROM tblLanguage ORDER BY Lang;";
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 languages = db.Query<Language>(sql).ToList();
             }
@@ -104,7 +104,7 @@ namespace ITCLib
             string sql = "SELECT ID, [Lang] AS LanguageName, [Abbrev], [ISOAbbrev], [NonLatin], [PreferredFont], [RTL] " +
                 "FROM tblLanguage ORDER BY Lang;";
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 languages = db.Query<Language>(sql).ToList();
             }
@@ -123,7 +123,7 @@ namespace ITCLib
             string sql = "SELECT ID, Lang AS LanguageName, Abbrev, ISOAbbrev, NonLatin, PreferredFont, RTL " +
                 "FROM Translations.FN_GetLanguagesSID(@sid) ORDER BY Lang;";
             var parameters = new { sid = surv.SID };
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 languages = db.Query<Language>(sql, parameters).ToList();
             }
@@ -136,14 +136,14 @@ namespace ITCLib
         /// </summary>
         /// <param name="wave"></param>
         /// <returns></returns>
-        public static List<Language> ListLanguages(StudyWaveRecord wave)
+        public static List<Language> ListLanguages(StudyWave wave)
         {
             List<Language> languages = new List<Language>();
             string sql = "SELECT ID, Lang AS LanguageName, Abbrev, ISOAbbrev, NonLatin, PreferredFont, RTL " +
                 "FROM Translations.FN_GetLanguagesWID(@wid) ORDER BY Lang;";
 
             var parameters = new { wid = wave.ID };
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 languages = db.Query<Language>(sql, parameters).ToList();
             }
@@ -165,7 +165,7 @@ namespace ITCLib
 
             var parameters = new { sid = s.SID };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
 
                 languages = db.Query<SurveyLanguage, Language, SurveyLanguage>(sql, (survLang, lang) =>
@@ -193,7 +193,7 @@ namespace ITCLib
 
             var parameters = new { qid = QID };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 list = db.Query<Translation, Language, Translation> (sql, (translation, language) => {
                         translation.LanguageName = language;
@@ -218,7 +218,7 @@ namespace ITCLib
 
             var parameters = new { qid = QID, language };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 translation = db.Query<Translation, Language, Translation>(sql, (t, lang) => {
                     t.LanguageName = lang;

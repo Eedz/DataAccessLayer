@@ -31,7 +31,7 @@ namespace ITCLib
 
             string sql = "SELECT ID, Notes AS NoteText FROM tblNotes;";
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 notes = db.Query<NoteRecord>(sql).ToList();
             }
@@ -49,7 +49,7 @@ namespace ITCLib
 
             string sql = "SELECT ID, CommentType AS TypeName, ShortForm FROM qryCommentType";
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 types = db.Query<CommentType>(sql).ToList();
             }
@@ -69,7 +69,7 @@ namespace ITCLib
             string sql = "SELECT NoteTypeID AS ID, CommentType AS TypeName, ShortForm FROM qryCommentsQues WHERE Survey=@survey GROUP BY NoteTypeID, CommentType, ShortForm ORDER BY CommentType;";           
             var parameters = new { survey = survey.SurveyCode };
 
-            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection db = new SqlConnection(connectionString))
             {
                 commentTypes = db.Query<CommentType>(sql, parameters).ToList();    
             }
@@ -98,7 +98,7 @@ namespace ITCLib
 
             var parameters = new { survey, varname };
 
-            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection db = new SqlConnection(connectionString))
             {
                 comments = db.Query<DeletedComment, Note, Person, CommentType, DeletedComment>(sql, (comment, note, author, type) =>
                 {
@@ -126,7 +126,7 @@ namespace ITCLib
 
             var parameters = new { survey = question.SurveyCode, varname = question.VarName, cid = CID };
 
-            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection db = new SqlConnection(connectionString))
             {
                 exists = (bool)db.ExecuteScalar(query, parameters);
             }
@@ -153,7 +153,7 @@ namespace ITCLib
             query = "SELECT dbo.FN_QuestionCommentExists(@survey, @varname, @cid)";
             var parameters = new { survey = question.SurveyCode, varname = question.VarName.VarName, cid = CID };
 
-            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection db = new SqlConnection(connectionString))
             {
                 exists = (bool)db.ExecuteScalar(query, parameters);
             }
@@ -178,7 +178,7 @@ namespace ITCLib
 
             var parameters = new { cid = CID };
 
-            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection db = new SqlConnection(connectionString))
             {
                 cs = db.Query<QuestionCommentRecord, Note, Person, CommentType, QuestionCommentRecord>(query, (record, note, person, type) =>
                 {
@@ -209,7 +209,7 @@ namespace ITCLib
 
             var parameters = new { sid = survey.SID };
 
-            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection db = new SqlConnection(connectionString))
             {
                 cs = db.Query<QuestionComment, Note, Person, CommentType, QuestionComment>(query, (record, note, person, type) =>
                 {
@@ -240,7 +240,7 @@ namespace ITCLib
 
             var parameters = new { qid = question.ID };
 
-            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection db = new SqlConnection(connectionString))
             {
                 cs = db.Query<QuestionComment, Note, Person, CommentType, QuestionComment>(query, (record, note, person, type) =>
                 {
@@ -272,7 +272,7 @@ namespace ITCLib
             string query = "SELECT * FROM qryCommentsQues WHERE SurvID = @sid";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -367,7 +367,7 @@ namespace ITCLib
           
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -471,7 +471,7 @@ namespace ITCLib
             query = "SELECT dbo.FN_SurveyCommentExists(@survey,@cid)";
             var parameters = new { survey = survey.SurveyCode, cid = CID };
 
-            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection db = new SqlConnection(connectionString))
             {
                 exists = (bool)db.ExecuteScalar(query, parameters);
             }
@@ -501,7 +501,7 @@ namespace ITCLib
                     "@survey,@LDate,@UDate,@author,@commentText,@commentSource,@commentType)";
           
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -597,7 +597,7 @@ namespace ITCLib
 
             var parameters = new { cid = CID };
 
-            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection db = new SqlConnection(connectionString))
             {
                 cs = db.Query<SurveyCommentRecord, Note, Person, CommentType, SurveyCommentRecord>(query, (record, note, person, type) =>
                 {
@@ -629,7 +629,7 @@ namespace ITCLib
 
             var parameters = new { sid = survey.SID };
 
-            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection db = new SqlConnection(connectionString))
             {
                 cs = db.Query<SurveyComment, Note, Person, CommentType, SurveyComment>(query, (record, note, person, type) =>
                 {
@@ -663,7 +663,7 @@ namespace ITCLib
             string where = "";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -779,7 +779,7 @@ namespace ITCLib
             query = "SELECT dbo.FN_WaveCommentExists(@wave,@cid)";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -817,7 +817,7 @@ namespace ITCLib
             string query = "SELECT * FROM Comments.FN_GetWaveCommentsByCID (@cid)";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -877,7 +877,7 @@ namespace ITCLib
             
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -972,7 +972,7 @@ namespace ITCLib
             string query = "SELECT * FROM Comments.FN_GetDeletedCommentsByCID (@cid)";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -1025,7 +1025,7 @@ namespace ITCLib
             string query = "SELECT * FROM Comments.FN_GetRefVarCommentsByCID (@cid)";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -1091,7 +1091,7 @@ namespace ITCLib
 
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -1190,7 +1190,7 @@ namespace ITCLib
             query = "SELECT dbo.FN_WaveCommentExists(@refVarName,@cid)";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -1231,7 +1231,7 @@ namespace ITCLib
             string query = "SELECT * FROM Comments.FN_GetQuesCommentTypesBySurvID (@survID)";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -1267,7 +1267,7 @@ namespace ITCLib
             string query = "SELECT * FROM Comments.FN_GetQuesCommentTypesBySurvey (@survey)";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -1305,7 +1305,7 @@ namespace ITCLib
             string query = "SELECT * FROM Comments.FN_GetQuesCommentAuthorsBySurvID (@survID)";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -1345,7 +1345,7 @@ namespace ITCLib
             string query = "SELECT * FROM Comments.FN_GetQuesCommentAuthorsBySurvID (@survey)";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -1384,7 +1384,7 @@ namespace ITCLib
             string query = "SELECT * FROM Comments.FN_GetQuesCommentSourceNamesBySurvey (@survey)";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -1428,7 +1428,7 @@ namespace ITCLib
             string query = "SELECT * FROM qryCommentsQues WHERE SurvID = @sid";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -1538,7 +1538,7 @@ namespace ITCLib
             string query = "SELECT * FROM qryCommentsQues WHERE SurvID = @sid";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 

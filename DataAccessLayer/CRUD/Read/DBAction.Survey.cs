@@ -28,7 +28,7 @@ namespace ITCLib
             changed = new List<Survey>();
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -76,7 +76,7 @@ namespace ITCLib
         {
             List<KeyValuePair<int, string>> surveys = new List<KeyValuePair<int, string>>();
             string sql = "SELECT SurvID, Survey FROM qryRenumberedSurveys ORDER BY Survey";
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 var results = db.Query(sql).Select(x => x as IDictionary<string, object>);
                 foreach (IDictionary<string, object> row in results)
@@ -91,10 +91,10 @@ namespace ITCLib
         /// Returns the list of surveys in the database in alpha order.
         /// </summary>
         /// <returns></returns>
-        public static List<SurveyRecord> GetAllSurveysInfoD()
+        public static List<Survey> GetAllSurveysInfoD()
         {
 
-            List<SurveyRecord> surveys = new List<SurveyRecord>();
+            List<Survey> surveys = new List<Survey>();
 
             string sql = "SELECT ID AS SID, Survey AS SurveyCode, ISO_Code AS SurveyCodePrefix, SurveyTitle AS Title, CountryCode, Locked, " +
                 "EnglishRouting, HideSurvey, ReRun, NCT, Wave, WaveID, " +
@@ -104,9 +104,9 @@ namespace ITCLib
                 "FROM qrySurveyInfo ORDER BY ISO_Code, Wave, Survey;";
                 
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
-                surveys = db.Query<SurveyRecord, SurveyCohort, SurveyMode, SurveyRecord>(sql,
+                surveys = db.Query<Survey, SurveyCohort, SurveyMode, Survey>(sql,
                 (survey, cohort, mode) =>
                 {
                     survey.Cohort = cohort;
@@ -125,14 +125,14 @@ namespace ITCLib
         /// Returns the list of surveys in the database in alpha order.
         /// </summary>
         /// <returns></returns>
-        public static List<SurveyRecord> GetAllSurveysInfo()
+        public static List<Survey> GetAllSurveysInfo()
         {
 
-            List<SurveyRecord> surveys = new List<SurveyRecord>();
+            List<Survey> surveys = new List<Survey>();
             string query = "SELECT * FROM Surveys.FN_ListAllSurveys() ORDER BY ISO_Code, Wave, Survey";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -145,7 +145,7 @@ namespace ITCLib
                         while (rdr.Read())
                         {
 
-                            SurveyRecord s = new SurveyRecord();
+                            Survey s = new Survey();
 
                             s.SID = (int)rdr["ID"];
                             s.SurveyCode = (string)rdr["Survey"];
@@ -194,20 +194,18 @@ namespace ITCLib
             return surveys;
         }
 
-
-
         /// <summary>
         /// Returns the list of survey codes in the specified wave in alpha order.
         /// </summary>
         /// <param name="waveID"></param>
         /// <returns></returns>
-        public static List<SurveyRecord> GetSurveys(int waveID)
+        public static List<Survey> GetSurveys(int waveID)
         {
-            List<SurveyRecord> surveys = new List<SurveyRecord>();
+            List<Survey> surveys = new List<Survey>();
             string query = "SELECT Survey FROM Surveys.FN_ListWaveSurveys(@waveID) ORDER BY Survey";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -239,13 +237,13 @@ namespace ITCLib
         /// </summary>
         /// <param name="code">A valid survey code. Null is returned if the survey code is not found in the database.</param>
         /// <returns></returns>
-        public static SurveyRecord GetSurveyInfo(string code)
+        public static Survey GetSurveyInfo(string code)
         {
-            SurveyRecord s;
+            Survey s;
             string query = "SELECT * FROM Surveys.FN_GetSurveyInfo (@survey)";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -256,7 +254,7 @@ namespace ITCLib
                     using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
                     {
                         rdr.Read();
-                        s = new SurveyRecord
+                        s = new Survey
                         {
                             SID = (int)rdr["ID"],
                             SurveyCode = (string)rdr["Survey"],
@@ -325,7 +323,7 @@ namespace ITCLib
             string query = "SELECT * FROM qrySurveyProducts WHERE SurvID=@survID";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -367,7 +365,7 @@ namespace ITCLib
             string query = "SELECT * FROM qrySurveyUserStates WHERE SurvID=@survID";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -410,7 +408,7 @@ namespace ITCLib
             string query = "SELECT Surveys.FN_HasCorrectedWordings (@survey)";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -442,7 +440,7 @@ namespace ITCLib
             string query = "SELECT * FROM Surveys.FN_GetSurveyInfoByID (@sid)";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -509,7 +507,7 @@ namespace ITCLib
             string query = "SELECT Survey FROM Surveys.FN_ListSurveys() ORDER BY ISO_Code, Wave, Survey";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -546,7 +544,7 @@ namespace ITCLib
             string query = "SELECT Surveys.FN_SurveyByQID (@qid)";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -576,7 +574,7 @@ namespace ITCLib
             string query = "SELECT SurvID FROM tblAutoLock";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -613,7 +611,7 @@ namespace ITCLib
             string query = "SELECT * FROM Surveys.FN_GetSurveyModes() ORDER BY Mode";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -651,7 +649,7 @@ namespace ITCLib
             
             string sql = "SELECT ID, Mode, ModeAbbrev FROM tblMode ORDER BY Mode";
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 modes = db.Query<SurveyMode>(sql).ToList();
             }
@@ -668,7 +666,7 @@ namespace ITCLib
 
             string sql = "SELECT ID, Cohort, Code, WebName FROM tblCohort ORDER BY Cohort";
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 cohorts = db.Query<SurveyCohortRecord>(sql).ToList();
             }
@@ -685,7 +683,7 @@ namespace ITCLib
 
             string sql = "SELECT ID, [Group] AS UserGroup, [Code], WebName FROM tblGroup ORDER BY [Group]";
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 groups = db.Query<SurveyUserGroup>(sql).ToList();
             }
@@ -702,7 +700,7 @@ namespace ITCLib
             string query = "proc_unlockSurvey";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -737,7 +735,7 @@ namespace ITCLib
             string query = "proc_unlockSurvey";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -772,7 +770,7 @@ namespace ITCLib
             string query = "proc_lockSurvey";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -802,7 +800,7 @@ namespace ITCLib
             string query = "SELECT ReservedPrefix FROM qryReservedPrefixes WHERE RegionID = (SELECT RegionID FROM qrySUrveyInfo WHERE Survey=@survey)";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -834,7 +832,7 @@ namespace ITCLib
             string query = "SELECT Survey FROM qrySurveyQuestions WHERE VarName =@varname";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -865,7 +863,7 @@ namespace ITCLib
             string query = "SELECT Survey FROM qrySurveyQuestions WHERE refVarName =@refvarname";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -901,7 +899,7 @@ namespace ITCLib
             string query = "SELECT * FROM qryUnlockedSurveys ORDER BY Survey";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 

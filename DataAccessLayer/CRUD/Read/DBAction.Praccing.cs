@@ -21,7 +21,7 @@ namespace ITCLib
             List<PraccingCategory> categories = new List<PraccingCategory>();
             string query = "SELECT ID, IssueType AS Category FROM qryIssuesCategory ORDER BY IssueType";
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 categories = db.Query<PraccingCategory>(query).ToList();
             }
@@ -38,7 +38,7 @@ namespace ITCLib
             int nextIssueNo = -1;
             string query = "SELECT COALESCE(MAX(IssueNo), 0) + 1 AS Next FROM qryPraccingIssues WHERE SurvID = @survID";
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 var parameters = new { survID = survID };
 
@@ -57,7 +57,7 @@ namespace ITCLib
             List<int> issueNums;
             string query = "SELECT IssueNo FROM qryPraccingIssues WHERE Survey = @survey ORDER BY IssueNo";
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 var parameters = new { survey = surveyCode };
 
@@ -92,7 +92,7 @@ namespace ITCLib
                     "INNER JOIN qryPraccingResponses AS R ON R.ID = M.PraccResponseID " +
                     "INNER JOIN qryPraccingIssues AS I ON R.IssueID =I.ID WHERE I.ID = @id;";
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 var parameters = new { id = ID };
 
@@ -164,7 +164,7 @@ namespace ITCLib
                     "INNER JOIN qryPraccingResponses AS R ON R.ID = M.PraccResponseID " +
                     "INNER JOIN qryPraccingIssues AS I ON R.IssueID =I.ID WHERE I.SurvID = @survid;";
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 var parameters = new { survid = SurvID };
 
@@ -226,7 +226,7 @@ namespace ITCLib
 
             string query = "SELECT ID, PraccID, ImagePath AS Path FROM qryPraccingImages WHERE PraccID = @id";
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 var parameters = new { id = praccingID };
 
@@ -246,7 +246,7 @@ namespace ITCLib
 
             string query = "SELECT ID, PraccResponseID AS PraccID, ImagePath AS Path FROM tblPraccingResponseImages WHERE PraccResponseID = @id";
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 var parameters = new { id = praccResponseID };
 
@@ -281,7 +281,7 @@ namespace ITCLib
             parameters.Add("@commentText", commentText);
             parameters.Add("@commentType", commentType);
 
-            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection db = new SqlConnection(connectionString))
             {
                 
                 issues = db.Query<PraccingIssue, Survey, Person, Person, PraccingCategory, Person, Person, PraccingIssue>(sql, (issue, surv, by, to, category, resolved, entered) =>

@@ -19,7 +19,7 @@ namespace ITCLib
             string query = "SELECT * FROM qrySurveyDraftInfo ORDER BY ID";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -88,7 +88,7 @@ namespace ITCLib
             string query = "SELECT * FROM qrySurveyDrafts WHERE DraftID = @draftID";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -151,7 +151,7 @@ namespace ITCLib
 
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -233,7 +233,7 @@ namespace ITCLib
             string where = "";
           
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -324,7 +324,7 @@ namespace ITCLib
             string query = "SELECT D.*, I.SurvID FROM tblSurveyDrafts AS D LEFT JOIN tblSurveyDraftInfo AS I ON D.DraftID = I.ID WHERE I.SurvID = @survey AND DraftID =@draftID ORDER BY SortBy";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -381,7 +381,7 @@ namespace ITCLib
             string query = "SELECT D.*, I.SurvID FROM tblSurveyDrafts AS D LEFT JOIN tblSurveyDraftInfo AS I ON D.DraftID = I.ID WHERE I.SurvID = @survey AND Investigator =@investigator ORDER BY SortBy";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -439,7 +439,7 @@ namespace ITCLib
             string query = "SELECT D.*, I.SurvID FROM tblSurveyDrafts AS D LEFT JOIN tblSurveyDraftInfo AS I ON D.DraftID = I.ID WHERE I.SurvID = @survey AND DraftDate >= @lower AND DraftDate <= @upper ORDER BY SortBy";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 

@@ -25,7 +25,7 @@ namespace ITCLib
             string query = "SELECT TOP (" + top + ") * FROM tblAudit ORDER BY UpdateDate DESC";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -92,7 +92,7 @@ namespace ITCLib
             string query = "SELECT * FROM tblAudit WHERE TableName ='tblSurveyNumbers' AND PrimaryKeyValue=@qid ORDER BY UpdateDate ASC";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -159,7 +159,7 @@ namespace ITCLib
             string query = "SELECT * FROM tblAudit WHERE TableName ='tbl" + wordingType + "' AND PrimaryKeyValue=@qid ORDER BY UpdateDate ASC";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -232,7 +232,7 @@ namespace ITCLib
                 return entries;
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -299,7 +299,7 @@ namespace ITCLib
             string query = "SELECT TOP 1 * FROM tblAudit WHERE TableName ='tbl" + wordingType + "' AND PrimaryKeyValue=@qid ORDER BY UpdateDate ASC";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -341,7 +341,7 @@ namespace ITCLib
 
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -375,7 +375,7 @@ namespace ITCLib
             string query = "SELECT Survey FROM Auditing.qryAuditQuestions WHERE NOT Survey IS NULL GROUP BY Survey ORDER BY Survey";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -413,7 +413,7 @@ namespace ITCLib
             string query = "SELECT VarName FROM Auditing.qryAuditQuestions WHERE Survey=@survey AND NOT VarName IS NULL GROUP BY VarName ORDER BY VarName";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -461,7 +461,7 @@ namespace ITCLib
                                 ") AS pivOld WHERE Survey=@survey AND VarName=@varname";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -503,7 +503,7 @@ namespace ITCLib
                     "GROUP BY OldValue ORDER BY OldValue";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -561,7 +561,7 @@ namespace ITCLib
                     "GROUP BY OldValue ORDER BY OldValue";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -618,7 +618,7 @@ namespace ITCLib
            
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 

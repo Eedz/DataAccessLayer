@@ -23,7 +23,7 @@ namespace ITCLib
 
         //    string sql = "DELETE FROM [TableName] WHERE ID = @ID;";
         //    var parameters = new { ID = record.ID };
-        //    using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+        //    using (IDbConnection db = new SqlConnection(connectionString))
         //    {
         //        rowsAffected = db.Execute(sql, parameters);
         //    }
@@ -35,9 +35,9 @@ namespace ITCLib
             int rowsAffected = 0;
 
             string sql = "proc_deleteStudy";
-            var parameters = new { studyID = r.ID };
+            var parameters = new { studyID = r.Item.ID };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
             }
@@ -49,9 +49,9 @@ namespace ITCLib
             int rowsAffected = 0;
 
             string sql = "proc_deleteWave";
-            var parameters = new { ID = r.ID };
+            var parameters = new { ID = r.Item.ID };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
             }
@@ -64,9 +64,9 @@ namespace ITCLib
             int rowsAffected = 0;
 
             string sql = "proc_deleteSurvey";
-            var parameters = new { survID = r.SID };
+            var parameters = new { survID = r.Item.SID };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
             }
@@ -80,7 +80,7 @@ namespace ITCLib
             string sql = "DELETE FROM tblSurveyLanguages WHERE ID = @ID";
             var parameters = new { ID = r.ID };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters);
             }
@@ -95,7 +95,7 @@ namespace ITCLib
             string sql = "DELETE FROM tblSurveyUserStates WHERE ID = @ID";
             var parameters = new { ID = r.ID };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters);
             }
@@ -110,7 +110,7 @@ namespace ITCLib
             string sql = "DELETE FROM tblScreenedProducts WHERE ID = @ID";
             var parameters = new { ID = r.ID };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters);
             }
@@ -126,7 +126,7 @@ namespace ITCLib
             var parameters = new { survey, varname };
 
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
             }
@@ -141,7 +141,7 @@ namespace ITCLib
             string sql = "proc_deleteVariable";
             var parameters = new { varname };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
             }
@@ -155,7 +155,7 @@ namespace ITCLib
             string sql = "proc_deleteVariable";
             var parameters = new { varname = r.VarName };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
             }
@@ -169,7 +169,7 @@ namespace ITCLib
             string sql = "proc_deleteNote";
             var parameters = new { ID = r.ID };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
             }
@@ -184,7 +184,7 @@ namespace ITCLib
             string sql = "proc_deleteComment";
             var parameters = new { ID = r.ID };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
             }
@@ -199,7 +199,7 @@ namespace ITCLib
             string sql = "proc_deleteDeletedVarComment";
             var parameters = new { ID = commentID };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
             }
@@ -214,7 +214,7 @@ namespace ITCLib
             string sql = "proc_deleteSurveyCheck";
             var parameters = new { ID = r.ID };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
             }
@@ -229,7 +229,7 @@ namespace ITCLib
             string sql = "proc_deleteSurveyCheckRefSurv";
             var parameters = new { ID = r.ID };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
             }
@@ -244,7 +244,7 @@ namespace ITCLib
             string sql = "proc_deleteWording";
             var parameters = new { fieldname = field, ID = wordID };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
             }
@@ -259,7 +259,7 @@ namespace ITCLib
             string sql = "proc_deleteResponseSet";
             var parameters = new { fieldname = responseset.FieldName, ID = responseset.RespSetName };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
             }
@@ -274,7 +274,7 @@ namespace ITCLib
             string sql = "DELETE FROM tblIssuesTracking WHERE ID = @ID";
             var parameters = new { ID = r.ID };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters);
             }
@@ -289,7 +289,7 @@ namespace ITCLib
             string sql = "DELETE FROM tblPraccingImages WHERE ID = @ID";
             var parameters = new { ID = r.ID };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters);
             }
@@ -304,7 +304,7 @@ namespace ITCLib
             string sql = "DELETE FROM tblIssuesResponses WHERE ID = @ID";
             var parameters = new { ID = r.ID };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters);
             }
@@ -319,7 +319,7 @@ namespace ITCLib
             string sql = "DELETE FROM tblPraccingResponseImages WHERE ID = @ID";
             var parameters = new { ID = r.ID };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters);
             }
@@ -334,7 +334,7 @@ namespace ITCLib
             string sql = "DELETE FROM tblSurveyProcessingDates WHERE ID = @ID";
             var parameters = new { ID = r.ID };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters);
             }
@@ -349,7 +349,7 @@ namespace ITCLib
             string sql = "DELETE FROM tblSurveyProcessingNotes WHERE ID = @ID";
             var parameters = new { ID = r.ID };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters);
             }
@@ -364,7 +364,7 @@ namespace ITCLib
             string sql = "DELETE FROM tblPersonnelCountry WHERE ID = @ID";
             var parameters = new { ID = r.ID };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters);
             }
@@ -378,7 +378,7 @@ namespace ITCLib
             string sql = "DELETE FROM tblPersonnelComments WHERE ID = @ID";
             var parameters = new { ID = r.ID };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters);
             }
@@ -392,7 +392,7 @@ namespace ITCLib
             string sql = "DELETE FROM tblCohort WHERE ID = @ID";
             var parameters = new { ID = r.ID };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters);
             }
@@ -406,7 +406,7 @@ namespace ITCLib
             string sql = "DELETE FROM tblUserStates WHERE ID = @ID";
             var parameters = new { ID = r.ID };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters);
             }
@@ -420,7 +420,7 @@ namespace ITCLib
             string sql = "DELETE FROM tblAlternateSpelling WHERE ID = @ID";
             var parameters = new { ID = r.ID };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters);
             }
@@ -434,7 +434,7 @@ namespace ITCLib
             string sql = "DELETE FROM tblCanonVars WHERE ID = @ID";
             var parameters = new { ID = r.ID };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters);
             }
@@ -448,7 +448,7 @@ namespace ITCLib
             string sql = "DELETE FROM tblDomainList WHERE ID = @ID";
             var parameters = new { ID = r.ID };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters);
             }
@@ -462,7 +462,7 @@ namespace ITCLib
             string sql = "DELETE FROM tblVarNum WHERE ID = @ID";
             var parameters = new { ID = r.ID };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters);
             }
@@ -476,21 +476,21 @@ namespace ITCLib
             string sql = "DELETE FROM tblRelatedPrefixList WHERE ID = @ID";
             var parameters = new { ID = r.ID };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters);
             }
             return 0;
         }
 
-        public static int DeleteRenumberedSurvey(SurveyRecord r)
+        public static int DeleteRenumberedSurvey(Survey r)
         {
             int rowsAffected = 0;
 
             string sql = "proc_deleteRenumberedSurvey";
             var parameters = new { survID = r.SID };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
             }
@@ -504,7 +504,7 @@ namespace ITCLib
             string sql = "DELETE FROM tblSurveyDraftInfo WHERE ID = @ID";
             var parameters = new { ID = r.ID };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters);
             }
@@ -518,7 +518,7 @@ namespace ITCLib
             string sql = "DELETE FROM tblSurveyDraftExtraFields WHERE ID = @ID";
             var parameters = new { ID = r.ID };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters);
             }
@@ -532,7 +532,7 @@ namespace ITCLib
             string sql = "DELETE FROM tblVarNameChangeNotifications WHERE ID = @ID";
             var parameters = new { ID = r.ID };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters);
             }
@@ -546,7 +546,7 @@ namespace ITCLib
             string sql = "DELETE FROM tblVarNameChangeSurveys WHERE ID = @ID";
             var parameters = new { ID = r.ID };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters);
             }
@@ -560,7 +560,7 @@ namespace ITCLib
             string sql = "DELETE FROM tblVarNameChanges WHERE ID = @ID";
             var parameters = new { ID = r.ID };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters);
             }
@@ -574,7 +574,7 @@ namespace ITCLib
             string sql = "DELETE FROM tblParallelQuestions WHERE ID = @ID";
             var parameters = new { ID = r.ID };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters);
             }
@@ -588,7 +588,7 @@ namespace ITCLib
             string sql = "DELETE FROM tblQuestionTimeFrames WHERE ID = @ID";
             var parameters = new { ID = r.ID };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters);
             }

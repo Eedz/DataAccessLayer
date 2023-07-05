@@ -23,7 +23,7 @@ namespace ITCLib
             string query = "SELECT * FROM Wordings.FN_GetAllWordings() ORDER BY FieldName, ID";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -67,7 +67,7 @@ namespace ITCLib
             var parameters = new { field = fieldname };
             string sql = "SELECT WordID, WordingText, @field AS FieldName FROM Wordings.FN_GetWordings(@field) ORDER BY WordID";
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 wordings = db.Query<Wording>(sql, parameters).ToList();
             }
@@ -87,7 +87,7 @@ namespace ITCLib
             var parameters = new { field = fieldname };
             string sql = "SELECT RespName AS RespSetName, @field AS FieldName, ResponseList AS RespList FROM Wordings.FN_GetResponseSets(@field) ORDER BY RespName";
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 wordings = db.Query<ResponseSet>(sql, parameters).ToList();
             }
@@ -115,7 +115,7 @@ namespace ITCLib
             query += "ORDER BY RespName";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -177,7 +177,7 @@ namespace ITCLib
             query += "ORDER BY RespName";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -237,7 +237,7 @@ namespace ITCLib
             query += "ORDER BY NRName";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -297,7 +297,7 @@ namespace ITCLib
             query += "ORDER BY NRName";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -345,7 +345,7 @@ namespace ITCLib
             string query = "SELECT Wordings.FN_GetWordingText(@fieldname, @wordID)";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -380,7 +380,7 @@ namespace ITCLib
             query = "SELECT Wordings.FN_GetResponseText(@respname)";
             
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -413,7 +413,7 @@ namespace ITCLib
             query = "SELECT Wordings.FN_GetNonResponseText(@nrname)";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -449,7 +449,7 @@ namespace ITCLib
                 return null;
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -503,7 +503,7 @@ namespace ITCLib
                 return null;
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -552,7 +552,7 @@ namespace ITCLib
             string query = "SELECT * FROM Wordings.FN_GetSurveyPrePMatching(@search, @survey) ORDER BY ID";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -600,7 +600,7 @@ namespace ITCLib
             string query = "SELECT * FROM Wordings.FN_GetSurveyPreIMatching(@search, @survey) ORDER BY ID";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -648,7 +648,7 @@ namespace ITCLib
             string query = "SELECT * FROM Wordings.FN_GetSurveyPreAMatching(@search, @survey) ORDER BY ID";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -696,7 +696,7 @@ namespace ITCLib
             string query = "SELECT * FROM Wordings.FN_GetSurveyLitQMatching(@search, @survey) ORDER BY ID";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -744,7 +744,7 @@ namespace ITCLib
             string query = "SELECT * FROM Wordings.FN_GetSurveyPstIMatching(@search, @survey) ORDER BY ID";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -792,7 +792,7 @@ namespace ITCLib
             string query = "SELECT * FROM Wordings.FN_GetSurveyPstPMatching(@search, @survey) ORDER BY ID";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -842,7 +842,7 @@ namespace ITCLib
             string query = "SELECT * FROM Wordings.FN_GetSimilarWords()";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
 
                 conn.Open();
@@ -886,7 +886,7 @@ namespace ITCLib
             string query = "SELECT * FROM Wordings.FN_GetSimilarWords()";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
 
                 conn.Open();

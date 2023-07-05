@@ -28,7 +28,7 @@ namespace ITCLib
             string query = "SELECT  * FROM VarNames.FN_GetSurveyRefVars(@survey)";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -65,7 +65,7 @@ namespace ITCLib
             string query = "SELECT * FROM VarNames.FN_GetAllRefVars() ORDER BY refVarName GROUP BY refVarName";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -102,7 +102,7 @@ namespace ITCLib
             string query = "SELECT refVarName FROM qryVariableInfo GROUP BY refVarName ORDER BY refVarName";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
                 sql.SelectCommand = new SqlCommand(query, conn);
@@ -137,7 +137,7 @@ namespace ITCLib
             string query = "SELECT * FROM qryVariableInfo ORDER BY refVarName";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -187,7 +187,7 @@ namespace ITCLib
                 "ProductNum, ProductNum AS ID, Product AS LabelText " +
                 "FROM qryVariableInfo ORDER BY refVarName";
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
 
                 VarNames = db.Query<VariableName, DomainLabel, TopicLabel, ContentLabel, ProductLabel, VariableName>(sql,
@@ -219,7 +219,7 @@ namespace ITCLib
             string query = "SELECT * FROM qryEssentialQuestions ORDER BY VarName";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -263,7 +263,7 @@ namespace ITCLib
             string query = "SELECT * FROM VarNames.FN_GetVarName(@varname)";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -305,7 +305,7 @@ namespace ITCLib
             string query = "SELECT Prefix FROM VarNames.FN_GetVarNamePrefixes(@survey)";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -341,7 +341,7 @@ namespace ITCLib
             string query = "SELECT SUBSTRING(VarName,1,2) AS Prefix FROM qryVariableInfo GROUP BY SUBSTRING(VarName,1,2) ORDER BY SUBSTRING(VarName, 1,2)";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -380,7 +380,7 @@ namespace ITCLib
             query = string.Format(query, inClause);
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -422,7 +422,7 @@ namespace ITCLib
             string query = "SELECT * FROM VarNames.FN_GetVarNamesByRef(@refVarName)";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -467,7 +467,7 @@ namespace ITCLib
             string query = "SELECT refVarName FROM qryVariableInfo WHERE SUBSTRING(refVarName,1,2) = @prefix GROUP BY refVarName ORDER BY refVarName ";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -517,7 +517,7 @@ namespace ITCLib
                             "ORDER BY refVarName";           
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -577,7 +577,7 @@ namespace ITCLib
                             "ORDER BY refVarName";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -629,7 +629,7 @@ namespace ITCLib
             string query = "SELECT * FROM VarNames.FN_GetRefVarNames(@refVarName) ORDER BY refVarName GROUP BY refVarName";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -666,7 +666,7 @@ namespace ITCLib
             string query = "SELECT VarNames.FN_VarNameExists(@varname)";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -692,7 +692,7 @@ namespace ITCLib
             string query = "SELECT VarNames.FN_RefVarNameExists(@refvarname)";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -723,7 +723,7 @@ namespace ITCLib
             string query = "SELECT * FROM Questions.FN_GetHeadings(@survey) ORDER BY Qnum";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -792,7 +792,7 @@ namespace ITCLib
             string query = "SELECT * FROM VarNames.FN_GetSurveyVarNames(@survey)";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -841,7 +841,7 @@ namespace ITCLib
             string query = "SELECT dbo.FN_VarNamePreviousNames(@varname, @survey, @excludeTemp)";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -883,7 +883,7 @@ namespace ITCLib
             string query = "SELECT dbo.FN_GetCurrentName(@varname, @survey, @date)";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -922,7 +922,7 @@ namespace ITCLib
             string query = "SELECT tblVarNameKeywords.*, tblKeyword.Keyword AS KeywordLabel FROM tblVarNameKeywords INNER JOIN tblKeyword ON tblVarNameKeywords.Keyword = tblKeyword.ID ORDER BY refVarName";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -963,7 +963,7 @@ namespace ITCLib
             string query = "SELECT Survey, VarName, refVarName, Qnum FROM qrySurveyQuestions WHERE VarName = @varname ORDER BY Survey";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -1053,7 +1053,7 @@ namespace ITCLib
                 //                "(Count(Qnum) FOR Survey IN (" + columns + ")) AS p ORDER BY refVarName;"; 
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -1138,7 +1138,7 @@ namespace ITCLib
             //                "(Count(Qnum) FOR Survey IN (" + columns + ")) AS p ORDER BY refVarName;"; 
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -1222,7 +1222,7 @@ namespace ITCLib
             //                "(Count(Qnum) FOR Survey IN (" + columns + ")) AS p ORDER BY refVarName;"; 
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -1313,7 +1313,7 @@ namespace ITCLib
             //                "(Count(Qnum) FOR Survey IN (" + columns + ")) AS p ORDER BY refVarName;"; 
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -1356,7 +1356,7 @@ namespace ITCLib
             string query = "SELECT refVarName FROM qrySurveyQuestions WHERE Survey IN ('" + string.Join("','", surveys) + "') GROUP BY refVarName";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -1388,7 +1388,7 @@ namespace ITCLib
             string query = "SELECT * FROM qryOrphanVariables ORDER BY VarName";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 

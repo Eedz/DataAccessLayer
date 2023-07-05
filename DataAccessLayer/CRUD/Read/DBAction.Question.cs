@@ -40,7 +40,7 @@ namespace ITCLib
 
             query += " WHERE " + where + " ORDER BY Survey";
             
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 qs = db.Query<SurveyQuestion, VariableName, DomainLabel, TopicLabel, ContentLabel, ProductLabel, SurveyQuestion>(query, (question, variable, domain, topic, content, product) =>
                 {
@@ -74,7 +74,7 @@ namespace ITCLib
 
             var parameters = new { id = ID };
             
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 question = db.Query<SurveyQuestion, VariableName, DomainLabel, TopicLabel, ContentLabel, ProductLabel, SurveyQuestion>(query, (q, variable, domain, topic, content, product) =>
                 {
@@ -105,13 +105,15 @@ namespace ITCLib
                     "TopicNum, TopicNum AS ID, Topic AS LabelText, " +
                     "ContentNum, ContentNum AS ID, Content AS LabelText, " +
                     "ProductNum, ProductNum AS ID, Product AS LabelText " +
-                    "FROM Questions.FN_GetSurveyQuestions(@SID) ORDER BY Qnum;";
+                    "FROM Questions.FN_GetSurveyQuestions(@SID) ORDER BY Qnum;" +
+                    "SELECT TF.ID, QID, TimeFrame FROM tblQuestionTimeFrames AS TF LEFT JOIN qrySurveyQuestions AS SQ ON TF.QID = SQ.ID WHERE SQ.SurvID = @SID;";
 
             var parameters = new { s.SID };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
-                qs = db.Query<SurveyQuestion, VariableName, DomainLabel, TopicLabel, ContentLabel, ProductLabel, SurveyQuestion>(sql,
+                var results = db.QueryMultiple(sql, parameters);
+                qs = results.Read<SurveyQuestion, VariableName, DomainLabel, TopicLabel, ContentLabel, ProductLabel, SurveyQuestion>(
                     (question, varname, domain, topic, content, product) =>
                     {
                         varname.Domain = domain;
@@ -120,7 +122,15 @@ namespace ITCLib
                         varname.Product = product;
                         question.VarName = varname;
                         return question;
-                    }, parameters, splitOn: "VarName, DomainNum, TopicNum, ContentNum, ProductNum").ToList();
+                    }, splitOn: "VarName, DomainNum, TopicNum, ContentNum, ProductNum").ToList();
+
+                var timeframes = results.Read<QuestionTimeFrame>().ToList();
+
+                // add time frames to questions
+                foreach (SurveyQuestion qr in qs)
+                {
+                    qr.TimeFrames = timeframes.Where(x => x.QID == qr.ID).ToList();
+                }
             }
             return qs;
         }
@@ -130,9 +140,9 @@ namespace ITCLib
         /// </summary>
         /// <param name="Survey">Survey object</param>
         /// <returns>List of SurveyQuestions</returns>
-        public static List<QuestionRecord> GetSurveyQuestionRecords(Survey s)
+        public static List<SurveyQuestion> GetSurveyQuestionRecords(Survey s)
         {
-            List<QuestionRecord> qs = new List<QuestionRecord>();
+            List<SurveyQuestion> qs = new List<SurveyQuestion>();
 
             string sql = "SELECT ID, Survey AS SurveyCode, Qnum, PreP# AS PrePNum, PreP, PreI# AS PreINum, PreI, PreA# AS PreANum, PreA, LitQ# AS LitQNum, LitQ, " +
                     "PstI# AS PstINum, PstI, PstP# AS PstPNum, RespName, RespOptions, NRName, NRCodes, TableFormat, CorrectedFlag, ScriptOnly, AltQnum, AltQnum2, AltQnum3, " +
@@ -145,9 +155,9 @@ namespace ITCLib
 
             var parameters = new { SID = s.SID };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {              
-                var results = db.Query<QuestionRecord, VariableName, DomainLabel, TopicLabel, ContentLabel, ProductLabel, QuestionRecord>(sql,
+                var results = db.Query<SurveyQuestion, VariableName, DomainLabel, TopicLabel, ContentLabel, ProductLabel, SurveyQuestion>(sql,
                     (question, varname, domain, topic, content, product) =>
                 {
                     varname.Domain = domain;
@@ -158,7 +168,7 @@ namespace ITCLib
                     return question;
                 }, parameters, splitOn: "VarName, DomainNum, TopicNum, ContentNum, ProductNum").ToList();
 
-                qs = new List<QuestionRecord>(results);
+                qs = new List<SurveyQuestion>(results);
             }
             return qs;
         }
@@ -168,9 +178,9 @@ namespace ITCLib
         /// </summary>
         /// <param name="Survey">Survey object</param>
         /// <returns>List of SurveyQuestions</returns>
-        public static BindingList<QuestionRecord> GetCompleteSurvey(Survey s)
+        public static List<SurveyQuestion> GetCompleteSurvey(Survey s)
         {
-            BindingList<QuestionRecord> qs = new BindingList<QuestionRecord>();
+            List<SurveyQuestion> questions = new List<SurveyQuestion>();
 
             string sql = "SELECT ID, Survey AS SurveyCode, Qnum, PreP# AS PrePNum, PreP, PreI# AS PreINum, PreI, PreA# AS PreANum, PreA, LitQ# AS LitQNum, LitQ, " +
                     "PstI# AS PstINum, PstI, PstP# AS PstPNum, PstP, RespName, RespOptions, NRName, NRCodes, TableFormat, CorrectedFlag, ScriptOnly, AltQnum, AltQnum2, AltQnum3, " +
@@ -191,14 +201,14 @@ namespace ITCLib
                         "FROM qryCommentsQues WHERE SurvID = @SID;" +
                     "SELECT ID, QID, TimeFrame FROM qryQuestionTimeFrames WHERE SurvID = @SID;";
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 var parameters = new { s.SID };
 
                 var results = db.QueryMultiple(sql, parameters);
 
                 // questions
-                var questions = results.Read<QuestionRecord, VariableName, DomainLabel, TopicLabel, ContentLabel, ProductLabel, QuestionRecord>(
+                questions = results.Read<SurveyQuestion, VariableName, DomainLabel, TopicLabel, ContentLabel, ProductLabel, SurveyQuestion>(
                     (question, varname, domain, topic, content, product) =>
                     {
                         varname.Domain = domain;
@@ -210,7 +220,7 @@ namespace ITCLib
                     }, splitOn: "VarName, DomainNum, TopicNum, ContentNum, ProductNum").ToList();
 
                 // translations
-                var translations = results.Read<TranslationRecord, Language, TranslationRecord>((translation, language) =>
+                var translations = results.Read<Translation, Language, Translation>((translation, language) =>
                 {
                     translation.LanguageName = language;
                     return translation;
@@ -230,17 +240,15 @@ namespace ITCLib
                 var timeframes = results.Read<QuestionTimeFrame>().ToList();
 
                 // add translations, comments, and time frames to questions
-                foreach(QuestionRecord qr in questions)
+                foreach(SurveyQuestion qr in questions)
                 {
                     qr.Translations = translations.Where(x => x.QID == qr.ID).ToList();
                     qr.Comments = comments.Where(x => x.QID == qr.ID).ToList();
                     qr.TimeFrames = timeframes.Where(x => x.QID == qr.ID).ToList();
                 }
-
-                qs = new BindingList<QuestionRecord>(questions);
             }
 
-            return qs;
+            return questions;
         }
 
         /// <summary>
@@ -263,7 +271,7 @@ namespace ITCLib
 
             var parameters = new { varname };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 qs = db.Query<SurveyQuestion, VariableName, DomainLabel, TopicLabel, ContentLabel, ProductLabel, SurveyQuestion>(sql,
                     (question, varName, domain, topic, content, product) =>
@@ -304,7 +312,7 @@ namespace ITCLib
 
             var parameters = new { varname = varname.VarName };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 qs = db.Query<QuestionUsage, VariableName, QuestionUsage>(query, (question, varName) =>
                 {
@@ -335,7 +343,7 @@ namespace ITCLib
 
             var parameters = new { refVarName };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 qs = db.Query<SurveyQuestion, VariableName, DomainLabel, TopicLabel, ContentLabel, ProductLabel, SurveyQuestion>(sql,
                     (question, varName, domain, topic, content, product) =>
@@ -357,9 +365,9 @@ namespace ITCLib
         /// <param name="refvarname">A valid VarName.</param>
         /// <param name="surveyPattern">Survey code pattern.</param>
         /// <returns>List of SurveyQuestions</returns>
-        public static List<QuestionRecord> GetRefVarNameQuestionsGlob(string refvarname, string surveyPattern = "%")
+        public static List<SurveyQuestion> GetRefVarNameQuestionsGlob(string refvarname, string surveyPattern = "%")
         {
-            List<QuestionRecord> qs = new List<QuestionRecord>();
+            List<SurveyQuestion> qs = new List<SurveyQuestion>();
 
             string sql = "SELECT ID, Survey AS SurveyCode, Qnum, PreP# AS PrePNum, PreP, PreI# AS PreINum, PreI, PreA# AS PreANum, PreA, LitQ# AS LitQNum, LitQ, " +
                     "PstI# AS PstINum, PstI, PstP# AS PstPNum, RespName, RespOptions, NRName, NRCodes, TableFormat, CorrectedFlag, ScriptOnly, AltQnum, AltQnum2, AltQnum3, " +
@@ -372,9 +380,9 @@ namespace ITCLib
 
             var parameters = new { refvarname, surveyPattern };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
-                qs = db.Query<QuestionRecord, VariableName, DomainLabel, TopicLabel, ContentLabel, ProductLabel, QuestionRecord>(sql,
+                qs = db.Query<SurveyQuestion, VariableName, DomainLabel, TopicLabel, ContentLabel, ProductLabel, SurveyQuestion>(sql,
                     (question, varName, domain, topic, content, product) =>
                     {
                         varName.Domain = domain;
@@ -403,7 +411,7 @@ namespace ITCLib
 
             var parameters = new { survey = s.SurveyCode };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                qs = db.Query<SurveyQuestion>(sql, parameters).ToList();
             }
@@ -423,7 +431,7 @@ namespace ITCLib
 
             var parameters = new { survey, varname };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 var results = db.ExecuteScalar(query, parameters);
                 if (results != null)
@@ -445,7 +453,7 @@ namespace ITCLib
 
             var parameters = new { survey, refvarname };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 var results = db.ExecuteScalar(query, parameters);
                 if (results != null)
@@ -472,7 +480,7 @@ namespace ITCLib
 
             var parameters = new { survey };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 var results = db.QueryMultiple(query, parameters);
 
@@ -557,7 +565,7 @@ namespace ITCLib
 
             var parameters = new { varname };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 exists = (bool)db.ExecuteScalar(query, parameters);
             }
@@ -582,7 +590,7 @@ namespace ITCLib
 
             var parameters = new { survey = surveyCode };
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 var results = db.Query(sql, parameters).Select(x => x as IDictionary<string, object>).ToList();
                 
@@ -615,7 +623,7 @@ namespace ITCLib
 
             var parameters = new { survey = surveyCode };
 
-            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection db = new SqlConnection(connectionString))
             {
                 timeframes = db.Query<QuestionTimeFrame>(sql, parameters).ToList();
             }

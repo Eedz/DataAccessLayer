@@ -16,7 +16,7 @@ namespace ITCLib
         {
             int rowsAffected=0;
             newID = 0;
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 try
                 {
@@ -52,7 +52,7 @@ namespace ITCLib
             parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
             int rowsAffected;
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
                 record.ID = parameters.Get<int>("@newID");
@@ -75,7 +75,7 @@ namespace ITCLib
             parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
             int rowsAffected;
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
                 question.ID = parameters.Get<int>("@newID");
@@ -197,13 +197,12 @@ namespace ITCLib
             return recordsAffected;
         }
 
-       
         /// <summary>
         /// Creates a new Region and Reserved Prefix for that region.
         /// </summary>
         /// <param name="region"></param>
         /// <returns></returns>
-        public static int InsertRegion(RegionRecord region)
+        public static int InsertRegion(Region region)
         {
             DynamicParameters parameters = new DynamicParameters();
             parameters.Add("@regionName", region.RegionName);
@@ -222,7 +221,7 @@ namespace ITCLib
         /// </summary>
         /// <param name="newStudy"></param>
         /// <returns></returns>
-        public static int InsertCountry(StudyRecord newStudy)
+        public static int InsertCountry(Study newStudy)
         {
             DynamicParameters parameters = new DynamicParameters();
             parameters.Add("@studyName", newStudy.StudyName);
@@ -247,7 +246,7 @@ namespace ITCLib
         /// </summary>
         /// <param name="newWave"></param>
         /// <returns></returns>
-        public static int InsertStudyWave(StudyWaveRecord newWave)
+        public static int InsertStudyWave(StudyWave newWave)
         {
             DynamicParameters parameters = new DynamicParameters();
             parameters.Add("@studyID", newWave.StudyID);
@@ -481,7 +480,7 @@ namespace ITCLib
         public static int InsertSurveyUserState(SurveyUserState record)
         {
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
 
                 conn.Open();
@@ -516,7 +515,7 @@ namespace ITCLib
         public static int InsertSurveyScreenedProduct(SurveyScreenedProduct record)
         {
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
 
                 conn.Open();
@@ -551,7 +550,7 @@ namespace ITCLib
         public static int InsertPraccingIssue(PraccingIssue record)
         {
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -594,7 +593,7 @@ namespace ITCLib
         public static int InsertPraccingResponse(PraccingResponse record)
         {
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
 
                 conn.Open();
@@ -638,7 +637,7 @@ namespace ITCLib
                 string imagePath = @"\\psychfile\psych$\psych-lab-gfong\SMG\Praccing Images\" + img.Path;
                 
                 using (SqlDataAdapter sql = new SqlDataAdapter())
-                using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+                using (SqlConnection conn = new SqlConnection(connectionString))
                 {
                     conn.Open();
 
@@ -672,7 +671,7 @@ namespace ITCLib
         {
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -708,7 +707,7 @@ namespace ITCLib
                 string imagePath = @"\\psychfile\psych$\psych-lab-gfong\SMG\Praccing Images\" + img.Path;
 
                 using (SqlDataAdapter sql = new SqlDataAdapter())
-                using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+                using (SqlConnection conn = new SqlConnection(connectionString))
                 {
                     conn.Open();
 
@@ -742,7 +741,7 @@ namespace ITCLib
         {
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -773,7 +772,7 @@ namespace ITCLib
         public static int InsertSurveyProcessingDate(SurveyProcessingDate record)
         {
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
 
                 conn.Open();
@@ -820,7 +819,7 @@ namespace ITCLib
         public static int InsertSurveyProcessingNote(SurveyProcessingNote record)
         {
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
 
                 conn.Open();
@@ -862,11 +861,11 @@ namespace ITCLib
 
         }
 
-        public static int InsertSurvey (SurveyRecord record)
+        public static int InsertSurvey(Survey record)
         {
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
 
                 conn.Open();
@@ -907,7 +906,7 @@ namespace ITCLib
         {
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
 
                 conn.Open();
@@ -948,7 +947,7 @@ namespace ITCLib
         {
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
 
                 conn.Open();
@@ -989,7 +988,7 @@ namespace ITCLib
         {
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
 
                 conn.Open();
@@ -1029,7 +1028,7 @@ namespace ITCLib
         {
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
 
                 conn.Open();
@@ -1070,7 +1069,7 @@ namespace ITCLib
         {
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
 
                 conn.Open();
@@ -1111,7 +1110,7 @@ namespace ITCLib
         {
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -1195,7 +1194,7 @@ namespace ITCLib
         public static int InsertVarNameChangeSurvey(VarNameChangeSurveyRecord record)
         {
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -1224,7 +1223,7 @@ namespace ITCLib
         public static int InsertVarNameChangeNotification(VarNameChangeNotificationRecord record)
         {
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -1257,7 +1256,7 @@ namespace ITCLib
         {
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
 
                 conn.Open();
@@ -1314,7 +1313,7 @@ namespace ITCLib
         {
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
 
                 conn.Open();
@@ -1349,7 +1348,7 @@ namespace ITCLib
         {
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
 
                 conn.Open();
@@ -1385,7 +1384,7 @@ namespace ITCLib
         {
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
 
                 conn.Open();
@@ -1421,7 +1420,7 @@ namespace ITCLib
         {
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
 
                 conn.Open();
@@ -1454,7 +1453,7 @@ namespace ITCLib
         {
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
 
                 conn.Open();
@@ -1487,7 +1486,7 @@ namespace ITCLib
         {
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
 
                 conn.Open();
@@ -1522,7 +1521,7 @@ namespace ITCLib
         public static int InsertPrefix(VariablePrefixRecord record)
         {
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -1558,7 +1557,7 @@ namespace ITCLib
         public static int InsertPrefixRange(VariableRangeRecord record)
         {
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -1590,7 +1589,7 @@ namespace ITCLib
         public static int InsertParallelPrefix(ParallelPrefixRecord record)
         {
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 
@@ -1645,7 +1644,7 @@ namespace ITCLib
             parameters.Add("@matchID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
             int rowsAffected = 0;
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
                 records[0].ID = parameters.Get<int>("@newID");
@@ -1675,7 +1674,7 @@ namespace ITCLib
             parameters.Add("@filter", filter);
 
             int rowsAffected = 0;
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters);
             }

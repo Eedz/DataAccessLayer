@@ -38,7 +38,7 @@ namespace ITCLib
                             "NoteTypeID, NoteTypeID AS ID, NoteType AS TypeName FROM qryLastUsedComment WHERE PersonnelID = @userid;" +
                             "SELECT SourceText FROM qrySavedSources WHERE PersonnelID = @userid ORDER BY SourceNumber ASC;";
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 var grid = db.QueryMultiple(sql, new { username = username});
                 prefs = grid.Read<UserRecord>().First();
@@ -85,7 +85,7 @@ namespace ITCLib
         {
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
                 sql.UpdateCommand = new SqlCommand("proc_updateFormFilter", conn)
@@ -125,7 +125,7 @@ namespace ITCLib
         {
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
                 sql.UpdateCommand = new SqlCommand("proc_updateFormFilter", conn)
@@ -165,7 +165,7 @@ namespace ITCLib
         {
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
                 sql.UpdateCommand = new SqlCommand("proc_updateFormSurvey", conn)
@@ -205,7 +205,7 @@ namespace ITCLib
         {
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
                 sql.UpdateCommand = new SqlCommand("proc_updateFormSurvey", conn)

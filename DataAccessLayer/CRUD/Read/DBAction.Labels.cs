@@ -26,7 +26,7 @@ namespace ITCLib
 
             string sql = "SELECT ID, Domain AS LabelText, Uses FROM Labels.FN_ListCountDomainLabels() ORDER BY Domain";
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 domains = db.Query<DomainLabel>(sql).ToList();
             }
@@ -48,7 +48,7 @@ namespace ITCLib
             
             string sql = "SELECT ID, Topic AS LabelText, Uses FROM Labels.FN_ListCountTopicLabels() ORDER BY Topic";
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 topics = db.Query<TopicLabel>(sql).ToList();
             }
@@ -56,12 +56,9 @@ namespace ITCLib
             return topics;
         }
 
-
         //
         // Content Label
         //
-
-        
 
         /// <summary>
         /// Returns the list of Content Labels in the database.
@@ -72,7 +69,7 @@ namespace ITCLib
             List<ContentLabel> contents = new List<ContentLabel>();
             string sql = "SELECT ID, Content AS LabelText, Uses FROM Labels.FN_ListCountContentLabels() ORDER BY Content";
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 contents = db.Query<ContentLabel>(sql).ToList();
             }
@@ -94,7 +91,7 @@ namespace ITCLib
 
             string sql = "SELECT ID, Product AS LabelText, Uses FROM Labels.FN_ListCountProductLabels() ORDER BY Product";
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 products = db.Query<ProductLabel>(sql).ToList();
             }
@@ -114,7 +111,7 @@ namespace ITCLib
             var parameters = new { survey = surveyFilter };
             string sql = "SELECT ID, Product AS LabelText FROM Labels.FN_ListProductLabelsBySurvey(@survey) ORDER BY Product";
             
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 products = db.Query<ProductLabel>(sql, parameters).ToList();
             }
@@ -133,7 +130,7 @@ namespace ITCLib
             var parameters = new { keywordID = KeywordID };
             string sql = "SELECT Labels.FN_CountKeywordUses(@keywordID)";
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 count = db.ExecuteScalar<int>(sql, parameters);
             }
@@ -151,7 +148,7 @@ namespace ITCLib
             
             string sql = "SELECT ID, Keyword AS LabelText FROM Labels.FN_ListKeywords() ORDER BY Keyword";
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 keywords = db.Query<Keyword>(sql).ToList();
             }

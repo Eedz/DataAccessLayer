@@ -15,8 +15,11 @@ namespace ITCLib
     /// </summary>
     public static partial class DBAction
     {
-        
-
+#if DEBUG
+        static string connectionString = ConfigurationManager.ConnectionStrings["ISISConnectionStringTest"].ConnectionString;
+#else
+        static string connectionString = ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString;
+#endif
 
         /// <summary>
         /// Returns the list of people.
@@ -32,7 +35,7 @@ namespace ITCLib
                         "SELECT P.ID, p.CountryID AS StudyID, P.PersonnelID, C.Country AS StudyName, C.ISO_Code FROM qryPersonnelCountry AS P LEFT JOIN tblCountryCode AS C ON P.CountryID = C.ID ORDER BY C.Country;" +
                         "SELECT ID, PersonnelID, CommentType, Comment FROM qryPersonnelComments;"; 
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
 
                 var results = db.QueryMultiple(sql);
@@ -67,7 +70,7 @@ namespace ITCLib
             List<ScreenedProduct> products = new List<ScreenedProduct>();
             string sql = "SELECT ID, Product AS ProductName FROM qryScreenedProducts ORDER BY Product";
             
-            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection db = new SqlConnection(connectionString))
             {
                 products = db.Query<ScreenedProduct>(sql).ToList();
             }
@@ -84,7 +87,7 @@ namespace ITCLib
 
             string sql = "SELECT ID, UserState AS UserStateName FROM qryUserStates ORDER BY UserState";
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 states = db.Query<UserStateRecord>(sql).ToList();
             }
@@ -96,15 +99,15 @@ namespace ITCLib
         /// Returns the list of regions.
         /// </summary>
         /// <returns></returns>
-        public static List<RegionRecord> GetRegionInfo()
+        public static List<Region> GetRegionInfo()
         {
-            List<RegionRecord> regions = new List<RegionRecord>();
+            List<Region> regions = new List<Region>();
 
             string sql = "SELECT R.ID, R.Region AS RegionName, P.ReservedPrefix AS TempVarPrefix FROM tblRegion AS R LEFT JOIN tblReservedPrefixes AS P ON R.ID = P.RegionID ORDER BY R.ID";
 
-            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection db = new SqlConnection(connectionString))
             {
-                regions = db.Query<RegionRecord>(sql).ToList();
+                regions = db.Query<Region>(sql).ToList();
             }
             return regions;
         }
@@ -113,15 +116,15 @@ namespace ITCLib
         /// Returns the list of studies.
         /// </summary>
         /// <returns></returns>
-        public static List<StudyRecord> GetStudyInfo()
+        public static List<Study> GetStudyInfo()
         {
-            List<StudyRecord> studies = new List<StudyRecord>();
+            List<Study> studies = new List<Study>();
             
             string sql = "SELECT ID, Country AS CountryName, Study AS StudyName, CountryCode, ISO_Code, AgeGroup, Cohort, Languages, RegionID FROM tblCountryCode ORDER BY Study";
 
-            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection db = new SqlConnection(connectionString))
             {
-                studies = db.Query<StudyRecord>(sql).ToList();
+                studies = db.Query<Study>(sql).ToList();
             }
 
             return studies;
@@ -131,18 +134,18 @@ namespace ITCLib
         /// Returns the studies for a particular region.
         /// </summary>
         /// <returns></returns>
-        public static List<StudyRecord> GetStudyInfo(int regionID)
+        public static List<Study> GetStudyInfo(int regionID)
         {
-            List<StudyRecord> studies = new List<StudyRecord>();
+            List<Study> studies = new List<Study>();
 
             string sql = "SELECT ID, Country AS CountryName, Study AS StudyName, CountryCode, ISO_Code, AgeGroup, Cohort, Languages, RegionID FROM tblCountryCode " + 
                 "WHERE RegionID = @regionID ORDER BY Study";
 
             var parameters = new { regionID };
 
-            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection db = new SqlConnection(connectionString))
             {
-                studies = db.Query<StudyRecord>(sql, parameters).ToList();
+                studies = db.Query<Study>(sql, parameters).ToList();
             }
 
             return studies;
@@ -152,20 +155,20 @@ namespace ITCLib
         /// Returns a list of survey waves.
         /// </summary>
         /// <returns></returns>
-        public static List<StudyWaveRecord> GetWaveInfo()
+        public static List<StudyWave> GetWaveInfo()
         {
-            List<StudyWaveRecord> waves = new List<StudyWaveRecord>();
+            List<StudyWave> waves = new List<StudyWave>();
 
             string sql = "SELECT W.ID, Wave, ISO_Code, Countries, EnglishRouting, W.CountryID AS StudyID " +
                 "FROM tblProjectWaves AS W LEFT JOIN tblCountryCode AS C ON W.CountryID = C.ID " +
                 "ORDER BY ISO_Code, Wave;" +
                 "SELECT WaveID, StudyWave, Country, CountryID, FieldworkStart, FieldworkEnd FROM qryFieldworkDates WHERE NOT CountryID IS NULL";
 
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 var results = db.QueryMultiple(sql);
 
-                waves = results.Read<StudyWaveRecord>().ToList();
+                waves = results.Read<StudyWave>().ToList();
                 var fieldworks = results.Read().Select(x => x as IDictionary<string, object>).ToList();
 
                 foreach (IDictionary<string, object> row in fieldworks)
@@ -198,7 +201,7 @@ namespace ITCLib
 
             var parameters = new { studyID };
 
-            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection db = new SqlConnection(connectionString))
             {
                 waves = db.Query<StudyWaveRecord>(sql, parameters).ToList();
             }
@@ -218,7 +221,7 @@ namespace ITCLib
                 "SELECT ID, PrefixID, VarNumLow AS Lower, VarNumHigh AS Upper, Description FROM qryDomainRanges ORDER BY VarNumLow;" +
                 "SELECT R.ID, R.PrefixID, R.RelatedPrefixID AS RelatedID, D.Prefix FROM qryDomainListRelated AS R INNER JOIN qryDomainList AS D ON R.RelatedPrefixID = D.ID";  
             
-            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection db = new SqlConnection(connectionString))
             {
                 var results = db.QueryMultiple(sql);
 
@@ -253,7 +256,7 @@ namespace ITCLib
                 "SELECT ID, StageID, StageDate, EntryDate, StageInit, StageInit AS ID, EnteredBy AS Name, StageContact, StageContact AS ID, ContactName AS Name  FROM qrySurveyProcessingDates;" +
                 "SELECT ID, StageID AS DateID, CommentDate AS NoteDate, Note, EnteredBy, EnteredBy AS ID, EnteredByName AS Name FROM qrySurveyProcessingNotes;";
 
-            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection db = new SqlConnection(connectionString))
             {
                 var results = db.QueryMultiple(sql);
 
@@ -310,7 +313,7 @@ namespace ITCLib
 
             var parameters = new { survID };
 
-            using (SqlConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection db = new SqlConnection(connectionString))
             {
                 var results = db.QueryMultiple(sql, parameters);
 
@@ -383,7 +386,7 @@ namespace ITCLib
             string query = "proc_ReportHarmony3";
 
             using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 

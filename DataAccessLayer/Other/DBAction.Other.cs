@@ -24,7 +24,7 @@ namespace ITCLib
             parameters.Add("@newSurvey", destination);
 
             int rowsAffected;
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
             }
@@ -48,7 +48,7 @@ namespace ITCLib
             parameters.Add("@QID", QID);
 
             int rowsAffected;
-            using (IDbConnection db = new SqlConnection(ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
             }
