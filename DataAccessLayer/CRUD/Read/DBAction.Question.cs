@@ -99,7 +99,7 @@ namespace ITCLib
             List<SurveyQuestion> qs = new List<SurveyQuestion>();
 
             string sql = "SELECT ID, Survey AS SurveyCode, Qnum, PreP# AS PrePNum, PreP, PreI# AS PreINum, PreI, PreA# AS PreANum, PreA, LitQ# AS LitQNum, LitQ, " +
-                    "PstI# AS PstINum, PstI, PstP# AS PstPNum, RespName, RespOptions, NRName, NRCodes, TableFormat, CorrectedFlag, ScriptOnly, AltQnum, AltQnum2, AltQnum3, FilterDescription, " +
+                    "PstI# AS PstINum, PstI, PstP# AS PstPNum, PstP, RespName, RespOptions, NRName, NRCodes, TableFormat, CorrectedFlag, ScriptOnly, AltQnum, AltQnum2, AltQnum3, FilterDescription, " +
                     "VarName, VarLabel, " +
                     "DomainNum, DomainNum AS ID, Domain AS LabelText, " +
                     "TopicNum, TopicNum AS ID, Topic AS LabelText, " +
@@ -145,7 +145,7 @@ namespace ITCLib
             List<SurveyQuestion> qs = new List<SurveyQuestion>();
 
             string sql = "SELECT ID, Survey AS SurveyCode, Qnum, PreP# AS PrePNum, PreP, PreI# AS PreINum, PreI, PreA# AS PreANum, PreA, LitQ# AS LitQNum, LitQ, " +
-                    "PstI# AS PstINum, PstI, PstP# AS PstPNum, RespName, RespOptions, NRName, NRCodes, TableFormat, CorrectedFlag, ScriptOnly, AltQnum, AltQnum2, AltQnum3, " +
+                    "PstI# AS PstINum, PstI, PstP# AS PstPNum, PstP, RespName, RespOptions, NRName, NRCodes, TableFormat, CorrectedFlag, ScriptOnly, AltQnum, AltQnum2, AltQnum3, " +
                     "VarName, VarLabel, " +
                     "DomainNum, DomainNum AS ID, Domain AS LabelText, "+
                     "TopicNum, TopicNum AS ID, Topic AS LabelText, " +
@@ -174,10 +174,11 @@ namespace ITCLib
         }
 
         /// <summary>
-        /// Retrieves a set of records for a particular survey ID and returns a list of SurveyQuestion objects. 
+        /// Retrieves a set of records for a particular survey ID and returns a list of SurveyQuestion objects.
         /// </summary>
         /// <param name="Survey">Survey object</param>
         /// <returns>List of SurveyQuestions</returns>
+        /// <remarks>SurveyObjects contain wordings, labels, comments, translations, and time frames.</remarks>
         public static List<SurveyQuestion> GetCompleteSurvey(Survey s)
         {
             List<SurveyQuestion> questions = new List<SurveyQuestion>();
@@ -261,7 +262,7 @@ namespace ITCLib
             List<SurveyQuestion> qs = new List<SurveyQuestion>();
 
             string sql = "SELECT ID, Survey AS SurveyCode, Qnum, PreP# AS PrePNum, PreP, PreI# AS PreINum, PreI, PreA# AS PreANum, PreA, LitQ# AS LitQNum, LitQ, " +
-                    "PstI# AS PstINum, PstI, PstP# AS PstPNum, RespName, RespOptions, NRName, NRCodes, TableFormat, CorrectedFlag, ScriptOnly, AltQnum, AltQnum2, AltQnum3, " +
+                    "PstI# AS PstINum, PstI, PstP# AS PstPNum, PstP, RespName, RespOptions, NRName, NRCodes, TableFormat, CorrectedFlag, ScriptOnly, AltQnum, AltQnum2, AltQnum3, " +
                     "VarName, VarLabel, " +
                     "DomainNum, DomainNum AS ID, Domain AS LabelText, " +
                     "TopicNum, TopicNum AS ID, Topic AS LabelText, " +
@@ -333,7 +334,7 @@ namespace ITCLib
             List<SurveyQuestion> qs = new List<SurveyQuestion>();
 
             string sql = "SELECT ID, Survey AS SurveyCode, Qnum, PreP# AS PrePNum, PreP, PreI# AS PreINum, PreI, PreA# AS PreANum, PreA, LitQ# AS LitQNum, LitQ, " +
-                   "PstI# AS PstINum, PstI, PstP# AS PstPNum, RespName, RespOptions, NRName, NRCodes, TableFormat, CorrectedFlag, ScriptOnly, AltQnum, AltQnum2, AltQnum3, " +
+                   "PstI# AS PstINum, PstI, PstP# AS PstPNum, PstP, RespName, RespOptions, NRName, NRCodes, TableFormat, CorrectedFlag, ScriptOnly, AltQnum, AltQnum2, AltQnum3, " +
                    "VarName, VarLabel, " +
                    "DomainNum, DomainNum AS ID, Domain AS LabelText, " +
                    "TopicNum, TopicNum AS ID, Topic AS LabelText, " +
@@ -370,7 +371,7 @@ namespace ITCLib
             List<SurveyQuestion> qs = new List<SurveyQuestion>();
 
             string sql = "SELECT ID, Survey AS SurveyCode, Qnum, PreP# AS PrePNum, PreP, PreI# AS PreINum, PreI, PreA# AS PreANum, PreA, LitQ# AS LitQNum, LitQ, " +
-                    "PstI# AS PstINum, PstI, PstP# AS PstPNum, RespName, RespOptions, NRName, NRCodes, TableFormat, CorrectedFlag, ScriptOnly, AltQnum, AltQnum2, AltQnum3, " +
+                    "PstI# AS PstINum, PstI, PstP# AS PstPNum, PstP, RespName, RespOptions, NRName, NRCodes, TableFormat, CorrectedFlag, ScriptOnly, AltQnum, AltQnum2, AltQnum3, " +
                     "VarName, VarLabel, " +
                     "DomainNum, DomainNum AS ID, Domain AS LabelText, " +
                     "TopicNum, TopicNum AS ID, Topic AS LabelText, " +
@@ -406,7 +407,7 @@ namespace ITCLib
             List<SurveyQuestion> qs = new List<SurveyQuestion>();
 
             string sql = "SELECT ID, Survey AS SurveyCode, Qnum, PreP# AS PrePNum, PreP, PreI# AS PreINum, PreI, PreA# AS PreANum, PreA, LitQ# AS LitQNum, LitQ, " +
-                    "PstI# AS PstINum, PstI, PstP# AS PstPNum, RespName, RespOptions, NRName, NRCodes " +
+                    "PstI# AS PstINum, PstI, PstP# AS PstPNum, PstP, RespName, RespOptions, NRName, NRCodes " +
                     "FROM Questions.FN_GetCorrectedQuestions(@survey)";
 
             var parameters = new { survey = s.SurveyCode };
