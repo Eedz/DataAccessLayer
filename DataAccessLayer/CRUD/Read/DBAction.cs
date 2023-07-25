@@ -213,32 +213,34 @@ namespace ITCLib
         /// Returns the list of VarName prefixes.
         /// </summary>
         /// <returns></returns>
-        public static List<VariablePrefixRecord> GetVarPrefixes()
+        public static List<VariablePrefix> GetVariablePrefixes()
         {
-            List<VariablePrefixRecord> prefixes = new List<VariablePrefixRecord>();
+            List<VariablePrefix> prefixes = new List<VariablePrefix>();
 
             string sql = "SELECT ID, Prefix, PrefixName, ProductType, RelatedPrefixes, DomainName AS Description, Comments, InactiveDomain AS Inactive FROM qryDomainList ORDER BY Prefix;" +
                 "SELECT ID, PrefixID, VarNumLow AS Lower, VarNumHigh AS Upper, Description FROM qryDomainRanges ORDER BY VarNumLow;" +
-                "SELECT R.ID, R.PrefixID, R.RelatedPrefixID AS RelatedID, D.Prefix FROM qryDomainListRelated AS R INNER JOIN qryDomainList AS D ON R.RelatedPrefixID = D.ID";  
-            
+                "SELECT R.ID, R.PrefixID, R.RelatedPrefixID, D.Prefix AS RelatedPrefix FROM qryDomainListRelated AS R INNER JOIN qryDomainList AS D ON R.RelatedPrefixID = D.ID;";
+
             using (SqlConnection db = new SqlConnection(connectionString))
             {
                 var results = db.QueryMultiple(sql);
 
-                prefixes = results.Read<VariablePrefixRecord>().ToList();
-                var ranges = results.Read<VariableRangeRecord>().ToList();
-                var parallel = results.Read<ParallelPrefixRecord>().ToList();
+                prefixes = results.Read<VariablePrefix>().ToList();
+                var ranges = results.Read<VariableRange>().ToList();
+                var parallels = results.Read <ParallelPrefix>().ToList();
 
-                foreach (VariableRangeRecord p in ranges)
-                    p.NewRecord = false;
-                foreach (ParallelPrefixRecord p in parallel)
-                    p.NewRecord = false;
-
-                foreach (VariablePrefixRecord p in prefixes)
+                foreach (ParallelPrefix parallel in parallels)
                 {
-                    p.NewRecord = false;
-                    p.ParallelPrefixes = parallel.Where(x => x.PrefixID == p.ID).ToList();
-                    p.Ranges = ranges.Where(x => x.PrefixID == p.ID).ToList();
+                    var pr = prefixes.FirstOrDefault(x => x.ID == parallel.PrefixID);      
+                    if (pr != null)
+                        pr.ParallelPrefixes.Add(parallel);
+                }
+
+                foreach (VariableRange range in ranges)
+                {
+                    var pr = prefixes.FirstOrDefault(x => x.ID == range.PrefixID);
+                    if (pr != null)
+                        pr.Ranges.Add(range);
                 }
             }
             return prefixes;

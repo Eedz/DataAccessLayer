@@ -2113,98 +2113,52 @@ namespace ITCLib
             return 0;
         }
 
-        public static int UpdatePrefix(VariablePrefixRecord record)
+        public static int UpdatePrefix(VariablePrefix record)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string sql = "UPDATE tblDomainList SET prefix = @prefix, PrefixName=@prefixName, ProductType=@productType, RelatedPrefixes= @relatedPrefixes,DomainName=@domainName, " +
+                "Comments=@comments, InactiveDomain=@inactive WHERE ID = @ID";
+
+            var parameters = new
             {
-                conn.Open();
+                ID = record.ID,
+                prefix = record.Prefix,
+                prefixName = record.PrefixName,
+                productType = record.ProductType,
+                relatedPrefixes = record.RelatedPrefixes,
+                domainName = record.Description,
+                comments = record.Comments,
+                inactive = record.Inactive
+            };
+            int rowsAffected = 0;
 
-                sql.UpdateCommand = new SqlCommand("UPDATE tblDomainList SET prefix = @prefix, PrefixName=@prefixName, ProductType=@productType, RelatedPrefixes= @relatedPrefixes," +
-                    "DomainName=@domainName, Comments=@comments, InactiveDomain=@inactive WHERE ID = @ID", conn)
-                {
-                    CommandType = CommandType.Text
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@ID", record.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@prefix", record.Prefix);
-                sql.UpdateCommand.Parameters.AddWithValue("@prefixName", record.PrefixName);
-                sql.UpdateCommand.Parameters.AddWithValue("@productType", record.ProductType);
-                sql.UpdateCommand.Parameters.AddWithValue("@relatedPrefixes", record.RelatedPrefixes);
-                sql.UpdateCommand.Parameters.AddWithValue("@domainName", record.Description);
-                sql.UpdateCommand.Parameters.AddWithValue("@comments", record.Comments);
-                sql.UpdateCommand.Parameters.AddWithValue("@inactive", record.Inactive);
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(sql, parameters, commandType: CommandType.Text);
             }
-
             return 0;
+
         }
 
-        public static int UpdatePrefixRange(VariableRangeRecord record)
+        public static int UpdatePrefixRange(VariableRange record)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string sql = "proc_updatePrefixRange";
+
+            var parameters = new
             {
-                conn.Open();
+                ID = record.ID,
+                low = record.Lower,
+                high = record.Upper,
+                description = record.Description,
+              
+            };
+            int rowsAffected = 0;
 
-                sql.UpdateCommand = new SqlCommand("proc_updatePrefixRange", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@ID", record.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@low", string.IsNullOrEmpty(record.Lower) ? DBNull.Value : (object)record.Lower);
-                sql.UpdateCommand.Parameters.AddWithValue("@high", string.IsNullOrEmpty(record.Upper) ? DBNull.Value : (object)record.Upper);
-                sql.UpdateCommand.Parameters.AddWithValue("@description", string.IsNullOrEmpty(record.Description) ? DBNull.Value : (object)record.Description);
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-            }
-
-            return 0;
-        }
-
-        public static int UpdateParallelPrefix(ParallelPrefixRecord record)
-        {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
-                conn.Open();
-
-                sql.UpdateCommand = new SqlCommand("UPDATE qryDomainListRelated SET RelatedPrefixID=@relatedID WHERE ID = @ID", conn)
-                {
-                    CommandType = CommandType.Text
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@ID", record.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@relatedID", record.RelatedID);
-                
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+                rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
             }
-
             return 0;
+
         }
 
         public static int UpdateSurveyDraft(SurveyDraftRecord record)

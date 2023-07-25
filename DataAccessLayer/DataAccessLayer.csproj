@@ -84,8 +84,9 @@
     <Compile Include="Record Objects\Survey Structure\StudyWaveRecord.cs" />
     <Compile Include="Record Objects\Survey Structure\SurveyRecord.cs" />
     <Compile Include="Record Objects\TranslationRecord.cs" />
+    <Compile Include="Record Objects\VariablePrefixRecord.cs" />
     <Compile Include="Record Objects\VarNameChangeRecord.cs" />
-    <Compile Include="Record Objects\VarNameRecord.cs" />
+    <Compile Include="Record Objects\CanonicalVariableRecord.cs" />
     <Compile Include="CRUD\Update\DBAction.Update.cs" />
     <Compile Include="CRUD\Read\DBAction.User.cs" />
     <Compile Include="CRUD\Read\DBAction.VarName.cs" />

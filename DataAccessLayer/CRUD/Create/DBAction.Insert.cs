@@ -1518,75 +1518,42 @@ namespace ITCLib
             return 0;
         }
 
-        public static int InsertPrefix(VariablePrefixRecord record)
+        public static int InsertPrefix(VariablePrefix record)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
-                conn.Open();
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@prefix", record.Prefix);
+            parameters.Add("@prefixName", record.PrefixName);
+            parameters.Add("@productType", record.ProductType);
+            parameters.Add("@relatedPrefixes", record.Prefix);
+            parameters.Add("@domainName", record.Prefix);
+            parameters.Add("@comments", record.Prefix);
+            parameters.Add("@inactive", record.Prefix);
+            parameters.Add("@newID", record.Prefix, DbType.Int32, ParameterDirection.Output);
 
-                sql.InsertCommand = new SqlCommand("proc_createPrefix", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-                
-                sql.InsertCommand.Parameters.AddWithValue("@prefix", string.IsNullOrEmpty(record.Prefix) ? DBNull.Value : (object)record.Prefix);
-                sql.InsertCommand.Parameters.AddWithValue("@prefixName", string.IsNullOrEmpty(record.PrefixName) ? DBNull.Value : (object)record.PrefixName);
-                sql.InsertCommand.Parameters.AddWithValue("@productType", string.IsNullOrEmpty(record.ProductType) ? DBNull.Value : (object)record.ProductType);
-                sql.InsertCommand.Parameters.AddWithValue("@relatedPrefixes", string.IsNullOrEmpty(record.RelatedPrefixes) ? DBNull.Value : (object)record.RelatedPrefixes);
-                sql.InsertCommand.Parameters.AddWithValue("@domainName", string.IsNullOrEmpty(record.Description) ? DBNull.Value : (object)record.Description);
-                sql.InsertCommand.Parameters.AddWithValue("@comments", string.IsNullOrEmpty(record.Comments) ? DBNull.Value : (object)record.Comments);
-                sql.InsertCommand.Parameters.AddWithValue("@inactive", record.Inactive);
+            int rowsAffected = SP_Insert("proc_createPrefix", parameters, out int newID);
+            record.ID = newID;
 
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-            }
-
-            return 0;
+            return rowsAffected;
         }
 
-        public static int InsertPrefixRange(VariableRangeRecord record)
+        public static int InsertPrefixRange(VariableRange record)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
-                conn.Open();
+            string sql = "proc_createPrefixRange";
+            DynamicParameters parameters = new DynamicParameters();
 
-                sql.InsertCommand = new SqlCommand("proc_createPrefixRange", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
+            parameters.Add("@prefixID", record.PrefixID);
+            parameters.Add("@low", record.Lower);
+            parameters.Add("@high", record.Upper);
+            parameters.Add("@description", record.Description);
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-                sql.InsertCommand.Parameters.AddWithValue("@prefixID", record.PrefixID);
-                sql.InsertCommand.Parameters.AddWithValue("@low", string.IsNullOrEmpty(record.Lower) ? DBNull.Value : (object)record.Lower);
-                sql.InsertCommand.Parameters.AddWithValue("@high", string.IsNullOrEmpty(record.Upper) ? DBNull.Value : (object)record.Upper);
-                sql.InsertCommand.Parameters.AddWithValue("@description", string.IsNullOrEmpty(record.Description) ? DBNull.Value : (object)record.Description);
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
+            int rowsAffected = SP_Insert(sql, parameters, out int newID);
+            record.ID = newID;
 
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-            }
-
-            return 0;
+            return rowsAffected;
         }
 
-        public static int InsertParallelPrefix(ParallelPrefixRecord record)
+        public static int InsertParallelPrefix(ParallelPrefix record)
         {
             using (SqlDataAdapter sql = new SqlDataAdapter())
             using (SqlConnection conn = new SqlConnection(connectionString))
@@ -1599,7 +1566,7 @@ namespace ITCLib
                 };
 
                 sql.InsertCommand.Parameters.AddWithValue("@prefixID", record.PrefixID);
-                sql.InsertCommand.Parameters.AddWithValue("@relatedPrefixID", record.RelatedID);
+                sql.InsertCommand.Parameters.AddWithValue("@relatedPrefixID", record.RelatedPrefixID);
                 sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
 
                 try

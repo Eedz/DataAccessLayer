@@ -441,7 +441,8 @@ namespace ITCLib
             return 0;
         }
 
-        public static int DeleteRecord(VariablePrefixRecord r)
+
+        public static int DeleteRecord(VariablePrefix r)
         {
             int rowsAffected = 0;
 
@@ -455,7 +456,7 @@ namespace ITCLib
             return 0;
         }
 
-        public static int DeleteRecord(VariableRangeRecord r)
+        public static int DeleteRecord(VariableRange r)
         {
             int rowsAffected = 0;
 
@@ -469,7 +470,7 @@ namespace ITCLib
             return 0;
         }
 
-        public static int DeleteRecord(ParallelPrefixRecord r)
+        public static int DeleteRecord(ParallelPrefix r)
         {
             int rowsAffected = 0;
 

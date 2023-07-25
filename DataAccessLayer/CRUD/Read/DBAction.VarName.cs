@@ -335,7 +335,7 @@ namespace ITCLib
         /// Returns the list of all variable prefixes in use. TODO (eliminate non-standard vars? or make it an option)
         /// </summary>
         /// <returns></returns>
-        public static List<string> GetVariablePrefixes()
+        public static List<string> GetVariablePrefixList()
         {
             List<string> prefixes = new List<string>();
             string query = "SELECT SUBSTRING(VarName,1,2) AS Prefix FROM qryVariableInfo GROUP BY SUBSTRING(VarName,1,2) ORDER BY SUBSTRING(VarName, 1,2)";
@@ -499,7 +499,7 @@ namespace ITCLib
         /// </summary>
         /// <param name="refVarName"></param>
         /// <returns></returns>
-        public static List<VariableNameSurveys> GetVarNamesPrefix(string prefix)
+        async public static Task<List<VariableNameSurveys>> GetVarNamesPrefixAsync(string prefix)
         {
             List<VariableNameSurveys> refVarNames = new List<VariableNameSurveys>();
             if (string.IsNullOrEmpty(prefix))
@@ -525,6 +525,71 @@ namespace ITCLib
                 sql.SelectCommand.Parameters.AddWithValue("@prefix", prefix);
                 try
                 {
+                    var rdr = await sql.SelectCommand.ExecuteReaderAsync();
+                    using (rdr)// = sql.SelectCommand.ExecuteReaderAsync().Result)
+                    {
+                        while (rdr.Read())
+                        {
+                            VariableNameSurveys rv = new VariableNameSurveys();
+                            rv.VarName = rdr.SafeGetString("VarName");
+                            rv.RefVarName = rdr.SafeGetString("refVarName");
+                            rv.SurveyList = rdr.SafeGetString("SurveyList");
+
+                            rv.VarLabel = rdr.SafeGetString("VarLabel");
+                            rv.Domain.ID = (int)rdr["DomainNum"];
+                            rv.Domain.LabelText = rdr.SafeGetString("Domain");
+                            rv.Topic.ID = (int)rdr["TopicNum"];
+                            rv.Topic.LabelText = rdr.SafeGetString("Topic");
+                            rv.Content.ID = (int)rdr["ContentNum"];
+                            rv.Content.LabelText = rdr.SafeGetString("Content");
+                            rv.Product.ID = (int)rdr["ProductNum"];
+                            rv.Product.LabelText = rdr.SafeGetString("Product");
+
+                            refVarNames.Add(rv);
+                        }
+
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.Write(e.Message);
+                }
+            }
+            return refVarNames;
+        }
+
+        /// <summary>
+        /// Returns a list of VariableNameSurveys objects with the provided refVarName.
+        /// </summary>
+        /// <param name="refVarName"></param>
+        /// <returns></returns>
+        public static List<VariableNameSurveys> GetVarNamesPrefix(string prefix)
+        {
+            List<VariableNameSurveys> refVarNames = new List<VariableNameSurveys>();
+            if (string.IsNullOrEmpty(prefix))
+                return refVarNames;
+
+            string query = "SELECT refVarName, VarName, VarLabel, Domain, DomainNum, Content, ContentNum, Topic, TopicNum, ProductNum, Product, STUFF((SELECT  ',' + Survey " +
+                            "FROM qrySurveyQuestions SQ2 " +
+                            "WHERE VarName = sq1.VarName " +
+                            "GROUP BY SQ2.Survey " +
+                            "ORDER BY Survey " +
+                            "FOR XML PATH(''), TYPE).value('text()[1]', 'nvarchar(max)') ,1, LEN(','), '') AS SurveyList " +
+                            "FROM qrySurveyQuestions Sq1 " +
+                            "WHERE SUBSTRING(refVarName,1,2) = @prefix " +
+                            "GROUP BY sq1.refVarName, VarName, Sq1.VarLabel, Sq1.Domain, DomainNum, Sq1.Content, ContentNum, Sq1.Topic, TopicNum, Sq1.Product, ProductNum " +
+                            "ORDER BY refVarName";
+
+            using (SqlDataAdapter sql = new SqlDataAdapter())
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+
+                sql.SelectCommand = new SqlCommand(query, conn);
+                sql.SelectCommand.Parameters.AddWithValue("@prefix", prefix);
+                try
+                {
+
                     using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
                     {
                         while (rdr.Read())
