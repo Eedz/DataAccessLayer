@@ -65,6 +65,10 @@
       <Project>{1f878409-8602-4dc3-a0cb-45cccc21289e}</Project>
       <Name>ITCLib</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\ITCReportLib\ITCReportLib\ITCReportLib.csproj">
+      <Project>{8ceb9cde-9507-4909-b517-7437ed8f42fe}</Project>
+      <Name>ITCReportLib</Name>
+    </ProjectReference>
     <ProjectReference Include="..\DataAccessLayer\DataAccessLayer.csproj">
       <Project>{a95ec154-7009-4323-a432-1261b2cc7124}</Project>
       <Name>DataAccessLayer</Name>

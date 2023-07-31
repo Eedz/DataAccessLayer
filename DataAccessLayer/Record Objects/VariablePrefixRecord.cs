@@ -29,7 +29,6 @@ public class VariablePrefixRecord: IRecord<VariablePrefix>
         AddedRanges = new List<VariableRange>();
         DeletedRanges = new List<VariableRange>();
 
-
         Item = item;
     }
 

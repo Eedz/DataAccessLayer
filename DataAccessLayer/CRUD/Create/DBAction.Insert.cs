@@ -479,72 +479,28 @@ namespace ITCLib
 
         public static int InsertSurveyUserState(SurveyUserState record)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@survID", record.SurvID);
+            parameters.Add("@stateID", record.State.ID);
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-                conn.Open();
+            int recordsAffected = SP_Insert("proc_createSurveyUserState", parameters, out int newID);
+            record.ID = newID;
 
-                sql.InsertCommand = new SqlCommand("INSERT INTO tblSurveyUserStates (SurvID, UserStateID) VALUES (@survID, @stateID)", conn)
-                {
-                    CommandType = CommandType.Text
-                };
-
-
-                sql.InsertCommand.Parameters.AddWithValue("@survID", record.SurvID);
-                sql.InsertCommand.Parameters.AddWithValue("@stateID", record.State.ID);
-
-                //sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    // record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
-            }
-            return 0;
-
-
-        }
+            return recordsAffected;
+       }
 
         public static int InsertSurveyScreenedProduct(SurveyScreenedProduct record)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@survID", record.SurvID);
+            parameters.Add("@stateID", record.Product.ID);
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-                conn.Open();
+            int recordsAffected = SP_Insert("proc_createSurveyProduct", parameters, out int newID);
+            record.ID = newID;
 
-                sql.InsertCommand = new SqlCommand("INSERT INTO tblSurveyProducts (SurvID, ProductID) VALUES (@survID, @productID)", conn)
-                {
-                    CommandType = CommandType.Text
-                };
-
-
-                sql.InsertCommand.Parameters.AddWithValue("@survID", record.SurvID);
-                sql.InsertCommand.Parameters.AddWithValue("@productID", record.Product.ID);
-
-                //sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    // record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
-            }
-            return 0;
-
-
+            return recordsAffected;
         }
 
         public static int InsertPraccingIssue(PraccingIssue record)

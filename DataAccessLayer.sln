@@ -1,13 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27428.2015
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33829.357
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataAccessLayer", "DataAccessLayer\DataAccessLayer.csproj", "{A95EC154-7009-4323-A432-1261B2CC7124}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataAccessLayerTests", "DataAccessLayerTests\DataAccessLayerTests.csproj", "{5B084261-6FAD-4CE9-A174-CD0A141244A6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ITCLib", "..\ITCLib\ITCLib\ITCLib.csproj", "{1F878409-8602-4DC3-A0CB-45CCCC21289E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ITCReportLib", "..\ITCReportLib\ITCReportLib\ITCReportLib.csproj", "{8CEB9CDE-9507-4909-B517-7437ED8F42FE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{1F878409-8602-4DC3-A0CB-45CCCC21289E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1F878409-8602-4DC3-A0CB-45CCCC21289E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1F878409-8602-4DC3-A0CB-45CCCC21289E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8CEB9CDE-9507-4909-B517-7437ED8F42FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8CEB9CDE-9507-4909-B517-7437ED8F42FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8CEB9CDE-9507-4909-B517-7437ED8F42FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8CEB9CDE-9507-4909-B517-7437ED8F42FE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

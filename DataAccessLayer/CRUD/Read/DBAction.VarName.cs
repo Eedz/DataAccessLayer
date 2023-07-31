@@ -687,6 +687,46 @@ namespace ITCLib
         /// </summary>
         /// <param name="refVarName"></param>
         /// <returns></returns>
+        async public static Task<List<VariableNameSurveys>> GetVarNameUsageAsync()
+        {
+            List<VariableNameSurveys> refVarNames = new List<VariableNameSurveys>();
+
+            string query = "SELECT refVarName, VarName, VarLabel, " +
+                                "STUFF((SELECT  ',' + Survey FROM qrySurveyQuestions SQ2 WHERE VarName = sq1.VarName GROUP BY SQ2.Survey ORDER BY Survey " +
+                                "FOR XML PATH(''), TYPE).value('text()[1]', 'nvarchar(max)') ,1, LEN(','), '') AS SurveyList, " +
+                            "DomainNum, DomainNum AS ID, Domain AS LabelText, " + 
+                            "TopicNum, TopicNum AS ID, Topic AS LabelText, " +
+                            "ContentNum, ContentNum AS ID, Content AS LabelText, " +
+                            "ProductNum, ProductNum AS ID, Product AS LabelText " +
+                            "FROM qrySurveyQuestions Sq1 " +
+                             "GROUP BY sq1.refVarName, VarName, Sq1.VarLabel, Sq1.Domain, DomainNum, Sq1.Content, ContentNum, Sq1.Topic, TopicNum, Sq1.Product, ProductNum " +
+                            "ORDER BY refVarName";
+
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                var results = await db.QueryAsync<VariableNameSurveys, DomainLabel, TopicLabel, ContentLabel, ProductLabel, VariableNameSurveys>(
+                    query, 
+                    (varname, domain, topic, content, product) => 
+                    {
+                        varname.Domain = domain;
+                        varname.Topic = topic;
+                        varname.Content = content;
+                        varname.Product = product;
+                        return varname; 
+                    }, 
+                    splitOn: "DomainNum, TopicNum, ContentNum, ProductNum"
+                );
+                refVarNames = results.ToList();
+            }
+
+            return refVarNames;
+        }
+
+        /// <summary>
+        /// Returns a list of RefVariableName objects with the provided refVarName.
+        /// </summary>
+        /// <param name="refVarName"></param>
+        /// <returns></returns>
         public static List<RefVariableName> GetRefVarNames(string refVarName)
         {
             List<RefVariableName> refVarNames = new List<RefVariableName>();

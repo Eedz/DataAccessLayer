@@ -50,6 +50,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BackupConnection.cs" />
     <Compile Include="DapperExtensions.cs" />
     <Compile Include="Other\DBAction.Other.cs" />
     <Compile Include="CRUD\Read\DBAction.Questions.Backups.cs" />
@@ -102,9 +103,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\ITCLib\ITCLib\ITCLib.csproj">
       <Project>{1f878409-8602-4dc3-a0cb-45cccc21289e}</Project>
-      <Name>ITCLib</Name>
+      <Name>ITCReportLib</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -14,14 +14,32 @@ namespace ITCLib
         public bool NewRecord { get; set; }
         public bool Dirty { get; set; }
 
+        public List<SurveyLanguage> AddLanguages { get; set; }
+        public List<SurveyLanguage> DeleteLanguages { get; set; }
+
+        public List<SurveyScreenedProduct> AddProducts { get; set; }
+        public List<SurveyScreenedProduct> DeleteProducts { get; set; }
+
+        public List<SurveyUserState> AddStates { get; set; }
+        public List<SurveyUserState> DeleteStates { get; set; }
+
         public Survey Item { get; set; }
 
         public SurveyRecord() 
         {
+            AddLanguages = new List<SurveyLanguage>();
+            DeleteLanguages = new List<SurveyLanguage>();
+
+            AddProducts = new List<SurveyScreenedProduct>();
+            DeleteProducts = new List<SurveyScreenedProduct>(); 
+
+            AddStates = new List<SurveyUserState>();
+            DeleteStates = new List<SurveyUserState>();
+
             Item = new Survey();
         }
 
-        public SurveyRecord(Survey survey)
+        public SurveyRecord(Survey survey) : this()
         {
             Item = survey;
         }
@@ -45,7 +63,56 @@ namespace ITCLib
                 Dirty = false;
             }
 
+            SaveLanguages();
+            SaveStates();
+            SaveProducts();
+
             return 0;
+        }
+
+        private void SaveLanguages()
+        {
+            foreach(SurveyLanguage l in AddLanguages)
+            {
+                DBAction.InsertSurveyLanguage(l);
+            }
+            AddLanguages.Clear();
+
+            foreach(SurveyLanguage l in DeleteLanguages)
+            {
+                DBAction.DeleteRecord(l);
+            }
+            DeleteLanguages.Clear();
+        }
+
+        private void SaveStates()
+        {
+            foreach (SurveyUserState l in AddStates)
+            {
+                DBAction.InsertSurveyUserState(l);
+            }
+            AddStates.Clear();
+
+            foreach (SurveyUserState l in DeleteStates)
+            {
+                DBAction.DeleteRecord(l);
+            }
+            DeleteStates.Clear();
+        }
+
+        private void SaveProducts()
+        {
+            foreach (SurveyScreenedProduct l in AddProducts)
+            {
+                DBAction.InsertSurveyScreenedProduct(l);
+            }
+            AddProducts.Clear();
+
+            foreach (SurveyScreenedProduct l in DeleteProducts)
+            {
+                DBAction.DeleteRecord(l);
+            }
+            DeleteProducts.Clear();
         }
 
         /// <summary>

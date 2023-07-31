@@ -107,7 +107,7 @@ namespace ITCLib
         {
             int rowsAffected = 0;
 
-            string sql = "DELETE FROM tblScreenedProducts WHERE ID = @ID";
+            string sql = "DELETE FROM tblSurveyProducts WHERE ID = @ID";
             var parameters = new { ID = r.ID };
 
             using (IDbConnection db = new SqlConnection(connectionString))

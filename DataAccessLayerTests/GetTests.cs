@@ -143,7 +143,7 @@ namespace DataAccessLayerTests
         [TestMethod]
         public void GetPrefixesNew()
         {
-            var prefixes = DBAction.GetVarPrefixes();
+            var prefixes = DBAction.GetVariablePrefixes();
 
             Assert.IsTrue(prefixes != null && prefixes.Count > 0);
         }
