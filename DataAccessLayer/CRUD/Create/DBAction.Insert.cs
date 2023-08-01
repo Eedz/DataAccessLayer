@@ -882,12 +882,12 @@ namespace ITCLib
                 sql.InsertCommand.Parameters.AddWithValue("@source", record.Source);
                
 
-                //sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
+                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
 
                 try
                 {
                     sql.InsertCommand.ExecuteNonQuery();
-                    //record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
+                    record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
                 }
                 catch (Exception)
                 {
@@ -923,12 +923,12 @@ namespace ITCLib
                 sql.InsertCommand.Parameters.AddWithValue("@source", record.Source);
 
 
-                //sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
+                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
 
                 try
                 {
                     sql.InsertCommand.ExecuteNonQuery();
-                    //record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
+                    record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
                 }
                 catch (Exception)
                 {
@@ -963,12 +963,12 @@ namespace ITCLib
                 sql.InsertCommand.Parameters.AddWithValue("@source", record.Source);
 
 
-                //sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
+                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
 
                 try
                 {
                     sql.InsertCommand.ExecuteNonQuery();
-                    //record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
+                    record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
                 }
                 catch (Exception)
                 {
@@ -1004,12 +1004,12 @@ namespace ITCLib
                 sql.InsertCommand.Parameters.AddWithValue("@source", record.Source);
 
 
-                //sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
+                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
 
                 try
                 {
                     sql.InsertCommand.ExecuteNonQuery();
-                    //record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
+                    record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
                 }
                 catch (Exception)
                 {
@@ -1045,12 +1045,12 @@ namespace ITCLib
                 sql.InsertCommand.Parameters.AddWithValue("@source", record.Source);
 
 
-                //sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
+                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
 
                 try
                 {
                     sql.InsertCommand.ExecuteNonQuery();
-                    //record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
+                    record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
                 }
                 catch (Exception)
                 {
