@@ -505,45 +505,31 @@ namespace ITCLib
 
         public static int InsertPraccingIssue(PraccingIssue record)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
-                conn.Open();
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@survID", record.Survey.SID);
+            parameters.Add("@varnames", record.VarNames);
+            parameters.Add("@date", record.IssueDate);
+            parameters.Add("@from", record.IssueFrom.ID);
+            parameters.Add("@to", record.IssueTo.ID);
+            parameters.Add("@description", record.Description);
+            parameters.Add("@category", record.Category.ID);
+            parameters.Add("@resolved", record.Resolved);
+            parameters.Add("@resolvedby", record.ResolvedBy.ID);
+            parameters.Add("@resolvedon", record.ResolvedDate);
+            parameters.Add("@language", record.Language);
 
-                sql.InsertCommand = new SqlCommand("proc_createPraccIssue", conn)
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
+            parameters.Add("@newNo", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+            int recordsAffected = 0;
+            using (IDbConnection db = new SqlConnection(connectionString))
                 {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.InsertCommand.Parameters.AddWithValue("@survID", record.Survey.SID);
-                sql.InsertCommand.Parameters.AddWithValue("@issueNo", record.IssueNo);
-                sql.InsertCommand.Parameters.AddWithValue("@varnames", record.VarNames);
-                sql.InsertCommand.Parameters.AddWithValue("@date", record.IssueDate);
-                sql.InsertCommand.Parameters.AddWithValue("@from", record.IssueFrom.ID);
-                sql.InsertCommand.Parameters.AddWithValue("@to", record.IssueTo.ID);
-                sql.InsertCommand.Parameters.AddWithValue("@description", record.Description);
-                sql.InsertCommand.Parameters.AddWithValue("@category", record.Category.ID);
-                sql.InsertCommand.Parameters.AddWithValue("@resolved", record.Resolved);
-                sql.InsertCommand.Parameters.AddWithValue("@resolvedby", record.ResolvedBy.ID);
-                sql.InsertCommand.Parameters.AddWithValue("@resolvedon", record.ResolvedDate);
-                sql.InsertCommand.Parameters.AddWithValue("@language", record.Language);
-
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-                sql.InsertCommand.Parameters.Add("@newNo", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                    record.IssueNo = Convert.ToInt32(sql.InsertCommand.Parameters["@newNo"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
+                recordsAffected = db.Execute("proc_createPraccIssue", parameters, commandType: CommandType.StoredProcedure);
+                record.ID = parameters.Get<int>("@newID");
+                record.IssueNo = parameters.Get<int>("@newNo");
                 }
 
-            }
-            return 0;
+            return recordsAffected;
         }
 
         public static int InsertPraccingResponse(PraccingResponse record)
