@@ -747,414 +747,188 @@ namespace ITCLib
 
         public static int InsertVarNameChange(VarNameChangeRecord record)
         {
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@refVarNameNew",record.NewRefName);
+            parameters.Add("@NewName", record.NewName);
+            parameters.Add("@refVarNameOld", record.OldRefName);
+            parameters.Add("@OldName", record.OldName);
+            parameters.Add("@ChangeDate", record.ChangeDate);
+            parameters.Add("@ChangedBy", record.ChangedBy.ID);
+            parameters.Add("@Authorization", record.Authorization);
+            parameters.Add("@Reasoning", record.Rationale);
+            parameters.Add("@source", record.Source);
+            parameters.Add("@tempvar", record.HiddenChange);
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+            int recordsAffected = SP_Insert("proc_createVarNameChange", parameters, out int newID);
+            record.ID = newID;
+
+            foreach (VarNameChangeSurveyRecord sr in record.SurveysAffected)
             {
-                conn.Open();
-
-                sql.InsertCommand = new SqlCommand("proc_createVarNameChange", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-                sql.InsertCommand.Parameters.AddWithValue("@refVarNameNew", string.IsNullOrEmpty(record.NewRefName) ? DBNull.Value : (object)record.NewRefName);
-                sql.InsertCommand.Parameters.AddWithValue("@NewName", string.IsNullOrEmpty(record.NewName) ? DBNull.Value : (object)record.NewName);
-                sql.InsertCommand.Parameters.AddWithValue("@refVarNameOld", string.IsNullOrEmpty(record.OldRefName) ? DBNull.Value : (object)record.OldRefName);
-                sql.InsertCommand.Parameters.AddWithValue("@OldName", string.IsNullOrEmpty(record.OldName) ? DBNull.Value : (object)record.OldName);
-                sql.InsertCommand.Parameters.AddWithValue("@ChangeDate", record.ChangeDate);
-                sql.InsertCommand.Parameters.AddWithValue("@ChangedBy", record.ChangedBy.ID);
-                sql.InsertCommand.Parameters.AddWithValue("@Authorization", string.IsNullOrEmpty(record.Authorization) ? DBNull.Value : (object)record.Authorization);
-                sql.InsertCommand.Parameters.AddWithValue("@Reasoning", string.IsNullOrEmpty(record.Rationale) ? DBNull.Value : (object)record.Rationale);
-                sql.InsertCommand.Parameters.AddWithValue("@source", string.IsNullOrEmpty(record.Source) ? DBNull.Value : (object)record.Source); 
-                sql.InsertCommand.Parameters.AddWithValue("@tempvar", record.HiddenChange);
-
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
-                sql.InsertCommand = new SqlCommand("proc_createVarNameChangeSurvey", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                foreach (VarNameChangeSurveyRecord sr in record.SurveysAffected)
-                {
-                    sql.InsertCommand.Parameters.AddWithValue("@changeID", record.ID);
-                    sql.InsertCommand.Parameters.AddWithValue("@survID", sr.SurvID);
-                    sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-                    try
-                    {
-                        sql.InsertCommand.ExecuteNonQuery();
-                        sr.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                    }
-                    catch (Exception)
-                    {
-                        return 1;
-                    }
-                    sql.InsertCommand.Parameters.Clear();
-                }
-
-                sql.InsertCommand = new SqlCommand("proc_createVarNameChangeNotification", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                foreach (VarNameChangeNotificationRecord nr in record.Notifications)
-                {
-                    sql.InsertCommand.Parameters.AddWithValue("@changeID", record.ID);
-                    sql.InsertCommand.Parameters.AddWithValue("@notifyname", nr.PersonID);
-                    sql.InsertCommand.Parameters.AddWithValue("@notifytype", string.IsNullOrEmpty(nr.NotifyType) ? DBNull.Value : (object)nr.NotifyType);
-                    sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-                    try
-                    {
-                        sql.InsertCommand.ExecuteNonQuery();
-                        nr.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                    }
-                    catch (Exception)
-                    {
-                        return 1;
-                    }
-                    sql.InsertCommand.Parameters.Clear();
-                }
+                sr.ChangeID = record.ID;
+                InsertVarNameChangeSurvey(sr);
             }
-            return 0;
+
+            foreach (VarNameChangeNotificationRecord nr in record.Notifications)
+            {
+                nr.ChangeID = record.ID;
+                InsertVarNameChangeNotification(nr);
+            }
+
+            return recordsAffected;
         }
 
         public static int InsertVarNameChangeSurvey(VarNameChangeSurveyRecord record)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
-                conn.Open();
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@changeID", record.ChangeID);
+            parameters.Add("@survID", record.SurvID);
 
-                sql.InsertCommand = new SqlCommand("proc_createVarNameChangeSurvey", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-                sql.InsertCommand.Parameters.AddWithValue("@changeID", record.ChangeID);
-                sql.InsertCommand.Parameters.AddWithValue("@survID", record.SurvID);
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
+            int recordsAffected = SP_Insert("proc_createVarNameChangeSurvey", parameters, out int newID);
+            record.ID = newID;
 
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-            }
-            return 0;
+            return recordsAffected;
         }
 
         public static int InsertVarNameChangeNotification(VarNameChangeNotificationRecord record)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
-                conn.Open();
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@changeID", record.ChangeID);
+            parameters.Add("@notifyname", record.PersonID);
+            parameters.Add("@notifytype", record.NotifyType);
 
-                sql.InsertCommand = new SqlCommand("proc_createVarNameChangeNotification", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-                sql.InsertCommand.Parameters.AddWithValue("@changeID", record.ChangeID);
-                sql.InsertCommand.Parameters.AddWithValue("@notifyname", record.PersonID);
-                sql.InsertCommand.Parameters.AddWithValue("@notifytype", string.IsNullOrEmpty(record.NotifyType) ? DBNull.Value : (object)record.NotifyType);
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
+            int recordsAffected = SP_Insert("proc_createVarNameChangeNotification", parameters, out int newID);
+            record.ID = newID;
 
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-                
-
-            }
-            return 0;
+            return recordsAffected;
         }
 
         public static int InsertPersonnel(Person record)
         {
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@firstname", record.FirstName);
+            parameters.Add("@lastname", record.LastName);
+            parameters.Add("@username", record.Username);
+            parameters.Add("@email", record.Email);
+            parameters.Add("@workphone", record.WorkPhone);
+            parameters.Add("@homephone", record.HomePhone);
+            parameters.Add("@officeno", record.OfficeNo);
+            parameters.Add("@institution", record.Institution);
+            parameters.Add("@active", record.Active);
+            parameters.Add("@smg", record.SMG);
+            parameters.Add("@analyst", record.Analyst);
+            parameters.Add("@praccer", record.Praccer);
+            parameters.Add("@praccid", record.PraccID);
+            parameters.Add("@programmer", record.Programmer);
+            parameters.Add("@firm", record.Firm);
+            parameters.Add("@countryteam", record.CountryTeam);
+            parameters.Add("@entry", record.Entry);
+            parameters.Add("@praccentry", record.PraccEntry);
+            parameters.Add("@admin", record.Admin);
+            parameters.Add("@ra", record.ResearchAssistant);
+            parameters.Add("@dissemination", record.Dissemination);
+            parameters.Add("@investigator", record.Investigator);
+            parameters.Add("@projectmanager", record.ProjectManager);
+            parameters.Add("@statistician", record.Statistician);
+            parameters.Add("@varnamechangenotify", record.VarNameChangeNotify);
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-                conn.Open();
+            int recordsAffected = SP_Insert("proc_createPersonnel", parameters, out int newID);
+            record.ID = newID;
 
-                sql.InsertCommand = new SqlCommand("proc_createPersonnel", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.InsertCommand.Parameters.AddWithValue("@firstname", string.IsNullOrEmpty(record.FirstName) ? DBNull.Value : (object)record.FirstName);
-                sql.InsertCommand.Parameters.AddWithValue("@lastname", string.IsNullOrEmpty(record.LastName) ? DBNull.Value : (object)record.LastName);
-                sql.InsertCommand.Parameters.AddWithValue("@username", string.IsNullOrEmpty(record.Username) ? DBNull.Value : (object)record.Username);
-                sql.InsertCommand.Parameters.AddWithValue("@email", string.IsNullOrEmpty(record.Email) ? DBNull.Value : (object)record.Email);
-                sql.InsertCommand.Parameters.AddWithValue("@workphone", string.IsNullOrEmpty(record.WorkPhone) ? DBNull.Value : (object)record.WorkPhone);
-                sql.InsertCommand.Parameters.AddWithValue("@homephone", string.IsNullOrEmpty(record.HomePhone) ? DBNull.Value : (object)record.HomePhone);
-                sql.InsertCommand.Parameters.AddWithValue("@officeno", string.IsNullOrEmpty(record.OfficeNo) ? DBNull.Value : (object)record.OfficeNo);
-                sql.InsertCommand.Parameters.AddWithValue("@institution", string.IsNullOrEmpty(record.Institution) ? DBNull.Value : (object)record.Institution);
-                sql.InsertCommand.Parameters.AddWithValue("@active", record.Active);
-                sql.InsertCommand.Parameters.AddWithValue("@smg", record.SMG);
-                sql.InsertCommand.Parameters.AddWithValue("@analyst", record.Analyst);
-                sql.InsertCommand.Parameters.AddWithValue("@praccer", record.Praccer);
-                sql.InsertCommand.Parameters.AddWithValue("@praccid", string.IsNullOrEmpty(record.PraccID) ? DBNull.Value : (object)record.PraccID);
-                sql.InsertCommand.Parameters.AddWithValue("@programmer", record.Programmer);
-                sql.InsertCommand.Parameters.AddWithValue("@firm", record.Firm);
-                sql.InsertCommand.Parameters.AddWithValue("@countryteam", record.CountryTeam);
-                sql.InsertCommand.Parameters.AddWithValue("@entry", record.Entry);
-                sql.InsertCommand.Parameters.AddWithValue("@praccentry", record.PraccEntry);
-                sql.InsertCommand.Parameters.AddWithValue("@admin", record.Admin);
-                sql.InsertCommand.Parameters.AddWithValue("@ra", record.ResearchAssistant);
-                sql.InsertCommand.Parameters.AddWithValue("@dissemination", record.Dissemination);
-                sql.InsertCommand.Parameters.AddWithValue("@investigator", record.Investigator);
-                sql.InsertCommand.Parameters.AddWithValue("@projectmanager", record.ProjectManager);
-                sql.InsertCommand.Parameters.AddWithValue("@statistician", record.Statistician);
-                sql.InsertCommand.Parameters.AddWithValue("@varnamechangenotify", record.VarNameChangeNotify);
-
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
-            }
-
-            return 0;
+            return recordsAffected;
         }
 
         public static int InsertPersonnelStudy(PersonnelStudyRecord record)
         {
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@personnelID", record.PersonnelID);
+            parameters.Add("@countryID", record.StudyID);
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-                conn.Open();
+            int recordsAffected = SP_Insert("proc_createPersonnelCountry", parameters, out int newID);
+            record.ID = newID;
 
-                sql.InsertCommand = new SqlCommand("proc_createPersonnelCountry", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-
-                sql.InsertCommand.Parameters.AddWithValue("@personnelID", record.PersonnelID);
-                sql.InsertCommand.Parameters.AddWithValue("@countryID", record.StudyID);
-                
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
-            }
-
-            return 0;
+            return recordsAffected;
         }
 
         public static int InsertPersonnelComment(PersonnelCommentRecord record)
         {
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@personnelID", record.PersonnelID);
+            parameters.Add("@commentType", record.CommentType);
+            parameters.Add("@comment", record.Comment);
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-                conn.Open();
+            int recordsAffected = SP_Insert("proc_createPersonnelComment", parameters, out int newID);
+            record.ID = newID;
 
-                sql.InsertCommand = new SqlCommand("proc_createPersonnelComment", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-
-                sql.InsertCommand.Parameters.AddWithValue("@personnelID", record.PersonnelID);
-                sql.InsertCommand.Parameters.AddWithValue("@commentType", record.CommentType);
-                sql.InsertCommand.Parameters.AddWithValue("@comment", record.Comment);
-
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
-            }
-
-            return 0;
+            return recordsAffected;
         }
 
         public static int InsertCohort(SurveyCohortRecord record)
         {
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@cohort", record.Cohort);
+            parameters.Add("@code", record.Code);
+            parameters.Add("@webname", record.WebName);
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-                conn.Open();
+            int recordsAffected = SP_Insert("proc_createCohort", parameters, out int newID);
+            record.ID = newID;
 
-                sql.InsertCommand = new SqlCommand("proc_createCohort", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-
-                sql.InsertCommand.Parameters.AddWithValue("@cohort", record.Cohort);
-                sql.InsertCommand.Parameters.AddWithValue("@code", record.Code);
-                sql.InsertCommand.Parameters.AddWithValue("@webname", record.WebName);
-
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
-            }
-
-            return 0;
+            return recordsAffected;
         }
 
         public static int InsertUserState(UserStateRecord record)
         {
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@userstate", record.UserStateName);
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-                conn.Open();
+            int recordsAffected = SP_Insert("proc_createUserState", parameters, out int newID);
+            record.ID = newID;
 
-                sql.InsertCommand = new SqlCommand("proc_createUserState", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.InsertCommand.Parameters.AddWithValue("@userstate", record.UserStateName);
-
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
-            }
-
-            return 0;
+            return recordsAffected;
         }
 
         public static int InsertSimilarWords(SimilarWordsRecord record)
         {
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@words", record.Words);
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-                conn.Open();
+            int recordsAffected = SP_Insert("proc_createSimilarWords", parameters, out int newID);
+            record.ID = newID;
 
-                sql.InsertCommand = new SqlCommand("proc_createSimilarWords", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.InsertCommand.Parameters.AddWithValue("@words", record.Words);
-
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
-            }
-
-            return 0;
+            return recordsAffected;
         }
 
         public static int InsertCanonVar(CanonicalVariableRecord record)
         {
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@refVarName", record.RefVarName);
+            parameters.Add("@anysuffix", record.AnySuffix);
+            parameters.Add("@notes", record.Notes);
+            parameters.Add("@active", record.Active);
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-                conn.Open();
+            int recordsAffected = SP_Insert("proc_createCanonVar", parameters, out int newID);
+            record.ID = newID;
 
-                sql.InsertCommand = new SqlCommand("proc_createCanonVar", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.InsertCommand.Parameters.AddWithValue("@refVarName", record.RefVarName);
-                sql.InsertCommand.Parameters.AddWithValue("@anysuffix", record.AnySuffix);
-                sql.InsertCommand.Parameters.AddWithValue("@notes", record.Notes);
-                sql.InsertCommand.Parameters.AddWithValue("@active", record.Active);
-
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
-            }
-
-            return 0;
+            return recordsAffected;
         }
 
         public static int InsertPrefix(VariablePrefix record)
@@ -1177,7 +951,6 @@ namespace ITCLib
 
         public static int InsertPrefixRange(VariableRange record)
         {
-            string sql = "proc_createPrefixRange";
             DynamicParameters parameters = new DynamicParameters();
 
             parameters.Add("@prefixID", record.PrefixID);
@@ -1186,7 +959,7 @@ namespace ITCLib
             parameters.Add("@description", record.Description);
             parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-            int rowsAffected = SP_Insert(sql, parameters, out int newID);
+            int rowsAffected = SP_Insert("proc_createPrefixRange", parameters, out int newID);
             record.ID = newID;
 
             return rowsAffected;
@@ -1194,32 +967,16 @@ namespace ITCLib
 
         public static int InsertParallelPrefix(ParallelPrefix record)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
-                conn.Open();
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@prefixID", record.PrefixID);
+            parameters.Add("@relatedPrefixID", record.RelatedPrefixID);
 
-                sql.InsertCommand = new SqlCommand("proc_createRelatedPrefix", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-                sql.InsertCommand.Parameters.AddWithValue("@prefixID", record.PrefixID);
-                sql.InsertCommand.Parameters.AddWithValue("@relatedPrefixID", record.RelatedPrefixID);
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
+            int rowsAffected = SP_Insert("proc_createRelatedPrefix", parameters, out int newID);
+            record.ID = newID;
 
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-            }
-
-            return 0;
+            return rowsAffected;
         }
 
         public static int InsertParallelQuestion(ParallelQuestion record)
