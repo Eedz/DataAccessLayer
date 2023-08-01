@@ -523,529 +523,226 @@ namespace ITCLib
 
             int recordsAffected = 0;
             using (IDbConnection db = new SqlConnection(connectionString))
-                {
+            {
                 recordsAffected = db.Execute("proc_createPraccIssue", parameters, commandType: CommandType.StoredProcedure);
                 record.ID = parameters.Get<int>("@newID");
                 record.IssueNo = parameters.Get<int>("@newNo");
-                }
+            }
 
             return recordsAffected;
         }
 
         public static int InsertPraccingResponse(PraccingResponse record)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@praccID", record.IssueID);
+            parameters.Add("@date", record.ResponseDate);
+            parameters.Add("@from", record.ResponseFrom.ID);
+            parameters.Add("@to", record.ResponseTo.ID);
+            parameters.Add("@response", record.Response);
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-                conn.Open();
+            int recordsAffected = SP_Insert("proc_createPraccResponse", parameters, out int newID);
+            record.ID = newID;
 
-                sql.InsertCommand = new SqlCommand("proc_createPraccResponse", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.InsertCommand.Parameters.AddWithValue("@praccID", record.IssueID);
-                sql.InsertCommand.Parameters.AddWithValue("@date", record.ResponseDate);
-                sql.InsertCommand.Parameters.AddWithValue("@from", record.ResponseFrom.ID);
-                sql.InsertCommand.Parameters.AddWithValue("@to", record.ResponseTo.ID);
-                sql.InsertCommand.Parameters.AddWithValue("@response", record.Response);
-                
-
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
-            }
-            
-            return 0;
-
-
+            return recordsAffected;
         }
 
         public static int InsertPraccingImage(int praccingID, List<PraccingImage> images)
         {
-            
             foreach (PraccingImage img in images)
             {
-                string imagePath = @"\\psychfile\psych$\psych-lab-gfong\SMG\Praccing Images\" + img.Path;
-                
-                using (SqlDataAdapter sql = new SqlDataAdapter())
-                using (SqlConnection conn = new SqlConnection(connectionString))
-                {
-                    conn.Open();
-
-                    sql.InsertCommand = new SqlCommand("INSERT INTO tblPraccingImages (PraccID, ImagePath) VALUES (@praccID, @imagePath)", conn)
-                    {
-                        CommandType = CommandType.Text
-                    };
-
-                    sql.InsertCommand.Parameters.AddWithValue("@praccID", praccingID);
-                    sql.InsertCommand.Parameters.AddWithValue("@imagePath", imagePath);
-
-
-                    //sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-                    try
-                    {
-                        sql.InsertCommand.ExecuteNonQuery();
-                        //record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                    }
-                    catch (Exception)
-                    {
-                        return 1;
-                    }
-
-                }
+                img.PraccID = praccingID;
+                InsertPraccingImage(img);
             }
             return 0;
         }
 
-        public static int InsertPraccingImage(PraccingImage image)
+        public static int InsertPraccingImage(PraccingImage record)
         {
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@praccID", record.PraccID);
+            parameters.Add("@path", record.Path);
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
-                conn.Open();
+            int recordsAffected = SP_Insert("proc_createPraccingImage", parameters, out int newID);
+            record.ID = newID;
 
-                sql.InsertCommand = new SqlCommand("proc_createPraccingImage", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.InsertCommand.Parameters.AddWithValue("@praccID", image.PraccID);
-                sql.InsertCommand.Parameters.AddWithValue("@path", image.Path);
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    image.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-            
-            }
-            
-            return 0;
+            return recordsAffected;
         }
 
         public static int InsertPraccingResponseImage(int responseID, List<PraccingImage> images)
         {
-
             foreach (PraccingImage img in images)
             {
-                string imagePath = @"\\psychfile\psych$\psych-lab-gfong\SMG\Praccing Images\" + img.Path;
-
-                using (SqlDataAdapter sql = new SqlDataAdapter())
-                using (SqlConnection conn = new SqlConnection(connectionString))
-                {
-                    conn.Open();
-
-                    sql.InsertCommand = new SqlCommand("INSERT INTO tblPraccingResponseImages (PraccResponseID, ImagePath) VALUES (@responseID, @imagePath)", conn)
-                    {
-                        CommandType = CommandType.Text
-                    };
-
-                    sql.InsertCommand.Parameters.AddWithValue("@responseID", responseID);
-                    sql.InsertCommand.Parameters.AddWithValue("@imagePath", imagePath);
-
-
-                    //sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-                    try
-                    {
-                        sql.InsertCommand.ExecuteNonQuery();
-                        //record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                    }
-                    catch (Exception)
-                    {
-                        return 1;
-                    }
-
-                }
+                img.PraccID = responseID;
+                InsertPraccingResponseImage(img);
             }
             return 0;
         }
 
-        public static int InsertPraccingResponseImage(PraccingImage image)
+        public static int InsertPraccingResponseImage(PraccingImage record)
         {
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@praccResponseID", record.PraccID);
+            parameters.Add("@path", record.Path);
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
-                conn.Open();
+            int recordsAffected = SP_Insert("proc_createPraccingResponseImage", parameters, out int newID);
+            record.ID = newID;
 
-                sql.InsertCommand = new SqlCommand("proc_createPraccingResponseImage", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.InsertCommand.Parameters.AddWithValue("@praccResponseID", image.PraccID);
-                sql.InsertCommand.Parameters.AddWithValue("@path", image.Path);
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    image.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
-            }
-            
-            return 0;
+            return recordsAffected;
         }
 
         public static int InsertSurveyProcessingDate(SurveyProcessingDate record)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@stageID", record.StageID);
+            parameters.Add("@stagedate", record.StageDate);
+            parameters.Add("@entrydate", record.EntryDate);
+            parameters.Add("@stageinit", record.EnteredBy.ID);
+            parameters.Add("@contact", record.Contact.ID);
 
-                conn.Open();
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-                sql.InsertCommand = new SqlCommand("proc_createSurveyProcessingDate", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
+            int recordsAffected = SP_Insert("proc_createSurveyProcessingDate", parameters, out int newID);
+            record.ID = newID;
 
-                sql.InsertCommand.Parameters.AddWithValue("@stageID", record.StageID);
-                if (record.StageDate == null)
-                    sql.InsertCommand.Parameters.AddWithValue("@stagedate", DBNull.Value);
-                else
-                    sql.InsertCommand.Parameters.AddWithValue("@stagedate", record.StageDate);
-
-                if (record.EntryDate == null)
-                    sql.InsertCommand.Parameters.AddWithValue("@entrydate", DBNull.Value);
-                else
-                    sql.InsertCommand.Parameters.AddWithValue("@entrydate", record.EntryDate);
-
-                sql.InsertCommand.Parameters.AddWithValue("@stageinit", record.EnteredBy.ID);
-                sql.InsertCommand.Parameters.AddWithValue("@contact", record.Contact.ID);
-
-
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
-            }
-
-            return 0;
-
-
+            return recordsAffected;
         }
 
         public static int InsertSurveyProcessingNote(SurveyProcessingNote record)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@stageID", record.DateID);
+            parameters.Add("@enteredby", record.Author.ID);
+            parameters.Add("@commentdate", record.NoteDate);
+            parameters.Add("@note", record.Note);
 
-                conn.Open();
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-                sql.InsertCommand = new SqlCommand("proc_createSurveyProcessingNote", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
+            int recordsAffected = SP_Insert("proc_createSurveyProcessingNote", parameters, out int newID);
+            record.ID = newID;
 
-                sql.InsertCommand.Parameters.AddWithValue("@stageID", record.DateID);
-                sql.InsertCommand.Parameters.AddWithValue("@enteredby", record.Author.ID);
-
-                if (record.NoteDate == null)
-                    sql.InsertCommand.Parameters.AddWithValue("@commentdate", DBNull.Value);
-                else
-                    sql.InsertCommand.Parameters.AddWithValue("@commentdate", record.NoteDate);
-
-                if (record.Note == null)
-                    sql.InsertCommand.Parameters.AddWithValue("@note", DBNull.Value);
-                else
-                    sql.InsertCommand.Parameters.AddWithValue("@note", record.Note);
-
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
-            }
-
-            return 0;
-
-
+            return recordsAffected;
         }
 
         public static int InsertSurvey(Survey record)
         {
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@survey", record.SurveyCode);
+            parameters.Add("@title", record.Title);
+            parameters.Add("@cohort", record.Cohort.ID);
+            parameters.Add("@mode", record.Mode.ID);
+            parameters.Add("@filename", record.WebName);
+            parameters.Add("@date", record.CreationDate);
+            parameters.Add("@hidesurvey", record.HideSurvey);
+            parameters.Add("@waveid", record.WaveID);
+            parameters.Add("@itcsurvey", record.ITCSurvey);
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-                conn.Open();
+            int recordsAffected = SP_Insert("proc_createSurvey", parameters, out int newID);
+            record.SID = newID;
 
-                sql.InsertCommand = new SqlCommand("proc_createSurvey", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.InsertCommand.Parameters.AddWithValue("@survey", record.SurveyCode);
-                sql.InsertCommand.Parameters.AddWithValue("@title", record.Title);
-                sql.InsertCommand.Parameters.AddWithValue("@cohort", record.Cohort.ID);
-                sql.InsertCommand.Parameters.AddWithValue("@mode", record.Mode.ID);
-                sql.InsertCommand.Parameters.AddWithValue("@filename", record.WebName);
-                sql.InsertCommand.Parameters.AddWithValue("@date", record.CreationDate);
-                sql.InsertCommand.Parameters.AddWithValue("@hidesurvey", record.HideSurvey);
-                sql.InsertCommand.Parameters.AddWithValue("@waveid", record.WaveID);
-                sql.InsertCommand.Parameters.AddWithValue("@itcsurvey", record.ITCSurvey);
-
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    record.SID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
-            }
-
-            return 0;
+            return recordsAffected;
         }
 
         public static int InsertQuestionComment(QuestionComment record)
         {
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@survey", record.Survey);
+            parameters.Add("@varname", record.VarName);
+            parameters.Add("@commentText", record.Notes.NoteText);
+            parameters.Add("@notedate", record.NoteDate);
+            parameters.Add("@noteinit", record.Author.ID);
+            parameters.Add("@sourcename", record.SourceName);
+            parameters.Add("@notetype", record.NoteType.ID);
+            parameters.Add("@source", record.Source);
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-                conn.Open();
-                 
-                sql.InsertCommand = new SqlCommand("proc_createQuestionComment", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
+            int recordsAffected = SP_Insert("proc_createQuestionComment", parameters, out int newID);
+            record.ID = newID;
 
-                sql.InsertCommand.Parameters.AddWithValue("@survey", record.Survey);
-                sql.InsertCommand.Parameters.AddWithValue("@varname", record.VarName);
-                sql.InsertCommand.Parameters.AddWithValue("@commentText", record.Notes.NoteText);
-                sql.InsertCommand.Parameters.AddWithValue("@notedate", record.NoteDate);
-                sql.InsertCommand.Parameters.AddWithValue("@noteinit", record.Author.ID);
-                sql.InsertCommand.Parameters.AddWithValue("@sourcename", record.SourceName);
-                sql.InsertCommand.Parameters.AddWithValue("@notetype", record.NoteType.ID);
-                sql.InsertCommand.Parameters.AddWithValue("@source", record.Source);
-               
-
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
-            }
-
-            return 0;
+            return recordsAffected;
         }
 
         public static int InsertSurveyComment(SurveyComment record)
         {
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@survey", record.Survey);
+            parameters.Add("@commentText", record.Notes.NoteText);
+            parameters.Add("@notedate", record.NoteDate);
+            parameters.Add("@noteinit", record.Author.ID);
+            parameters.Add("@sourcename", record.SourceName);
+            parameters.Add("@notetype", record.NoteType.ID);
+            parameters.Add("@source", record.Source);
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-                conn.Open();
+            int recordsAffected = SP_Insert("proc_createSurveyComment", parameters, out int newID);
+            record.ID = newID;
 
-                sql.InsertCommand = new SqlCommand("proc_createSurveyComment", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.InsertCommand.Parameters.AddWithValue("@survey", record.Survey);
-                
-                sql.InsertCommand.Parameters.AddWithValue("@commentText", record.Notes.NoteText);
-                sql.InsertCommand.Parameters.AddWithValue("@notedate", record.NoteDate);
-                sql.InsertCommand.Parameters.AddWithValue("@noteinit", record.Author.ID);
-                sql.InsertCommand.Parameters.AddWithValue("@sourcename", record.SourceName);
-                sql.InsertCommand.Parameters.AddWithValue("@notetype", record.NoteType.ID);
-                sql.InsertCommand.Parameters.AddWithValue("@source", record.Source);
-
-
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
-            }
-
-            return 0;
+            return recordsAffected;
         }
 
         public static int InsertWaveComment(WaveComment record)
         {
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@wave", record.StudyWave);
+            parameters.Add("@commentText", record.Notes.NoteText);
+            parameters.Add("@notedate", record.NoteDate);
+            parameters.Add("@noteinit", record.Author.ID);
+            parameters.Add("@sourcename", record.SourceName);
+            parameters.Add("@notetype", record.NoteType.ID);
+            parameters.Add("@source", record.Source);
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-                conn.Open();
+            int recordsAffected = SP_Insert("proc_createWaveComment", parameters, out int newID);
+            record.ID = newID;
 
-                sql.InsertCommand = new SqlCommand("proc_createWaveComment", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.InsertCommand.Parameters.AddWithValue("@wave", record.StudyWave);
-                sql.InsertCommand.Parameters.AddWithValue("@commentText", record.Notes.NoteText);
-                sql.InsertCommand.Parameters.AddWithValue("@notedate", record.NoteDate);
-                sql.InsertCommand.Parameters.AddWithValue("@noteinit", record.Author.ID);
-                sql.InsertCommand.Parameters.AddWithValue("@sourcename", record.SourceName);
-                sql.InsertCommand.Parameters.AddWithValue("@notetype", record.NoteType.ID);
-                sql.InsertCommand.Parameters.AddWithValue("@source", record.Source);
-
-
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
-            }
-
-            return 0;
+            return recordsAffected;
         }
 
         public static int InsertDeletedComment(DeletedComment record)
         {
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@survey", record.Survey);
+            parameters.Add("@varname", record.VarName);
+            parameters.Add("@commentText", record.Notes.NoteText);
+            parameters.Add("@notedate", record.NoteDate);
+            parameters.Add("@noteinit", record.Author.ID);
+            parameters.Add("@sourcename", record.SourceName);
+            parameters.Add("@notetype", record.NoteType.ID);
+            parameters.Add("@source", record.Source);
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-                conn.Open();
+            int recordsAffected = SP_Insert("proc_createDeletedComment", parameters, out int newID);
+            record.ID = newID;
 
-                sql.InsertCommand = new SqlCommand("proc_createDeletedComment", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.InsertCommand.Parameters.AddWithValue("@survey", record.Survey);
-                sql.InsertCommand.Parameters.AddWithValue("@varname", record.VarName);
-                sql.InsertCommand.Parameters.AddWithValue("@commentText", record.Notes.NoteText);
-                sql.InsertCommand.Parameters.AddWithValue("@notedate", record.NoteDate);
-                sql.InsertCommand.Parameters.AddWithValue("@noteinit", record.Author.ID);
-                sql.InsertCommand.Parameters.AddWithValue("@sourcename", record.SourceName);
-                sql.InsertCommand.Parameters.AddWithValue("@notetype", record.NoteType.ID);
-                sql.InsertCommand.Parameters.AddWithValue("@source", record.Source);
-
-
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
-            }
-
-            return 0;
+            return recordsAffected;
         }
 
         public static int InsertRefVarComment(RefVarComment record)
         {
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@varname", record.RefVarName);
+            parameters.Add("@commentText", record.Notes.NoteText);
+            parameters.Add("@notedate", record.NoteDate);
+            parameters.Add("@noteinit", record.Author.ID);
+            parameters.Add("@sourcename", record.SourceName);
+            parameters.Add("@notetype", record.NoteType.ID);
+            parameters.Add("@source", record.Source);
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-                conn.Open();
+            int recordsAffected = SP_Insert("proc_createRefVarComment", parameters, out int newID);
+            record.ID = newID;
 
-                sql.InsertCommand = new SqlCommand("proc_createRefVarComment", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-     
-                sql.InsertCommand.Parameters.AddWithValue("@varname", record.RefVarName);
-                sql.InsertCommand.Parameters.AddWithValue("@commentText", record.Notes.NoteText);
-                sql.InsertCommand.Parameters.AddWithValue("@notedate", record.NoteDate);
-                sql.InsertCommand.Parameters.AddWithValue("@noteinit", record.Author.ID);
-                sql.InsertCommand.Parameters.AddWithValue("@sourcename", record.SourceName);
-                sql.InsertCommand.Parameters.AddWithValue("@notetype", record.NoteType.ID);
-                sql.InsertCommand.Parameters.AddWithValue("@source", record.Source);
-
-
-                sql.InsertCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-                try
-                {
-                    sql.InsertCommand.ExecuteNonQuery();
-                    record.ID = Convert.ToInt32(sql.InsertCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
-            }
-
-            return 0;
+            return recordsAffected;
         }
 
         public static int InsertVarNameChange(VarNameChangeRecord record)
