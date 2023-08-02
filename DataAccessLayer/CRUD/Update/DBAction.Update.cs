@@ -2223,5 +2223,54 @@ namespace ITCLib
 
             return 0;
         }
+
+        /// <summary>
+        /// Saves a filter for the provided user.
+        /// </summary>
+        /// <param name="record"></param>
+        /// <param name="userid"></param>
+        /// <returns></returns>
+        public static int UpdateFormFilter(FormStateRecord record, int userid)
+        {
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@formCode", record.FormName);
+            parameters.Add("@filter", record.Filter);
+            parameters.Add("@formNum", record.FormNum);
+            parameters.Add("@personnelID", userid);
+            parameters.Add("@position", record.RecordPosition);
+
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                db.Execute("proc_updateFormFilter", parameters, commandType: CommandType.StoredProcedure);
+            }
+
+            return 0;
+        }
+
+        /// <summary>
+        /// Saves a filter for the provided user.
+        /// </summary>
+        /// <param name="formName"></param>
+        /// <param name="filter"></param>
+        /// <param name="position"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public static int UpdateFormSurvey(FormStateRecord record, int userid)
+        {
+
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@formCode", record.FormName);
+            parameters.Add("@survID", record.FilterID);
+            parameters.Add("@formNum", record.FormNum);
+            parameters.Add("@personnelID", userid);
+            parameters.Add("@position", record.RecordPosition);
+
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                db.Execute("proc_updateFormSurvey", parameters, commandType: CommandType.StoredProcedure);
+            }
+
+            return 0;
+        }
     }
 }

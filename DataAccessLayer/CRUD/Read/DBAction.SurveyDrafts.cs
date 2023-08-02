@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using System.Data;
 using System.Data.SqlClient;
 using System.Configuration;
+using Dapper;
+
 namespace ITCLib
 {
     partial class DBAction
@@ -15,119 +17,23 @@ namespace ITCLib
         //
         public static List<SurveyDraftRecord> ListSurveyDrafts()
         {
-            List<SurveyDraftRecord> sd = new List<SurveyDraftRecord>();
-            string query = "SELECT * FROM qrySurveyDraftInfo ORDER BY ID";
+            List<SurveyDraftRecord> drafts = new List<SurveyDraftRecord>();
+            string query = "SELECT ID, DraftTitle, DraftDate, DraftComments, SurvID, Investigator FROM qrySurveyDraftInfo ORDER BY ID;" +
+                "SELECT ID, DraftID, ExtraFieldNum AS FieldNumber, ExtraFieldLabel AS Label FROM qrySurveyDraftExtraFields;";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
-                conn.Open();
+                var results = db.QueryMultiple(query);
+                drafts = results.Read<SurveyDraftRecord>().ToList();
 
-                sql.SelectCommand = new SqlCommand(query, conn);
-
-                try
+                var extraFields = results.Read<SurveyDraftExtraFieldRecord>().ToList();
+                
+                foreach (SurveyDraftRecord draft in drafts)
                 {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            SurveyDraftRecord d = new SurveyDraftRecord();
-                            d.ID = (int)rdr["ID"];
-                            d.DraftTitle = rdr.SafeGetString("DraftTitle");
-                            d.DraftDate = rdr.SafeGetDate("DraftDate");
-                            d.DraftComments = rdr.SafeGetString("DraftComments");
-                            d.SurvID = (int)rdr["SurvID"];
-                            d.Investigator = rdr.SafeGetInt("Investigator");
-
-                            sd.Add(d);
-                        }
-                    }
-                }
-                catch 
-                {
-                    
-                }
-
-                // extra fields
-                query = "SELECT * FROM qrySurveyDraftExtraFields ORDER BY ID";
-                sql.SelectCommand = new SqlCommand(query, conn);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            SurveyDraftExtraFieldRecord e = new SurveyDraftExtraFieldRecord(false);
-                            e.ID = (int)rdr["ID"];
-                            e.DraftID = (int)rdr["DraftID"];
-                            e.FieldNumber = (int)rdr["ExtraFieldNum"];
-                            e.Label = rdr.SafeGetString("ExtraFieldLabel");
-
-                            var draft = sd.FirstOrDefault(x => x.ID == e.DraftID);
-                            if (draft != null)
-                                draft.ExtraFields.Add(e);
-                            
-                        }
-                    }
-                }
-                catch
-                {
-
+                    draft.ExtraFields.AddRange(extraFields.Where(x => x.DraftID == draft.ID));
                 }
             }
-            return sd;
-        }
-    
-
-        public static SurveyDraftRecord GetSurveyDraft(int DraftID)
-        {
-            SurveyDraftRecord d = new SurveyDraftRecord();
-            
-            DraftQuestion dq;
-            string query = "SELECT * FROM qrySurveyDrafts WHERE DraftID = @draftID";
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@draftID", DraftID);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            dq = new DraftQuestion()
-                            {
-                                
-                                Qnum = (string)rdr["Qnum"],
-                                VarName = (string)rdr["VarName"],
-                                QuestionText= (string)rdr["QuestionText"],
-                                Comments= (string)rdr["Comment"],
-                                Extra1 = (string)rdr["Extra1"],
-                                Extra2 = (string)rdr["Extra2"],
-                                Extra3 = (string)rdr["Extra3"],
-                                Extra4 = (string)rdr["Extra4"],
-                                Extra5 = (string)rdr["Extra5"],
-                                Deleted = (bool)rdr["Deleted"],
-                                Inserted = (bool)rdr["Inserted"]
-
-                            };
-
-                            d.Questions.Add(dq);
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-                    
-                }
-            }
-            return d;
+            return drafts;
         }
 
         /// <summary>
