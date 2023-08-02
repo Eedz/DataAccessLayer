@@ -7,6 +7,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Configuration;
 using System.ComponentModel;
+using Dapper;
 
 namespace ITCLib
 {
@@ -15,56 +16,10 @@ namespace ITCLib
         //
         // Survey Checks
         //
+       
         /// <summary>
-        /// Returns the user profile for the specified username.
+        /// 
         /// </summary>
-        /// <param name="username"></param>
-        /// <returns></returns>
-        public static List<Survey> GetSurveyCheckSurveys()
-        {
-            List<Survey> records = new List<Survey>();
-
-            string query = "SELECT SurvID, Survey " +
-                "FROM tblSurveyChecks AS SC LEFT JOIN tblStudyAttributes AS SA ON SC.SurvID = SA.ID " +
-                "GROUP BY Survey, SurvID ORDER BY Survey;";
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            Survey r = new Survey()
-                            {
-                                SID = (int)rdr["SurvID"],
-                                SurveyCode = rdr.SafeGetString("Survey")
-                            };
-
-                            records.Add(r);
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    Console.Write(e.Message);
-                }
-            }
-
-            return records;
-        }
-
-
-        /// <summary>
-        /// Returns the user profile for the specified username.
-        /// </summary>
-        /// <param name="username"></param>
         /// <returns></returns>
         public static List<SurveyCheckRec> GetSurveyCheckRecords()
         {
@@ -120,9 +75,9 @@ namespace ITCLib
         }
 
         /// <summary>
-        /// Returns the user profile for the specified username.
+        /// 
         /// </summary>
-        /// <param name="username"></param>
+        /// <param name="checkID"></param>
         /// <returns></returns>
         public static List<SurveyCheckRefSurvey> GetSurveyCheckRefSurveys(int checkID)
         {
@@ -167,44 +122,18 @@ namespace ITCLib
         }
 
         /// <summary>
-        /// Returns the user profile for the specified username.
+        /// Returns the list of Survey Check types.
         /// </summary>
-        /// <param name="username"></param>
         /// <returns></returns>
         public static List<SurveyCheckType> GetSurveyCheckTypes()
         {
             List<SurveyCheckType> records = new List<SurveyCheckType>();
 
-            string query = "SELECT * FROM qrySurveyCheckTypes ORDER BY ID";
+            string query = "SELECT ID, CheckType FROM qrySurveyCheckTypes ORDER BY ID";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-      
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            SurveyCheckType r = new SurveyCheckType()
-                            {
-                                ID = (int)rdr["ID"],
-                                CheckName = rdr.SafeGetString("CheckType")
-                            };
-
-                            records.Add(r);
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    Console.Write(e.Message);
-                }
+                records = db.Query<SurveyCheckType>(query).ToList();
             }
 
             return records;
