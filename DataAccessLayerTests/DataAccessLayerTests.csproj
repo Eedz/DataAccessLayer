@@ -48,6 +48,7 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GetSurveyTests.cs" />
     <Compile Include="GetTests.cs" />
     <Compile Include="InsertTests.cs" />
     <Compile Include="OtherTests.cs" />

@@ -160,7 +160,7 @@ namespace DataAccessLayerTests
         [TestMethod]
         public void InsertRegion()
         {
-            RegionRecord region = new RegionRecord();
+            Region region = new Region();
             region.RegionName = "The Moon";
             region.TempVarPrefix = "MN";
 
@@ -172,7 +172,7 @@ namespace DataAccessLayerTests
         [TestMethod]
         public void InsertStudy()
         {
-            StudyRecord record = new StudyRecord();
+            Study record = new Study();
             record.StudyName = "The Moon";
             record.CountryName = "Lunaria";
             record.ISO_Code = "MN";
@@ -187,7 +187,7 @@ namespace DataAccessLayerTests
         [TestMethod]
         public void InsertWave()
         {
-            StudyWaveRecord record = new StudyWaveRecord();
+            StudyWave record = new StudyWave();
             record.StudyID = 246;
             record.Wave = 2;
             record.EnglishRouting = true;
@@ -202,7 +202,7 @@ namespace DataAccessLayerTests
         [TestMethod]
         public void InsertWaveStudyDoesntExist()
         {
-            StudyWaveRecord record = new StudyWaveRecord();
+            StudyWave record = new StudyWave();
             record.StudyID = -1;
             record.Wave = 2;
             record.EnglishRouting = true;
