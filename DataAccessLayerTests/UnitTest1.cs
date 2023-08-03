@@ -10,42 +10,44 @@ namespace DataAccessLayerTests
     public class VarNameTests
     {
   
-        public TimeSpan VarNameListSpeedDapper()
+        [TestMethod]
+        public void RefVarNameList()
         {
-            Stopwatch stopwatch = new Stopwatch();
+            var refVarNames = DBAction.GetAllRefVarNames();
 
-            stopwatch.Start();
-            var dapper = DBAction.GetAllVarNamesD();
-            stopwatch.Stop();
-
-            return stopwatch.Elapsed;
-
-        }
-
-        public TimeSpan VarNameListSpeedNotDapper()
-        {
-            Stopwatch stopwatch = new Stopwatch();
-
-            stopwatch.Start();
-            var notDapper = DBAction.GetAllVarNames();
-            stopwatch.Stop();
-
-            return stopwatch.Elapsed;
-
-
-
+            Assert.IsTrue(refVarNames.Count > 0);
         }
 
         [TestMethod]
-        public void VarNameListSpeed()
+        public void VarNameList()
         {
-            
-            
-            var dapper = VarNameListSpeedDapper();
+            var refVarNames = DBAction.GetAllVarNames();
 
-            
+            Assert.IsTrue(refVarNames.Count > 0);
         }
 
-       
+        [TestMethod]
+        public void CanonVars()
+        {
+            var refVarNames = DBAction.GetAllCanonVars();
+
+            Assert.IsTrue(refVarNames.Count > 0);
+        }
+
+        [TestMethod]
+        public void SingleVarName()
+        {
+            var refVarName = DBAction.GetVariable("BI104");
+
+            Assert.IsTrue(refVarName != null);
+        }
+
+        [TestMethod]
+        public void VarNamesByRef()
+        {
+            var refVarNames = DBAction.GetVarNamesByRef("BI104");
+
+            Assert.IsTrue(refVarNames.Count > 0);
+        }
     }
 }
