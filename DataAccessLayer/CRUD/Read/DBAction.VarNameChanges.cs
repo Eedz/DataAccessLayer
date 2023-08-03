@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Data;
 using System.Data.SqlClient;
-using System.Configuration;
+using Dapper;
 
 namespace ITCLib
 {
@@ -14,384 +14,161 @@ namespace ITCLib
         //
         // VarName Changes
         // 
+        
         /// <summary>
-        /// 
+        /// Returns a list of VarName Changes for the specified survey.
         /// </summary>
-        /// <param name="ID"></param>
+        /// <param name="survey"></param>
         /// <returns></returns>
-        public static VarNameChange GetVarNameChangeByID(int ID)
+        public static List<VarNameChangeRecord> GetVarNameChanges(Survey survey)
         {
-            VarNameChange vc = null;
-            string query = "SELECT * FROM FN_GetVarNameChangeID (@id)";
+            List<VarNameChangeRecord> changes = new List<VarNameChangeRecord>();
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string sql = "SELECT ID, OldName, NewName, ChangeDate, TempVar AS HiddenChange, TempVar AS PreFWChange, " +
+                    "Reasoning AS Rationale, [Authorization], ChangeDateApprox AS ApproxChangeDate, Source2 AS Source, " +
+                    "ChangedBy, ChangedBy AS ID, ChangedByName AS Name " +
+                    "FROM FN_GetVarNameChangesSurvey (@survey);" +
+                "SELECT ID, ChangeID, SurveyID AS SurvID, Survey AS SurveyCode FROM qryVarNameChangeSurveys " +
+                    "WHERE ChangeID IN (SELECT ChangeID FROM qryVarNameChangeSurveys WHERE Survey = @survey);" +
+                "SELECT N.ID, N.ChangeID, N.NotifyName AS PersonID, P.Name, NotifyType " + 
+                    "FROM qryVarNameChangeNotifications AS N " +
+                    "LEFT JOIN qryIssueInit AS P ON N.NotifyName = P.ID " +
+                    "LEFT JOIN qryVarNameChangeSurveys AS S ON N.ChangeID = S.ChangeID WHERE Survey = @survey";
+            
+            var parameters = new { survey = survey.SurveyCode };
+
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
-                conn.Open();
+                var results = db.QueryMultiple(sql, parameters);
 
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@id", ID);
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
+                changes = results.Read<VarNameChangeRecord, Person, VarNameChangeRecord>
+                    (
+                        (change, name) =>
                         {
-                            vc = new VarNameChange
-                            {
-                                //ID = (int)rdr["ID"],
-                                OldName = (string)rdr["OldName"],
-                                NewName = (string)rdr["NewName"],
-                                ChangeDate = (DateTime)rdr["ChangeDate"],
-                                ChangedBy = new Person((int)rdr["ChangedBy"]),
-                                Authorization = (string)rdr["Authorization"],
-                                Rationale = (string)rdr["Reasoning"],
-                                HiddenChange = (bool)rdr["TempVar"],
-                            };
-                            if (!rdr.IsDBNull(rdr.GetOrdinal("ChangeDateApprox"))) vc.ApproxChangeDate = (DateTime)rdr["ChangeDateApprox"];
-                            if (!rdr.IsDBNull(rdr.GetOrdinal("Source"))) vc.Source = (string)rdr["Source"];
-                            
-                        }
-                    }
-                }
-                catch (Exception)
+                            change.ChangedBy = name;
+                            return change;
+                        }, 
+                        splitOn: "ChangedBy"
+                    ).ToList();
+
+                var surveys = results.Read<VarNameChangeSurveyRecord>();
+                var notifications = results.Read<VarNameChangeNotificationRecord>();
+
+                foreach (VarNameChangeRecord change in changes)
                 {
-                    return null;
+                    change.SurveysAffected = surveys.Where(x => x.ChangeID == change.ID).ToList();
+                    change.Notifications = notifications.Where(x => x.ChangeID == change.ID).ToList();
                 }
             }
 
-            return vc;
+            return changes;
         }
 
         /// <summary>
         /// </summary>
-        /// <param name="ID"></param>
+        /// <param name="wave"></param>
+        /// <param name="excludeTempChanges"></param>
         /// <returns></returns>
-        public static List<VarNameChangeRecord> GetVarNameChangeBySurvey(string surveyCode)
+        public static List<VarNameChangeRecord> GetVarNameChanges(StudyWave wave)
         {
-            List<VarNameChangeRecord> vcs = new List<VarNameChangeRecord>();
+            List<VarNameChangeRecord> changes = new List<VarNameChangeRecord>();
 
-            string query = "SELECT * FROM FN_GetVarNameChangesSurvey (@survey)";
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@survey", surveyCode);
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            VarNameChangeRecord vc = new VarNameChangeRecord();
-
-                            vc.ID = (int)rdr["ID"];
-                            vc.OldName = rdr.SafeGetString("OldName");
-                            vc.NewName = rdr.SafeGetString("NewName");
-                            vc.ChangeDate = (DateTime)rdr["ChangeDate"];
-                            vc.ChangedBy = new Person(rdr.SafeGetString("ChangedByName"), (int)rdr["ChangedBy"]);
-                            vc.HiddenChange = (bool)rdr["TempVar"];
-                            vc.PreFWChange = (bool)rdr["TempVar"];
-
-                            vc.Rationale = rdr.SafeGetString("Reasoning");
-                            vc.Authorization = rdr.SafeGetString("Authorization");
-                            vc.ApproxChangeDate = rdr.SafeGetDate("ChangeDateApprox");
-                            vc.Source = rdr.SafeGetString("Source2");
-                            
-                            vcs.Add(vc);
-                        }
-                    }
-                }
-                catch 
-                {
-                    
-                }
-
-                foreach (VarNameChangeRecord record in vcs)
-                {
-                    query = "SELECT * FROM qryVarNameChangeSurveys WHERE ChangeID = @changeID";
-
-                    sql.SelectCommand = new SqlCommand(query, conn);
-                    sql.SelectCommand.Parameters.AddWithValue("@changeID", record.ID);
-                    try
-                    {
-                        using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                        {
-                            while (rdr.Read())
-                            {
-                                record.SurveysAffected.Add(new VarNameChangeSurveyRecord()
-                                    {
-                                        NewRecord = false,
-                                        ID = (int)rdr["ID"],
-                                        ChangeID = (int)rdr["ChangeID"],
-                                        SurvID = (int)rdr["SurveyID"],
-                                        SurveyCode = (string)rdr["Survey"]
-                                    });
-                            }
-                        }
-                    }
-                    catch
-                    {
-
-                    }
-                }
-
-                foreach (VarNameChangeRecord record in vcs)
-                {
-                    query = "SELECT N.*, P.Name FROM qryVarNameChangeNotifications AS N LEFT JOIN qryIssueInit AS P ON N.NotifyName = P.ID WHERE ChangeID = @changeID";
-
-                    sql.SelectCommand = new SqlCommand(query, conn);
-                    sql.SelectCommand.Parameters.AddWithValue("@changeID", record.ID);
-                    try
-                    {
-                        using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                        {
-                            while (rdr.Read())
-                            {
-                                record.Notifications.Add(
-                                    new VarNameChangeNotificationRecord()
-                                    {
-                                        NewRecord = false,
-                                        ID = (int)rdr["ID"],
-                                        ChangeID = (int)rdr["ChangeID"],
-                                        PersonID = (int)rdr["NotifyName"],
-                                        Name = rdr.SafeGetString("Name"),
-                                        NotifyType = rdr.SafeGetString("NotifyType")
-                                    });
-                            }
-                        }
-                    }
-                    catch
-                    {
-
-                    }
-                }
-            }
-
-            return vcs;
-        }
-
-        /// <summary>
-        /// </summary>
-        /// <param name="ID"></param>
-        /// <returns></returns>
-        public static List<VarNameChangeRecord> GetVarNameChanges(StudyWave wave, bool excludeTempChanges)
-        {
-            List<VarNameChangeRecord> vcs = new List<VarNameChangeRecord>();
-
-            string query = "SELECT C.ID, [NewName], OldName, ChangeDate, ChangeDateApprox, S.Survey, W.StudyWave, P.Name AS ChangedByName, ChangedBy, Reasoning, [Authorization] , TempVar, [Source2] " +
-                            "FROM((tblVarNameChanges AS C LEFT JOIN qryVarNameChangeSurveys AS S ON C.ID = S.ChangeID) LEFT JOIN tblStudyAttributes AS SA ON S.SurveyID = SA.ID) LEFT JOIN qryStudyWaves AS W ON SA.WaveID = W.WaveID " +
+            string sql = "SELECT C.ID, [NewName], OldName, ChangeDate, ChangeDateApprox AS ApproxChangeDate, Reasoning AS Rationale, " +
+                            "[Authorization], TempVar AS HiddenChange, TempVar AS PreFWChange, [Source2] AS Source, " +
+                            "ChangedBy, ChangedBy AS ID, P.Name " +
+                            "FROM tblVarNameChanges AS C " +
+                            "LEFT JOIN qryVarNameChangeSurveys AS S ON C.ID = S.ChangeID " +
+                            "LEFT JOIN qrySurveyInfo AS SA ON S.SurveyID = SA.ID " +
                             "LEFT JOIN qryIssueInit AS P ON C.ChangedBy = P.ID " +
-                            "WHERE W.StudyWave = @wave";
+                            "WHERE SA.WaveID = @wave;" +
+                        "SELECT ID, ChangeID, SurveyID AS SurvID, Survey AS SurveyCode FROM qryVarNameChangeSurveys " +
+                            "WHERE ChangeID IN " +
+                            "(SELECT ChangeID FROM qryVarNameChangeSurveys AS S LEFT JOIN qrySurveyInfo AS SA ON S.SurveyID = SA.ID " +
+                            "WHERE SA.WaveID = @wave);" +
+                        "SELECT N.ID, N.ChangeID, N.NotifyName AS PersonID, P.Name, NotifyType " +
+                            "FROM qryVarNameChangeNotifications AS N " +
+                            "LEFT JOIN qryIssueInit AS P ON N.NotifyName = P.ID " +
+                            "LEFT JOIN qryVarNameChangeSurveys AS S ON N.ChangeID = S.ChangeID " +
+                            "LEFT JOIN qrySurveyInfo AS SA ON S.SurveyID = SA.ID " +
+                            "WHERE SA.WaveID = @wave;"; 
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            var parameters = new { wave = wave.ID };
+
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
-                conn.Open();
+                var results = db.QueryMultiple(sql, parameters);
 
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@wave", wave.WaveCode);
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
+                changes = results.Read<VarNameChangeRecord, Person, VarNameChangeRecord>
+                    (
+                        (change, name) =>
                         {
-                            if (excludeTempChanges && (bool)rdr["TempVar"])
-                                continue;
+                            change.ChangedBy = name;
+                            return change;
+                        },
+                        splitOn: "ChangedBy"
+                    ).ToList();
 
-                            VarNameChangeRecord vc = new VarNameChangeRecord();
+                var surveys = results.Read<VarNameChangeSurveyRecord>();
+                var notifications = results.Read<VarNameChangeNotificationRecord>();
 
-                            vc.ID = (int)rdr["ID"];
-                            vc.OldName = rdr.SafeGetString("OldName");
-                            vc.NewName = rdr.SafeGetString("NewName");
-                            vc.ChangeDate = (DateTime)rdr["ChangeDate"];
-                            vc.ChangedBy = new Person(rdr.SafeGetString("ChangedByName"), (int)rdr["ChangedBy"]);
-                            vc.HiddenChange = (bool)rdr["TempVar"];
-
-
-                            vc.Rationale = rdr.SafeGetString("Reasoning");
-                            vc.Authorization = rdr.SafeGetString("Authorization");
-                            vc.ApproxChangeDate = rdr.SafeGetDate("ChangeDateApprox");
-                            vc.Source = rdr.SafeGetString("Source2");
-
-                            vcs.Add(vc);
-                        }
-                    }
-                }
-                catch
+                foreach (VarNameChangeRecord change in changes)
                 {
-
-                }
-
-                foreach (VarNameChangeRecord record in vcs)
-                {
-                    query = "SELECT * FROM qryVarNameChangeSurveys WHERE ChangeID = @changeID";
-
-
-                    sql.SelectCommand = new SqlCommand(query, conn);
-                    sql.SelectCommand.Parameters.AddWithValue("@changeID", record.ID);
-                    try
-                    {
-                        using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                        {
-                            while (rdr.Read())
-                            {
-                                record.SurveysAffected.Add(new VarNameChangeSurveyRecord()
-                                {
-                                    NewRecord = false,
-                                    ID = (int)rdr["ID"],
-                                    ChangeID = (int)rdr["ChangeID"],
-                                    SurvID = (int)rdr["SurveyID"],
-                                    SurveyCode = (string)rdr["Survey"]
-                                });
-                            }
-                        }
-                    }
-                    catch
-                    {
-
-                    }
-                }
-
-                foreach (VarNameChangeRecord record in vcs)
-                {
-                    query = "SELECT N.*, P.Name FROM qryVarNameChangeNotifications AS N LEFT JOIN qryIssueInit AS P ON N.NotifyName = P.ID WHERE ChangeID = @changeID";
-
-
-                    sql.SelectCommand = new SqlCommand(query, conn);
-                    sql.SelectCommand.Parameters.AddWithValue("@changeID", record.ID);
-                    try
-                    {
-                        using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                        {
-                            while (rdr.Read())
-                            {
-                                record.Notifications.Add(
-                                    new VarNameChangeNotificationRecord()
-                                    {
-                                        NewRecord = false,
-                                        ID = (int)rdr["ID"],
-                                        ChangeID = (int)rdr["ChangeID"],
-                                        PersonID = (int)rdr["NotifyName"],
-                                        Name = rdr.SafeGetString("Name"),
-                                        NotifyType = rdr.SafeGetString("NotifyType")
-                                    });
-                            }
-                        }
-                    }
-                    catch
-                    {
-
-                    }
+                    change.SurveysAffected = surveys.Where(x => x.ChangeID == change.ID).ToList();
+                    change.Notifications = notifications.Where(x => x.ChangeID == change.ID).ToList();
                 }
             }
 
-            return vcs;
+            return changes;
         }
 
-
         /// <summary>
-        /// TODO include changed surveys
+        /// Returns a list of VarName Changes that match the provided criteria. TODO add surveys affected
         /// </summary>
-        /// <param name="ID"></param>
+        /// <param name="survey"></param>
+        /// <param name="varname"></param>
+        /// <param name="refVarName"></param>
+        /// <param name="LDate"></param>
+        /// <param name="UDate"></param>
+        /// <param name="author"></param>
+        /// <param name="commentSource"></param>
+        /// <param name="commentText"></param>
         /// <returns></returns>
         public static List<VarNameChange> GetVarChanges(string survey = null, string varname = null, bool refVarName = false, 
-            DateTime? commentDateLower = null, DateTime? commentDateUpper = null, int commentAuthor = 0, string commentSource = null, string commentText = null)
+            DateTime? LDate = null, DateTime? UDate = null, int? author = null, string commentSource = null, string commentText = null)
         {
-            List<VarNameChange> vcs = new List<VarNameChange>();
-            VarNameChange vc = null;
+            List<VarNameChange> changes = new List<VarNameChange>();
 
             string query;
             if (refVarName)
-                query = "SELECT * FROM dbo.FN_ChangeCommentSearchRefVar(" +
-                        "@survey,@varname,@LDate,@UDate,@author,@commentText,@commentSource)";
+                query = "SELECT ID, OldName, NewName, ChangeDate, TempVar AS HiddenChange, TempVar AS PreFWChange, " +
+                        "Reasoning AS Rationale, [Authorization], ChangeDateApprox AS ApproxChangeDate, Source2 AS Source, " +
+                        "ChangedBy, ChangedBy AS ID, Name " + 
+                        "FROM dbo.FN_ChangeCommentSearchRefVar(@survey, @varname, @LDate, @UDate, @author, @commentText, @commentSource);";
             else
-                query = "SELECT * FROM dbo.FN_ChangeCommentSearchVar(" +
-                        "@survey, @varname, @LDate, @UDate, @author, @commentText, @commentSource)";
+                query = "SELECT ID, OldName, NewName, ChangeDate, TempVar AS HiddenChange, TempVar AS PreFWChange, " +
+                        "Reasoning AS Rationale, [Authorization], ChangeDateApprox AS ApproxChangeDate, Source2 AS Source, " +
+                        "ChangedBy, ChangedBy AS ID, Name " +
+                        "FROM dbo.FN_ChangeCommentSearchVar(@survey, @varname, @LDate, @UDate, @author, @commentText, @commentSource);";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            if (author == 0) author = null;
+
+            var parameters = new { survey, varname, LDate, UDate, author, commentText, commentSource };
+
+            
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-
-                if (string.IsNullOrEmpty(survey))
-                    sql.SelectCommand.Parameters.AddWithValue("@survey", DBNull.Value);
-                else
-                    sql.SelectCommand.Parameters.AddWithValue("@survey", survey);
-
-                if (string.IsNullOrEmpty(varname))
-                    sql.SelectCommand.Parameters.AddWithValue("@varname", DBNull.Value);
-                else
-                    sql.SelectCommand.Parameters.AddWithValue("@varname", varname);
-
-                if (commentDateLower == null)
-                    sql.SelectCommand.Parameters.AddWithValue("@LDate", DBNull.Value);
-                else
-                    sql.SelectCommand.Parameters.AddWithValue("@LDate", commentDateLower);
-
-                if (commentDateLower == null)
-                    sql.SelectCommand.Parameters.AddWithValue("@UDate", DBNull.Value);
-                else
-                    sql.SelectCommand.Parameters.AddWithValue("@UDate", commentDateLower);
-
-                if (commentAuthor == 0)
-                    sql.SelectCommand.Parameters.AddWithValue("@author", DBNull.Value);
-                else
-                    sql.SelectCommand.Parameters.AddWithValue("@author", commentAuthor);
-
-                if (string.IsNullOrEmpty(commentText))
-                    sql.SelectCommand.Parameters.AddWithValue("@commentText", DBNull.Value);
-                else
-                    sql.SelectCommand.Parameters.AddWithValue("@commentText", commentText);
-
-                if (string.IsNullOrEmpty(commentSource))
-                    sql.SelectCommand.Parameters.AddWithValue("@commentSource", DBNull.Value);
-                else
-                    sql.SelectCommand.Parameters.AddWithValue("@commentSource", commentSource);
-
-                
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
+                changes = db.Query<VarNameChange, Person, VarNameChange>
+                    (query,
+                    (change, name) =>
                     {
-                        while (rdr.Read())
-                        {
-                            
-                            vc = new VarNameChange
-                            {
-                                //ID = (int)rdr["ID"],
-                                OldName = (string)rdr["OldName"],
-                                NewName = (string)rdr["NewName"],
-                                ChangeDate = (DateTime)rdr["ChangeDate"],
-                                ChangedBy = new Person((string)rdr["Name"], (int)rdr["ChangedBy"]),
-                                HiddenChange = (bool)rdr["TempVar"],
-                            };
-
-                            if (!rdr.IsDBNull(rdr.GetOrdinal("Reasoning"))) vc.Rationale = (string)rdr["Reasoning"];
-                            if (!rdr.IsDBNull(rdr.GetOrdinal("Authorization"))) vc.Authorization = (string)rdr["Authorization"];
-                            if (!rdr.IsDBNull(rdr.GetOrdinal("ChangeDateApprox"))) vc.ApproxChangeDate = (DateTime)rdr["ChangeDateApprox"];
-                            if (!rdr.IsDBNull(rdr.GetOrdinal("Source"))) vc.Source = (string)rdr["Source"];
-                            vc.SurveysAffected.Add(new Survey((string)rdr["Survey"]));
-                            vcs.Add(vc);
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    Console.Write(e.Message);
-                }
+                        change.ChangedBy = name;
+                        return change;
+                    },
+                    parameters,
+                    splitOn: "ChangedBy"
+                    ).ToList();
             }
-
-            return vcs;
+            return changes;
         }
-
-        
     }
 }
