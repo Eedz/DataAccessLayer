@@ -174,26 +174,13 @@ namespace ITCLib
         public static string GetResponseText(string respname)
         {
             string text = "";
-            string query;
-        
-            query = "SELECT Wordings.FN_GetResponseText(@respname)";
-            
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "SELECT Wordings.FN_GetResponseText(@respname)";
+
+            var parameters = new { respname };
+
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@respname", respname);
-
-                try
-                {
-                    text = (string)sql.SelectCommand.ExecuteScalar();     
-                }
-                catch (Exception e)
-                {
-                    Console.Write(e.Message);
-                }
+                text = db.ExecuteScalar<string>(query, parameters);
             }
 
             return text;
@@ -202,31 +189,18 @@ namespace ITCLib
         /// <summary>
         /// Returns the text of a specified non-response set.
         /// </summary>
-        /// <param name="respName"></param>
+        /// <param name="nrname"></param>
         /// <returns></returns>
         public static string GetNonResponseText(string nrname)
         {
             string text = "";
-            string query;
-          
-            query = "SELECT Wordings.FN_GetNonResponseText(@nrname)";
+            string query = "SELECT Wordings.FN_GetNonResponseText(@nrname)";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            var parameters = new { nrname };
+
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@nrname", nrname);
-
-                try
-                {
-                    text = (string)sql.SelectCommand.ExecuteScalar();
-                }
-                catch
-                {
-
-                }
+                text = db.ExecuteScalar<string>(query, parameters);
             }
 
             return text;
@@ -235,394 +209,166 @@ namespace ITCLib
         /// <summary>
         /// Returns a list of WordingUsage objects which represent the questions that use the provided field/wordID combination.
         /// </summary>
-        /// <param name="fieldname"></param>
+        /// <param name="field"></param>
         /// <param name="wordID"></param>
         /// <returns></returns>
-        public static List<WordingUsage> GetWordingUsage(string fieldname, int wordID)
+        public static List<WordingUsage> GetWordingUsage(string field, int wordID)
         {
             List<WordingUsage> qList = new List<WordingUsage>();
-            WordingUsage sq;
-            string query = "SELECT * FROM Wordings.FN_GetWordingUsage (@field, @wordID)";
+            string query = "SELECT VarName, VarLabel, Survey AS SurveyCode, WordID, Qnum, Locked FROM Wordings.FN_GetWordingUsage (@field, @wordID)";
+
+            var parameters = new { field, wordID };
            
-            if (query == "")
-                return null;
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@field", fieldname);
-                sql.SelectCommand.Parameters.AddWithValue("@wordID", wordID);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            sq = new WordingUsage
-                            {
-                                VarName = (string)rdr["VarName"],
-                                VarLabel = (string)rdr["VarLabel"],
-                                SurveyCode = (string)rdr["Survey"],
-                                WordID = wordID,
-                                Qnum = (string)rdr["Qnum"],
-                                Locked = (bool)rdr["Locked"]
-                                
-                            };
-
-                            qList.Add(sq);
-                        }
-                    }
-                }
-                catch
-                {
-                   
-                }
+                qList = db.Query<WordingUsage>(query, parameters).ToList();
             }
 
             return qList;
         }
 
         /// <summary>
-        /// Returns a list of WordingUsage objects which represent the questions that use the provided field/wordID combination.
+        /// Returns a list of ResponseUsage objects which represent the questions that use the provided field/respName combination.
         /// </summary>
-        /// <param name="fieldname"></param>
-        /// <param name="wordID"></param>
+        /// <param name="field"></param>
+        /// <param name="respName"></param>
         /// <returns></returns>
-        public static List<ResponseUsage> GetResponseUsage(string fieldname, string respName)
+        public static List<ResponseUsage> GetResponseUsage(string field, string respName)
         {
             List<ResponseUsage> qList = new List<ResponseUsage>();
-            ResponseUsage sq;
-            string query = "SELECT * FROM Wordings.FN_GetResponseUsage (@field, @wordID)";
+            string query = "SELECT VarName, VarLabel, Survey AS SurveyCode, RespName, Qnum, Locked FROM Wordings.FN_GetResponseUsage (@field, @respName)";
 
-            if (query == "")
-                return null;
+            var parameters = new { field, respName };
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@field", fieldname);
-                sql.SelectCommand.Parameters.AddWithValue("@wordID", respName);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            sq = new ResponseUsage
-                            {
-                                VarName = (string)rdr["VarName"],
-                                VarLabel = (string)rdr["VarLabel"],
-                                SurveyCode = (string)rdr["Survey"],
-                                RespName = respName,
-                                Qnum = (string)rdr["Qnum"],
-                                Locked = (bool)rdr["Locked"]
-
-                            };
-
-                            qList.Add(sq);
-                        }
-                    }
-                }
-                catch
-                {
-                    
-                }
+                qList = db.Query<ResponseUsage> (query, parameters).ToList();
             }
 
             return qList;
         }
 
         /// <summary>
-        /// Returns all wording records.
+        /// Returns all wording records used in a survey that contain the search parameter.
         /// </summary>
+        /// <param name="search"></param>
+        /// <param name="survey"></param>
         /// <returns></returns>
         public static List<Wording> GetSurveyPreP(string search, string survey)
         {
             List<Wording> wordings = new List<Wording>();
-            Wording w;
-            string query = "SELECT * FROM Wordings.FN_GetSurveyPrePMatching(@search, @survey) ORDER BY ID";
+            string query = "SELECT ID AS WordID, 'PreP' AS FieldName, Wording AS WordingText FROM Wordings.FN_GetSurveyPrePMatching(@search, @survey) ORDER BY ID";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            var parameters = new { search, survey };
+
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@search", search);
-                sql.SelectCommand.Parameters.AddWithValue("@survey", survey);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            w = new Wording
-                            {
-                                WordID = (int)rdr["ID"],
-                                FieldName = "PreP",
-                                WordingText = (string)rdr["Wording"]
-
-                            };
-
-                            wordings.Add(w);
-                        }
-                    }
-                }
-                catch
-                {
-
-                }
+                wordings = db.Query<Wording>(query, parameters).ToList();
             }
 
             return wordings;
         }
 
         /// <summary>
-        /// Returns all wording records.
+        /// Returns all wording records used in a survey that contain the search parameter.
         /// </summary>
+        /// <param name="search"></param>
+        /// <param name="survey"></param>
         /// <returns></returns>
         public static List<Wording> GetSurveyPreI(string search, string survey)
         {
             List<Wording> wordings = new List<Wording>();
-            Wording w;
-            string query = "SELECT * FROM Wordings.FN_GetSurveyPreIMatching(@search, @survey) ORDER BY ID";
+            string query = "SELECT ID AS WordID, 'PreI' AS FieldName, Wording AS WordingText FROM Wordings.FN_GetSurveyPreIMatching(@search, @survey) ORDER BY ID";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            var parameters = new { search, survey };
+
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@search", search);
-                sql.SelectCommand.Parameters.AddWithValue("@survey", survey);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            w = new Wording
-                            {
-                                WordID = (int)rdr["ID"],
-                                FieldName = "PreI",
-                                WordingText = (string)rdr["Wording"]
-
-                            };
-
-                            wordings.Add(w);
-                        }
-                    }
-                }
-                catch
-                {
-
-                }
+                wordings = db.Query<Wording>(query, parameters).ToList();
             }
 
             return wordings;
         }
 
         /// <summary>
-        /// Returns all wording records.
+        /// Returns all wording records used in a survey that contain the search parameter.
         /// </summary>
+        /// <param name="search"></param>
+        /// <param name="survey"></param>
         /// <returns></returns>
         public static List<Wording> GetSurveyPreA(string search, string survey)
         {
             List<Wording> wordings = new List<Wording>();
-            Wording w;
-            string query = "SELECT * FROM Wordings.FN_GetSurveyPreAMatching(@search, @survey) ORDER BY ID";
+            string query = "SELECT ID AS WordID, 'PreA' AS FieldName, Wording AS WordingText FROM Wordings.FN_GetSurveyPreAMatching(@search, @survey) ORDER BY ID";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            var parameters = new { search, survey };
+
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@search", search);
-                sql.SelectCommand.Parameters.AddWithValue("@survey", survey);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            w = new Wording
-                            {
-                                WordID = (int)rdr["ID"],
-                                FieldName = "PreA",
-                                WordingText = (string)rdr["Wording"]
-
-                            };
-
-                            wordings.Add(w);
-                        }
-                    }
-                }
-                catch
-                {
-
-                }
+                wordings = db.Query<Wording>(query, parameters).ToList();
             }
 
             return wordings;
         }
 
         /// <summary>
-        /// Returns all wording records.
+        /// Returns all wording records used in a survey that contain the search parameter.
         /// </summary>
+        /// <param name="search"></param>
+        /// <param name="survey"></param>
         /// <returns></returns>
         public static List<Wording> GetSurveyLitQ(string search, string survey)
         {
             List<Wording> wordings = new List<Wording>();
-            Wording w;
-            string query = "SELECT * FROM Wordings.FN_GetSurveyLitQMatching(@search, @survey) ORDER BY ID";
+            string query = "SELECT ID AS WordID, 'LitQ' AS FieldName, Wording AS WordingText FROM Wordings.FN_GetSurveyLitQMatching(@search, @survey) ORDER BY ID";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            var parameters = new { search, survey };
+
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@search", search);
-                sql.SelectCommand.Parameters.AddWithValue("@survey", survey);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            w = new Wording
-                            {
-                                WordID = (int)rdr["ID"],
-                                FieldName = "LitQ",
-                                WordingText = (string)rdr["Wording"]
-
-                            };
-
-                            wordings.Add(w);
-                        }
-                    }
-                }
-                catch
-                {
-
-                }
+                wordings = db.Query<Wording>(query, parameters).ToList();
             }
 
             return wordings;
         }
 
         /// <summary>
-        /// Returns all wording records.
+        /// Returns all wording records used in a survey that contain the search parameter.
         /// </summary>
+        /// <param name="search"></param>
+        /// <param name="survey"></param>
         /// <returns></returns>
         public static List<Wording> GetSurveyPstI(string search, string survey)
         {
             List<Wording> wordings = new List<Wording>();
-            Wording w;
-            string query = "SELECT * FROM Wordings.FN_GetSurveyPstIMatching(@search, @survey) ORDER BY ID";
+            string query = "SELECT ID AS WordID, 'PstI' AS FieldName, Wording AS WordingText FROM Wordings.FN_GetSurveyPstIMatching(@search, @survey) ORDER BY ID";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            var parameters = new { search, survey };
+
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@search", search);
-                sql.SelectCommand.Parameters.AddWithValue("@survey", survey);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            w = new Wording
-                            {
-                                WordID = (int)rdr["ID"],
-                                FieldName = "PstI",
-                                WordingText = (string)rdr["Wording"]
-
-                            };
-
-                            wordings.Add(w);
-                        }
-                    }
-                }
-                catch
-                {
-
-                }
+                wordings = db.Query<Wording>(query, parameters).ToList();
             }
 
             return wordings;
         }
 
         /// <summary>
-        /// Returns all wording records.
+        /// Returns all wording records used in a survey that contain the search parameter.
         /// </summary>
+        /// <param name="search"></param>
+        /// <param name="survey"></param>
         /// <returns></returns>
         public static List<Wording> GetSurveyPstP(string search, string survey)
         {
             List<Wording> wordings = new List<Wording>();
-            Wording w;
-            string query = "SELECT * FROM Wordings.FN_GetSurveyPstPMatching(@search, @survey) ORDER BY ID";
+            string query = "SELECT ID AS WordID, 'PstP' AS FieldName, Wording AS WordingText FROM Wordings.FN_GetSurveyPstPMatching(@search, @survey) ORDER BY ID";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            var parameters = new { search, survey };
+
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@search", search);
-                sql.SelectCommand.Parameters.AddWithValue("@survey", survey);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            w = new Wording
-                            {
-                                WordID = (int)rdr["ID"],
-                                FieldName = "PstP",
-                                WordingText = (string)rdr["Wording"]
-
-                            };
-
-                            wordings.Add(w);
-                        }
-                    }
-                }
-                catch
-                {
-
-                }
+                wordings = db.Query<Wording>(query, parameters).ToList();
             }
 
             return wordings;
@@ -634,83 +380,39 @@ namespace ITCLib
         /// <returns></returns>
         public static string[][] GetSimilarWords()
         {
+            List<string> list = new List<string>();
             string[][] similarWords = new string[0][];
             string[] words;
-            string currentList;
-            int i = 1;
-            string query = "SELECT * FROM Wordings.FN_GetSimilarWords()";
+            string query = "SELECT word FROM Wordings.FN_GetSimilarWords()";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
-
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-
-
-                        while (rdr.Read())
-                        {
-                            Array.Resize(ref similarWords, i);
-                            currentList = (string)rdr["word"];
-                            words = new string[currentList.Split(new string[] { ", " }, StringSplitOptions.RemoveEmptyEntries).Length];
-                            words = currentList.Split(new string[] { ", " }, StringSplitOptions.RemoveEmptyEntries);
-                            similarWords[i - 1] = words;
-                            i++;
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
-
+                list = db.Query<string>(query).ToList();
             }
+
+            for (int i =1;i <list.Count-1;i++)
+            {
+                Array.Resize(ref similarWords, i);
+                words = new string[list[i-1].Split(new string[] { ", " }, StringSplitOptions.RemoveEmptyEntries).Length];
+                words = list[i-1].Split(new string[] { ", " }, StringSplitOptions.RemoveEmptyEntries);
+                similarWords[i - 1] = words;
+            }
+
             return similarWords;
         }
 
         /// <summary>
-        /// Returns the jagged array of words that should be considered the same.
+        /// Returns the list of SimilarWords records.
         /// </summary>
         /// <returns></returns>
         public static List<SimilarWordsRecord> GetSimilarWordings()
         {
-            List<SimilarWordsRecord> records = new List<SimilarWordsRecord>();
-           
-            string query = "SELECT * FROM Wordings.FN_GetSimilarWords()";
+            List<SimilarWordsRecord> records = new List<SimilarWordsRecord>();        
+            string query = "SELECT ID, word as Words FROM Wordings.FN_GetSimilarWords()";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
             using (SqlConnection conn = new SqlConnection(connectionString))
             {
-
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            SimilarWordsRecord record = new SimilarWordsRecord();
-                            record.ID = (int)rdr["ID"];
-                            record.Words = rdr.SafeGetString("word");
-                            
-                            records.Add(record);
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
-
+                records = conn.Query<SimilarWordsRecord>(query).ToList();
             }
             return records;
         }

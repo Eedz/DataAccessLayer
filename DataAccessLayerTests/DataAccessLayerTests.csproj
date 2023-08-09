@@ -54,6 +54,7 @@
     <Compile Include="OtherTests.cs" />
     <Compile Include="QuestionTests.cs" />
     <Compile Include="TranslationTests.cs" />
+    <Compile Include="UnitTest1 - Copy.cs" />
     <Compile Include="UnitTest1.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
