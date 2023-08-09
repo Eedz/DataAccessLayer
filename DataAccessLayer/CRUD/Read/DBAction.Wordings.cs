@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Data;
 using System.Data.SqlClient;
-using System.Configuration;
 using Dapper;
 
 namespace ITCLib
@@ -19,37 +18,11 @@ namespace ITCLib
         public static List<Wording> GetWordings()
         {
             List<Wording> wordings = new List<Wording>();
-            Wording w;
-            string query = "SELECT * FROM Wordings.FN_GetAllWordings() ORDER BY FieldName, ID";
+            string query = "SELECT ID AS WordID, FieldName, Wording AS WordingText FROM Wordings.FN_GetAllWordings() ORDER BY FieldName, ID";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-                
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            w = new Wording
-                            {
-                                WordID = (int)rdr["ID"],
-                                FieldName = (string)rdr["FieldName"],
-                                WordingText = (string)rdr["Wording"]
-                            };
-
-                            wordings.Add(w);
-                        }
-                    }
-                }
-                catch
-                {
-                    
-                }
+                wordings = db.Query<Wording>(query).ToList();
             }
 
             return wordings;
@@ -96,180 +69,41 @@ namespace ITCLib
         }
 
         /// <summary>
-        /// Returns all response sets of a specific type.
+        /// Returns all response sets matching criteria.
         /// </summary>
-        /// <param name="fieldname"></param>
-        /// <returns></returns>
-        public static List<ResponseSet> GetResponseSets(List<string> criteria)
-        {
-            List<ResponseSet> setList = new List<ResponseSet>();
-
-            string query = "SELECT * FROM qryRespOptions ";
-
-            if (criteria.Count > 0) query += "WHERE ";           
-            for (int i =0; i <criteria.Count;i ++)
-            {
-                query += "RespOptions LIKE '%' + @criteria" + i + " + '%' OR ";
-            }
-            query = query.Substring(0, query.Length - 3);
-            query += "ORDER BY RespName";
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-
-                for (int i = 0; i < criteria.Count; i++)
-                {
-                    sql.SelectCommand.Parameters.AddWithValue("@criteria" + i, criteria[i]);
-                }
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            ResponseSet rs = new ResponseSet
-                            {
-                                RespSetName = rdr.SafeGetString("RespName"),
-                                FieldName = "RespOptions",
-                                RespList = rdr.SafeGetString("RespOptions")
-
-                            };
-
-                            setList.Add(rs);
-                        }
-                    }
-                }
-                catch
-                {
-
-                }
-            }
-
-
-            return setList;
-        }
-
-        /// <summary>
-        /// Returns all response sets of a specific type.
-        /// </summary>
-        /// <param name="fieldname"></param>
+        /// <param name="criteria"></param>
+        /// <param name="exactMatch"></param>
         /// <returns></returns>
         public static List<ResponseSet> GetResponseSets(List<string> criteria, bool exactMatch)
         {
             List<ResponseSet> setList = new List<ResponseSet>();
 
-            string query = "SELECT * FROM qryRespOptions ";
+            string query = "SELECT RespName AS RespSetName, 'RespOptions' AS FieldName, RespOptions AS RespList FROM qryRespOptions ";
+
+            DynamicParameters parameters = new DynamicParameters();
 
             if (criteria.Count > 0) query += "WHERE ";
+
             for (int i = 0; i < criteria.Count; i++)
             {
+                if (string.IsNullOrEmpty(criteria[i]))
+                    continue;
+
                 if (exactMatch)
                     query += "RespOptions = @criteria" + i + " OR ";
-                else 
+                else
                     query += "RespOptions LIKE '%' + @criteria" + i + " + '%' OR ";
+
+                parameters.Add("@criteria" + i, criteria[i]);
             }
             query = query.Substring(0, query.Length - 3);
-            query += "ORDER BY RespName";
+            query += " ORDER BY RespName";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-
-                for (int i = 0; i < criteria.Count; i++)
-                {
-                    sql.SelectCommand.Parameters.AddWithValue("@criteria" + i, criteria[i]);
-                }
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            ResponseSet rs = new ResponseSet
-                            {
-                                RespSetName = rdr.SafeGetString("RespName"),
-                                FieldName = "RespOptions",
-                                RespList = rdr.SafeGetString("RespOptions")
-
-                            };
-
-                            setList.Add(rs);
-                        }
-                    }
-                }
-                catch
-                {
-
-                }
+                setList = db.Query<ResponseSet>(query, parameters).ToList();       
             }
 
-
-            return setList;
-        }
-
-        /// <summary>
-        /// Returns all response sets of a specific type.
-        /// </summary>
-        /// <param name="fieldname"></param>
-        /// <returns></returns>
-        public static List<ResponseSet> GetNonResponseSets(List<string> criteria)
-        {
-            List<ResponseSet> setList = new List<ResponseSet>();
-
-            string query = "SELECT * FROM qryNonRespOptions ";
-
-            if (criteria.Count > 0) query += "WHERE ";
-
-            for (int i = 0; i < criteria.Count; i++)
-            {
-                query += "NRCodes LIKE '%' + @criteria" + i + " + '%' OR ";
-            }
-            query = query.Substring(0, query.Length - 3);
-            query += "ORDER BY NRName";
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-
-                for (int i = 0; i < criteria.Count; i++)
-                {
-                    sql.SelectCommand.Parameters.AddWithValue("@criteria" + i, criteria[i]);
-                }
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            ResponseSet rs = new ResponseSet
-                            {
-                                RespSetName = rdr.SafeGetString("NRName"),
-                                FieldName = "NRCodes",
-                                RespList = rdr.SafeGetString("NRCodes")
-                            };
-
-                            setList.Add(rs);
-                        }
-                    }
-                }
-                catch
-                {
-
-                }
-            }
             return setList;
         }
 
@@ -282,54 +116,32 @@ namespace ITCLib
         {
             List<ResponseSet> setList = new List<ResponseSet>();
 
-            string query = "SELECT * FROM qryNonRespOptions ";
+            string query = "SELECT NRName AS RespSetName, 'NRCodes' AS FieldName, NRCodes AS RespList FROM qryNonRespOptions ";
+
+            DynamicParameters parameters = new DynamicParameters();
 
             if (criteria.Count > 0) query += "WHERE ";
 
             for (int i = 0; i < criteria.Count; i++)
             {
+                if (string.IsNullOrEmpty(criteria[i]))
+                    continue;
+
                 if (exactMatch)
                     query += "NRCodes = @criteria" + i + " OR ";
                 else
                     query += "NRCodes LIKE '%' + @criteria" + i + " + '%' OR ";
+
+                parameters.Add("@criteria" + i, criteria[i]);
             }
             query = query.Substring(0, query.Length - 3);
-            query += "ORDER BY NRName";
+            query += " ORDER BY NRName";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-
-                for (int i = 0; i < criteria.Count; i++)
-                {
-                    sql.SelectCommand.Parameters.AddWithValue("@criteria" + i, criteria[i]);
-                }
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            ResponseSet rs = new ResponseSet
-                            {
-                                RespSetName = rdr.SafeGetString("NRName"),
-                                FieldName = "NRCodes",
-                                RespList = rdr.SafeGetString("NRCodes")
-                            };
-
-                            setList.Add(rs);
-                        }
-                    }
-                }
-                catch
-                {
-
-                }
+                setList = db.Query<ResponseSet>(query, parameters).ToList();
             }
+
             return setList;
         }
 
@@ -339,29 +151,16 @@ namespace ITCLib
         /// <param name="field"></param>
         /// <param name="wordID"></param>
         /// <returns></returns>
-        public static string GetWordingText(string field, int wordID)
+        public static string GetWordingText(string fieldname, int wordID)
         {
             string text = "";
             string query = "SELECT Wordings.FN_GetWordingText(@fieldname, @wordID)";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            var parameters = new { fieldname, wordID };
+            
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@fieldname", field);
-                sql.SelectCommand.Parameters.AddWithValue("@wordID", wordID);
-
-                try
-                {
-                    text = (string)sql.SelectCommand.ExecuteScalar();
-
-                }
-                catch (Exception)
-                {
-                    
-                }
+                text = db.ExecuteScalar<string>(query, parameters);
             }
 
             return text;

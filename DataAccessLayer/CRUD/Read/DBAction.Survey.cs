@@ -293,7 +293,10 @@ namespace ITCLib
         {
             string folder = @"\\psychfile\psych$\psych-lab-gfong\SMG\Survey Images\" +
                 survey.SurveyCodePrefix + @" Images\" + survey.SurveyCode;
-           
+
+            if (!System.IO.Directory.Exists(folder))
+                return new List<SurveyImage>();
+
             var files = System.IO.Directory.EnumerateFiles(folder, "*.*", System.IO.SearchOption.AllDirectories)
             .Where(s => s.EndsWith(".png") || s.EndsWith(".jpg"));
 
