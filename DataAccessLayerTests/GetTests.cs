@@ -250,7 +250,7 @@ namespace DataAccessLayerTests
         public void GetQuestionComments_Survey()
         {
             Survey survey = new Survey() { SID = 930 };
-            var records = DBAction.GetQuesCommentsBySurvey(survey);
+            var records = DBAction.GetQuesComments(survey);
 
             Assert.IsTrue(records != null && records.Count == 196);
         }
@@ -260,7 +260,7 @@ namespace DataAccessLayerTests
         public void GetQuestionComments_QID()
         {
             SurveyQuestion question = new SurveyQuestion() { ID = 155500 };
-            var records = DBAction.GetQuesCommentsByQID(question);
+            var records = DBAction.GetQuesComments(question);
 
             Assert.IsTrue(records != null && records.Count == 1);
         }
@@ -306,9 +306,31 @@ namespace DataAccessLayerTests
             dq.SurveyCode = "4CV1";
             dq.SID = 748;
 
-            var records = DBAction.GetSurvCommentsBySurvey(dq);
+            var records = DBAction.GetSurvComments(dq);
 
             Assert.IsTrue(records != null && records.Count == 11);
+        }
+
+        [TestMethod]
+        [TestCategory("Comments")]
+        public void WaveCommentExists_True()
+        {
+            StudyWave dq = new StudyWave("NLD", 2);
+
+            bool exists = DBAction.WaveCommentExists(dq, 62327);
+
+            Assert.IsTrue(exists);
+        }
+
+        [TestMethod]
+        [TestCategory("Comments")]
+        public void WaveCommentExists_False()
+        {
+            StudyWave dq = new StudyWave("NLD2", 2);
+
+            bool exists = DBAction.WaveCommentExists(dq, 0);
+
+            Assert.IsFalse(exists);
         }
     }
 }
