@@ -13,70 +13,34 @@ namespace ITCLib
     partial class DBAction
     {
         /// <summary>
-        /// Updates the VarLabel of the given VarName.
-        /// </summary>
-        /// <param name="varname"></param>
-        /// <param name="varlabel"></param>
-        /// <returns></returns>
-        public static int UpdateVarLabel(string varname, string varlabel)
-        {
-            int rowsAffected = 0;
-            string sql = "UPDATE tblVariableInformation SET VarLabel = @varlabel WHERE VarName = @varname";
-            var parameters = new { varname, varlabel };
-            using (SqlConnection db = new SqlConnection(connectionString))
-            {
-                rowsAffected = db.Execute(sql, parameters);
-            }
-            return rowsAffected;
-        }
-
-        /// <summary>
         /// Updates the survey record matching the provided survey object.
         /// </summary>
         /// <param name="survey"></param>
         /// <returns></returns>
-        public static int UpdateSurvey (Survey survey)
+        public static int UpdateSurvey(Survey survey)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string sql = "UPDATE tblStudyAttributes " +
+                                "SET Survey=@surveycode, SurveyTitle=@title, Cohort=@cohort, Mode=@mode, " +
+                                    "SurveyFileName=@filename, NCT=@nct, ReRun=@rerun, HideSurvey=@hide, Locked=@locked, ITCSurvey=@itc, " +
+                                    "ISISCreationDate=@date WHERE ID = @SID;";
+
+            var parameters = new List<KeyValuePair<string, object>>()
             {
-                conn.Open();
+                new KeyValuePair<string, object>("SID", survey.SID),
+                new KeyValuePair<string, object>("surveycode", survey.SurveyCode),
+                new KeyValuePair<string, object>("title", survey.Title),
+                new KeyValuePair<string, object>("cohort", survey.Cohort.ID),
+                new KeyValuePair<string, object>("mode", survey.Mode.ID),
+                new KeyValuePair<string, object>("filename", survey.WebName),
+                new KeyValuePair<string, object>("nct", survey.NCT),
+                new KeyValuePair<string, object>("rerun", survey.ReRun),
+                new KeyValuePair<string, object>("hide", survey.HideSurvey),
+                new KeyValuePair<string, object>("locked", survey.Locked),
+                new KeyValuePair<string, object>("itc", survey.ITCSurvey),
+                new KeyValuePair<string, object>("date", survey.CreationDate)
+            };
 
-                sql.UpdateCommand = new SqlCommand("UPDATE tblStudyAttributes SET Survey=@surveycode, SurveyTitle=@title, Cohort=@cohort, Mode=@mode, " +
-                        "SurveyFileName=@filename, NCT=@nct, ReRun=@rerun, HideSurvey=@hide, Locked=@locked, ITCSurvey=@itc, ISISCreationDate=@date WHERE ID = @SID", conn)
-                {
-                    CommandType = CommandType.Text
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@SID", survey.SID);
-                sql.UpdateCommand.Parameters.AddWithValue("@surveycode", survey.SurveyCode);
-                sql.UpdateCommand.Parameters.AddWithValue("@title", survey.Title);
-                sql.UpdateCommand.Parameters.AddWithValue("@cohort", survey.Cohort.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@mode", survey.Mode.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@filename", survey.WebName);
-                sql.UpdateCommand.Parameters.AddWithValue("@nct", survey.NCT);
-                sql.UpdateCommand.Parameters.AddWithValue("@rerun", survey.ReRun);
-                sql.UpdateCommand.Parameters.AddWithValue("@hide", survey.HideSurvey);
-                sql.UpdateCommand.Parameters.AddWithValue("@locked", survey.Locked);
-                sql.UpdateCommand.Parameters.AddWithValue("@itc", survey.ITCSurvey);
-
-                if (survey.CreationDate == null)
-                    sql.UpdateCommand.Parameters.AddWithValue("@date", DBNull.Value);
-                else
-                    sql.UpdateCommand.Parameters.AddWithValue("@date", survey.CreationDate);
-                
-
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-            }
-            return 0;
+            return Update_Query(sql, parameters);
         }
 
         /// <summary>
@@ -2257,7 +2221,6 @@ namespace ITCLib
         /// <returns></returns>
         public static int UpdateFormSurvey(FormStateRecord record, int userid)
         {
-
             DynamicParameters parameters = new DynamicParameters();
             parameters.Add("@formCode", record.FormName);
             parameters.Add("@survID", record.FilterID);
@@ -2272,5 +2235,49 @@ namespace ITCLib
 
             return 0;
         }
+
+        public static int Update (string procedureName, List<KeyValuePair<string,object>> parameters)
+        {
+            int result;
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                int rowsAffected = db.Execute(procedureName, parameters, commandType: CommandType.StoredProcedure);
+                if (rowsAffected > 0)
+                    result = 0;
+                else
+                    result = 1;
+            }
+            return result;
+        }
+
+        public static int Update_SP(string procedureName, List<KeyValuePair<string, object>> parameters)
+        {
+            int result;
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                int rowsAffected = db.Execute(procedureName, parameters, commandType: CommandType.StoredProcedure);
+                if (rowsAffected > 0)
+                    result = 0;
+                else
+                    result = 1;
+            }
+            return result;
+        }
+
+        public static int Update_Query(string queryString, List<KeyValuePair<string, object>> parameters)
+        {
+            int result;
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                int rowsAffected = db.Execute(queryString, parameters);
+                if (rowsAffected > 0)
+                    result = 0;
+                else
+                    result = 1;
+            }
+            return result;
+        }
     }
+
+
 }

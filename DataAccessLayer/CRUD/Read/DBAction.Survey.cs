@@ -51,7 +51,7 @@ namespace ITCLib
 
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                lastupdate = (DateTime)db.ExecuteScalar(sql, parameters);
+                lastupdate = (DateTime?)db.ExecuteScalar(sql, parameters);
             }
             return lastupdate;
         }

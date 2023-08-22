@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Data;
 using System.Data.SqlClient;
 using System.Configuration;
+using Dapper;
 
 namespace ITCLib
 {
@@ -18,28 +19,29 @@ namespace ITCLib
         //
         // Question Search
         //
-        public static List<SurveyQuestion> GetSurveyQuestions(List<SearchCriterium> criteria, bool withTranslation, string withTranslationText=null, bool excludeHiddenSurveys = true)
+        public static List<SurveyQuestion> GetSurveyQuestions(List<SearchCriterium> criteria, bool withTranslation, string withTranslationText = null, bool excludeHiddenSurveys = true)
         {
             List<SurveyQuestion> qs = new List<SurveyQuestion>();
 
-            string query;
-            string where = "";
-            query = "SELECT * FROM qrySurveyQuestions ";
+            string query = "SELECT ID, Survey AS SurveyCode, Qnum, PreP# AS PrePNum, PreP, PreI# AS PreINum, PreI, PreA# AS PreANum, PreA, " +
+                    "LitQ# AS LitQNum, LitQ, PstI#, PstI, RespName, RespOptions, NRName, NRCodes, CorrectedFlag, ScriptOnly, AltQnum, AltQnum2, AltQnum3, " +
+                    "VarName, VarLabel, " +
+                    "DomainNum, DomainNum AS ID, Domain AS LabelText, " +
+                    "TopicNum, TopicNum AS ID, Topic AS LabelText, " +
+                    "ContentNum, ContentNum AS ID, Content AS LabelText, " +
+                    "ProductNum, ProductNum AS ID, Product AS LabelText " +
+                    "FROM qrySurveyQuestions ";
+            string where = string.Empty;
 
             if (criteria.Count > 0)
-            { 
+            {
                 int t = 0;
                 foreach (SearchCriterium sc in criteria)
                 {
-                    //where += sc.ToString(t);
                     where += sc.GetParameterizedCondition(t);
                     where += " AND ";
                     t = t + sc.Criteria.Count();
-                }                
-            }
-            else 
-            {
-
+                }
             }
 
             if (excludeHiddenSurveys)
@@ -51,94 +53,98 @@ namespace ITCLib
             if (!string.IsNullOrEmpty(where))
                 query += "WHERE " + where;
 
-            query += " ORDER BY ID";
+            DynamicParameters parameters = new DynamicParameters();
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            int c = 0;
+            foreach (SearchCriterium sc in criteria)
             {
-                conn.Open();
+                foreach (string f in sc.Fields)
+                    foreach (string s in sc.Criteria)
+                    {
+                        parameters.Add("@tag" + c, s);
+                        c++;
+                    }
+            }
 
-                sql.SelectCommand = new SqlCommand(query, conn);
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                qs = db.Query<SurveyQuestion, VariableName, DomainLabel, TopicLabel, ContentLabel, ProductLabel, SurveyQuestion>(query, (question, variable, domain, topic, content, product) =>
+                {
+                    variable.Domain = domain;
+                    variable.Topic = topic;
+                    variable.Content = content;
+                    variable.Product = product;
+                    question.VarName = variable;
+                    return question;
+                }, parameters,splitOn: "VarName, DomainNum, TopicNum, ContentNum, ProductNum").ToList();
+            
+            }
 
+            if (withTranslation)
+            {
+                // get translations of questions matching the same criteria
+                var translations = GetTranslations(criteria);
+
+                if (!string.IsNullOrEmpty(withTranslationText))
+                    translations = translations.Where(x => !string.IsNullOrEmpty(x.TranslationText) && x.TranslationText.ToLower().Contains(withTranslationText.ToLower())).ToList();
+
+                foreach (SurveyQuestion q in qs)
+                {
+                    q.Translations = translations.Where(x => x.QID == q.ID).ToList();
+                }
+                // only include questions with translations
+                qs = qs.Where(x=>x.Translations.Count>0).ToList();
+            }
+
+            return qs;
+        }
+
+        public static List<Translation> GetTranslations(List<SearchCriterium> criteria)
+        {
+            List<Translation> qs = new List<Translation>();
+
+            string query = "SELECT TID AS ID, ID AS QID, Survey, VarName, [Translation] AS TranslationText, LanguageID, LanguageID AS ID, Lang AS LanguageName " +
+                    "FROM qrySurveyQuestionsTranslations ";
+            string where = string.Empty;
+
+            if (criteria.Count > 0)
+            {
                 int t = 0;
                 foreach (SearchCriterium sc in criteria)
                 {
-                    foreach (string f in sc.Fields)
-                    foreach (string s in sc.Criteria)
-                    {
-                        sql.SelectCommand.Parameters.AddWithValue("@tag" + t, s);
-                        t++;
-                    }
-                }
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                   
-                            SurveyQuestion q = new SurveyQuestion
-                            {
-                                ID = (int)rdr["ID"],
-                                SurveyCode = (string)rdr["Survey"],
-                                Qnum = (string)rdr["Qnum"],
-                                PrePNum = (int)rdr["PreP#"],
-                                PreP = (string)rdr["PreP"],
-                                PreINum = (int)rdr["PreI#"],
-                                PreI = (string)rdr["PreI"],
-                                PreANum = (int)rdr["PreA#"],
-                                PreA = (string)rdr["PreA"],
-                                LitQNum = (int)rdr["LitQ#"],
-                                LitQ = (string)rdr["LitQ"],
-                                PstINum = (int)rdr["PstI#"],
-                                PstI = (string)rdr["PstI"],
-                                PstPNum = (int)rdr["PstP#"],
-                                PstP = (string)rdr["PstP"],
-                                RespName = (string)rdr["RespName"],
-                                RespOptions = (string)rdr["RespOptions"],
-                                NRName = (string)rdr["NRName"],
-                                NRCodes = (string)rdr["NRCodes"],
-                                VarName = new VariableName((string)rdr["VarName"])
-                                {
-                                    VarLabel = (string)rdr["VarLabel"],
-                                    Domain = new DomainLabel((int)rdr["DomainNum"], (string)rdr["Domain"]),
-                                    Topic = new TopicLabel((int)rdr["TopicNum"], (string)rdr["Topic"]),
-                                    Content = new ContentLabel((int)rdr["ContentNum"], (string)rdr["Content"]),
-                                    Product = new ProductLabel((int)rdr["ProductNum"], (string)rdr["Product"])
-                                },
-                                TableFormat = (bool)rdr["TableFormat"],
-                                CorrectedFlag = (bool)rdr["CorrectedFlag"],
-                                
-                                ScriptOnly = (bool)rdr["ScriptOnly"]
-                            };
-
-                            if (!rdr.IsDBNull(rdr.GetOrdinal("AltQnum"))) q.AltQnum = (string)rdr["AltQnum"];
-                            if (!rdr.IsDBNull(rdr.GetOrdinal("AltQnum2"))) q.AltQnum2 = (string)rdr["AltQnum2"];
-                            if (!rdr.IsDBNull(rdr.GetOrdinal("AltQnum3"))) q.AltQnum3 = (string)rdr["AltQnum3"];
-
-                            if (withTranslation)
-                            { 
-                                if (string.IsNullOrEmpty(withTranslationText))
-                                    q.Translations = DBAction.GetQuestionTranslations(q.ID).ToList();
-                                else
-                                    q.Translations = DBAction.GetQuestionTranslations(q.ID).Where(x => x.TranslationText.ToLower().Contains(withTranslationText.ToLower())).ToList();
-                            }
-
-                            // if there was translation criteria, yet no translations exist, do not add this question to the result
-                            if (!string.IsNullOrEmpty(withTranslationText) && q.Translations.Count == 0)
-                                continue;
-
-                            qs.Add(q);
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-                    
+                    where += sc.GetParameterizedCondition(t);
+                    where += " AND ";
+                    t = t + sc.Criteria.Count();
                 }
             }
 
+            where = Utilities.TrimString(where, " AND ");
+
+            if (!string.IsNullOrEmpty(where))
+                query += "WHERE " + where;
+
+            DynamicParameters parameters = new DynamicParameters();
+
+            int c = 0;
+            foreach (SearchCriterium sc in criteria)
+            {
+                foreach (string f in sc.Fields)
+                    foreach (string s in sc.Criteria)
+                    {
+                        parameters.Add("@tag" + c, s);
+                        c++;
+                    }
+            }
+
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                qs = db.Query<Translation, Language, Translation>(query, (translation, language) =>
+                {
+                    translation.LanguageName = language;
+                    return translation;
+                }, parameters, splitOn: "LanguageID").ToList();
+
+            }
             return qs;
         }
 
@@ -146,99 +152,57 @@ namespace ITCLib
         {
             List<SurveyQuestion> qs = new List<SurveyQuestion>();
 
-            string query;
-            string where = "";
-            query = "SELECT * FROM qrySurveyQuestions ";
+            string query = "SELECT ID, Survey AS SurveyCode, Qnum, PreP# AS PrePNum, PreP, PreI# AS PreINum, PreI, PreA# AS PreANum, PreA, " +
+                    "LitQ# AS LitQNum, LitQ, PstI#, PstI, RespName, RespOptions, NRName, NRCodes, CorrectedFlag, ScriptOnly, AltQnum, AltQnum2, AltQnum3, " +
+                    "VarName, VarLabel, " +
+                    "DomainNum, DomainNum AS ID, Domain AS LabelText, " +
+                    "TopicNum, TopicNum AS ID, Topic AS LabelText, " +
+                    "ContentNum, ContentNum AS ID, Content AS LabelText, " +
+                    "ProductNum, ProductNum AS ID, Product AS LabelText " +
+                    "FROM qrySurveyQuestions ";
+            string where = string.Empty;
 
             if (criteria.Count > 0)
             {
                 int t = 0;
                 foreach (SearchCriterium sc in criteria)
                 {
-                    //where += sc.ToString(t);
                     where += sc.GetParameterizedCondition(t);
                     where += " AND ";
                     t = t + sc.Criteria.Count();
                 }
-
-                where = Utilities.TrimString(where, " AND ");
-
-                if (!string.IsNullOrEmpty(where))
-                    query += "WHERE " + where;
             }
 
-            query += " ORDER BY ID";
+            where = Utilities.TrimString(where, " AND ");
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            if (!string.IsNullOrEmpty(where))
+                query += "WHERE " + where;
+
+            DynamicParameters parameters = new DynamicParameters();
+
+            int c = 0;
+            foreach (SearchCriterium sc in criteria)
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-
-                int t = 0;
-                foreach (SearchCriterium sc in criteria)
-                {
+                foreach (string f in sc.Fields)
                     foreach (string s in sc.Criteria)
                     {
-                        sql.SelectCommand.Parameters.AddWithValue("@tag" + t, s);
-                        t++;
+                        parameters.Add("@tag" + c, s);
+                        c++;
                     }
-                }
+            }
 
-                try
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                qs = db.Query<SurveyQuestion, VariableName, DomainLabel, TopicLabel, ContentLabel, ProductLabel, SurveyQuestion>(query, (question, variable, domain, topic, content, product) =>
                 {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            SurveyQuestion q = new SurveyQuestion
-                            {
-                                ID = (int)rdr["ID"],
-                                SurveyCode = (string)rdr["Survey"],
-                                Qnum = (string)rdr["Qnum"],
-                                PrePNum = (int)rdr["PreP#"],
-                                PreP = (string)rdr["PreP"],
-                                PreINum = (int)rdr["PreI#"],
-                                PreI = (string)rdr["PreI"],
-                                PreANum = (int)rdr["PreA#"],
-                                PreA = (string)rdr["PreA"],
-                                LitQNum = (int)rdr["LitQ#"],
-                                LitQ = (string)rdr["LitQ"],
-                                PstINum = (int)rdr["PstI#"],
-                                PstI = (string)rdr["PstI"],
-                                PstPNum = (int)rdr["PstP#"],
-                                PstP = (string)rdr["PstP"],
-                                RespName = (string)rdr["RespName"],
-                                RespOptions = (string)rdr["RespOptions"],
-                                NRName = (string)rdr["NRName"],
-                                NRCodes = (string)rdr["NRCodes"],
-                                VarName = new VariableName((string)rdr["VarName"])
-                                {
-                                    VarLabel = (string)rdr["VarLabel"],
-                                    Domain = new DomainLabel((int)rdr["DomainNum"], (string)rdr["Domain"]),
-                                    Topic = new TopicLabel((int)rdr["TopicNum"], (string)rdr["Topic"]),
-                                    Content = new ContentLabel((int)rdr["ContentNum"], (string)rdr["Content"]),
-                                    Product = new ProductLabel((int)rdr["ProductNum"], (string)rdr["Product"])
-                                },
-                                TableFormat = (bool)rdr["TableFormat"],
-                                CorrectedFlag = (bool)rdr["CorrectedFlag"],
+                    variable.Domain = domain;
+                    variable.Topic = topic;
+                    variable.Content = content;
+                    variable.Product = product;
+                    question.VarName = variable;
+                    return question;
+                }, parameters, splitOn: "VarName, DomainNum, TopicNum, ContentNum, ProductNum").ToList();
 
-                                ScriptOnly = (bool)rdr["ScriptOnly"]
-                            };
-
-                            q.AltQnum =rdr.SafeGetString("AltQnum");
-                            q.AltQnum2 = rdr.SafeGetString("AltQnum2");
-                            q.AltQnum3 = rdr.SafeGetString("AltQnum3");
-
-                            qs.Add(q);
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
             }
 
             return qs;

@@ -187,6 +187,7 @@ namespace ITCLib
 
                 foreach(var image in images)
                 {
+                    image.SetSize(image.Path);
                     PraccingIssue issue = issues.Where(x => x.ID == image.PraccID).FirstOrDefault();
                     issue.Images.Add(image);
                 }
@@ -202,6 +203,8 @@ namespace ITCLib
 
                 foreach (var image in responseImages)
                 {
+                    image.SetSize(image.Path);
+
                     PraccingResponse response = responses.Where(x => x.ID == image.PraccID).FirstOrDefault();
                     response.Images.Add(image);
                 }
