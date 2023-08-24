@@ -50,34 +50,24 @@ namespace ITCLib
         /// <returns></returns>
         public static int UpdateQuestionWordings(SurveyQuestion question)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string sql = "proc_updateQuestionWordings";
+            var parameters = new
             {
-                conn.Open();
+                QID = question.ID,
+                prep = question.PrePNum,
+                prei = question.PreINum,
+                prea = question.PreANum,
+                litq = question.LitQNum,
+                psti = question.PstINum,
+                pstp = question.PstPNum,
+                respname = question.RespName,
+                nrname = question.NRName
+            };
+            int rowsAffected = 0;
 
-                sql.UpdateCommand = new SqlCommand("proc_updateQuestionWordings", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@QID", question.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@prep", question.PrePNum);
-                sql.UpdateCommand.Parameters.AddWithValue("@prei", question.PreINum);
-                sql.UpdateCommand.Parameters.AddWithValue("@prea", question.PreANum);
-                sql.UpdateCommand.Parameters.AddWithValue("@litq", question.LitQNum);
-                sql.UpdateCommand.Parameters.AddWithValue("@psti", question.PstINum);
-                sql.UpdateCommand.Parameters.AddWithValue("@pstp", question.PstPNum);
-                sql.UpdateCommand.Parameters.AddWithValue("@respname", question.RespName);
-                sql.UpdateCommand.Parameters.AddWithValue("@nrname", question.NRName);
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+            using (SqlConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
             }
             return 0;
         }
