@@ -688,7 +688,9 @@ namespace ITCLib
 
             foreach(QuestionComment comment in comments)
             {
-                survey.QuestionByID(comment.QID).Comments.Add(comment);
+                var q = survey.QuestionByID(comment.QID);
+                if (q!=null)
+                    q.Comments.Add(comment);
             }
         }
 
