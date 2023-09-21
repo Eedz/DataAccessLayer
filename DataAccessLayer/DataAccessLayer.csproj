@@ -32,7 +32,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Dapper, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Dapper.2.0.123\lib\net461\Dapper.dll</HintPath>
+      <HintPath>..\..\SurveyPaths\packages\Dapper.2.0.151\lib\net461\Dapper.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualBasic.PowerPacks, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -55,6 +55,7 @@
     <Compile Include="Other\DBAction.Other.cs" />
     <Compile Include="CRUD\Read\DBAction.Questions.Backups.cs" />
     <Compile Include="CRUD\Read\DBAction.Translation.Backups.cs" />
+    <Compile Include="Record Objects\DraftRecord.cs" />
     <Compile Include="Record Objects\DraftRecords.cs" />
     <Compile Include="Data Cache\ObjectDataRetriever.cs" />
     <Compile Include="Data Cache\DataRetriever.cs" />
@@ -99,13 +100,13 @@
     <Compile Include="_OLD_ORM\DBActionOLD.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\ITCLib\ITCLib\ITCLib.csproj">
       <Project>{1f878409-8602-4dc3-a0cb-45cccc21289e}</Project>
       <Name>ITCReportLib</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

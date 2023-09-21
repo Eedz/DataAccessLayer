@@ -15,20 +15,20 @@ namespace ITCLib
         //
         // Survey Drafts
         //
-        public static List<SurveyDraftRecord> ListSurveyDrafts()
+        public static List<SurveyDraft> ListSurveyDrafts()
         {
-            List<SurveyDraftRecord> drafts = new List<SurveyDraftRecord>();
+            List<SurveyDraft> drafts = new List<SurveyDraft>();
             string query = "SELECT ID, DraftTitle, DraftDate, DraftComments, SurvID, Investigator FROM qrySurveyDraftInfo ORDER BY ID;" +
                 "SELECT ID, DraftID, ExtraFieldNum AS FieldNumber, ExtraFieldLabel AS Label FROM qrySurveyDraftExtraFields;";
 
             using (IDbConnection db = new SqlConnection(connectionString))
             {
                 var results = db.QueryMultiple(query);
-                drafts = results.Read<SurveyDraftRecord>().ToList();
+                drafts = results.Read<SurveyDraft>().ToList();
 
-                var extraFields = results.Read<SurveyDraftExtraFieldRecord>().ToList();
+                var extraFields = results.Read<SurveyDraftExtraField>().ToList();
                 
-                foreach (SurveyDraftRecord draft in drafts)
+                foreach (SurveyDraft draft in drafts)
                 {
                     draft.ExtraFields.AddRange(extraFields.Where(x => x.DraftID == draft.ID));
                 }
@@ -164,12 +164,12 @@ namespace ITCLib
                 }
 
                 if (!string.IsNullOrEmpty(questionText)) {
-                    where += " QuestionText LIKE @questionText AND ";
+                    where += " QuestionText LIKE '%' + @questionText + '%' AND ";
                     sql.SelectCommand.Parameters.AddWithValue("@questionText", questionText);
                 }
 
                 if (!string.IsNullOrEmpty(commentText)) {
-                    where += " Comment LIKE @commentText AND ";
+                    where += " Comment LIKE '%' + @commentText + '%' AND ";
                     sql.SelectCommand.Parameters.AddWithValue("@commentText", commentText);
                 }
 

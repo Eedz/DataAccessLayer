@@ -303,7 +303,7 @@ namespace ITCLib
         /// </summary>
         /// <param name="draft"></param>
         /// <returns></returns>
-        public static int InsertSurveyDraft(SurveyDraftRecord draft)
+        public static int InsertSurveyDraft(SurveyDraft draft)
         {
             DynamicParameters parameters = new DynamicParameters();
             parameters.Add("@SurvID", draft.SurvID);

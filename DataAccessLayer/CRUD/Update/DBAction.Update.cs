@@ -2115,7 +2115,7 @@ namespace ITCLib
 
         }
 
-        public static int UpdateSurveyDraft(SurveyDraftRecord record)
+        public static int UpdateSurveyDraft(SurveyDraft record)
         {
             using (SqlDataAdapter sql = new SqlDataAdapter())
             using (SqlConnection conn = new SqlConnection(connectionString))
@@ -2147,7 +2147,7 @@ namespace ITCLib
             return 0;
         }
 
-        public static int UpdateSurveyDraftExtraField(SurveyDraftExtraFieldRecord record)
+        public static int UpdateSurveyDraftExtraField(SurveyDraftExtraField record)
         {
             using (SqlDataAdapter sql = new SqlDataAdapter())
             using (SqlConnection conn = new SqlConnection(connectionString))

@@ -15,21 +15,14 @@ namespace ITCLib
         public bool NewRecord { get; set; }
         public Region Item { get; set; }
 
-        public List<Study> AddedStudies { get; set; }
-        public List<Study> DeletedStudies { get; set; }
-
         public RegionRecord()
         {
             Item = new Region();
-            AddedStudies = new List<Study>();
-            DeletedStudies = new List<Study>();
         }
 
         public RegionRecord(Region region)
         {
             Item = region;
-            AddedStudies = new List<Study>();
-            DeletedStudies = new List<Study>();
         }
 
         public int SaveRecord()

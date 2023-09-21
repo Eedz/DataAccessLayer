@@ -498,7 +498,7 @@ namespace ITCLib
             return 0;
         }
 
-        public static int DeleteRecord(SurveyDraftRecord r)
+        public static int DeleteRecord(SurveyDraft r)
         {
             int rowsAffected = 0;
 
@@ -512,7 +512,7 @@ namespace ITCLib
             return 0;
         }
 
-        public static int DeleteRecord(SurveyDraftExtraFieldRecord r)
+        public static int DeleteRecord(SurveyDraftExtraField r)
         {
             int rowsAffected = 0;
 
