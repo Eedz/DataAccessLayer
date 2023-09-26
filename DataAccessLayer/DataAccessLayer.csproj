@@ -52,6 +52,7 @@
   <ItemGroup>
     <Compile Include="BackupConnection.cs" />
     <Compile Include="DapperExtensions.cs" />
+    <Compile Include="IDbExtensions.cs" />
     <Compile Include="Other\DBAction.Other.cs" />
     <Compile Include="CRUD\Read\DBAction.Questions.Backups.cs" />
     <Compile Include="CRUD\Read\DBAction.Translation.Backups.cs" />
