@@ -630,5 +630,28 @@ namespace ITCLib
             }
             return timeframes;
         }
+
+        public static string GetSurveyGroups(string survey, string varname)
+        {
+            List<string> groupList = new List<string>();
+
+            string sql = "SELECT Survey FROM FN_ListProjectGroups(@survey, @varname) GROUP BY Survey";
+            var parameters = new { survey, varname };
+            using (SqlConnection db = new SqlConnection(connectionString))
+            {
+                var results = db.Query(sql, parameters).Select(x => x as IDictionary<string, object>).ToList();
+
+                foreach (IDictionary<string, object> row in results)
+                {
+                    string surv = (string)row["Survey"];
+                    //if (surv.Equals(survey))
+                    //    continue;
+                    if (!groupList.Contains(surv))
+                        groupList.Add(surv);
+                }
+            }
+
+            return string.Join(", ", groupList);
+        }
     }
 }

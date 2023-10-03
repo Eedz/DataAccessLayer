@@ -184,23 +184,6 @@ namespace ITCLib
         }
 
         /// <summary>
-        /// Returns the list of survey groups in the database.
-        /// </summary>
-        /// <returns></returns>
-        public static List<SurveyUserGroup> GetGroupInfo()
-        {
-            List<SurveyUserGroup> groups = new List<SurveyUserGroup>();
-
-            string sql = "SELECT ID, [Group] AS UserGroup, [Code], WebName FROM tblGroup ORDER BY [Group]";
-
-            using (IDbConnection db = new SqlConnection(connectionString))
-            {
-                groups = db.Query<SurveyUserGroup>(sql).ToList();
-            }
-            return groups;
-        }
-
-        /// <summary>
         /// Unlocks a survey for the specified time interval.
         /// </summary>
         /// <returns></returns>

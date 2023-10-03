@@ -31,7 +31,7 @@ namespace ITCLib
                 }
                 catch (SqlException)
                 {
-                    return 1;
+                    return -1;
                 }
                 catch 
                 {
@@ -1056,6 +1056,20 @@ namespace ITCLib
             int rowsAffected = SP_Insert(sql, parameters, out int newID);
             record.ID = newID;
 
+            return rowsAffected;
+        }
+
+        public static int InsertGrantLabel (string survey, string varname, string grantcode)
+        {
+            string sql = "proc_createQuestionGrantLabel";
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@survey", survey);
+            parameters.Add("@varname", varname);
+            parameters.Add("@grantcode", grantcode);
+            //parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+            int rowsAffected = SP_Insert(sql, parameters, out int newID);
+            
             return rowsAffected;
         }
     }
