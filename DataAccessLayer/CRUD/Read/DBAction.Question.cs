@@ -635,7 +635,9 @@ namespace ITCLib
         {
             List<string> groupList = new List<string>();
 
-            string sql = "SELECT Survey FROM FN_ListProjectGroups(@survey, @varname) GROUP BY Survey";
+            string sql = "SELECT StudyWave FROM FN_ListProjectGroups(@survey, @varname) AS L " + 
+                "LEFT JOIN qrySurveyInfo AS SI ON L.Survey = SI.Survey LEFT JOIN qryStudyWaves AS SW ON SI.WaveID = SW.WaveID " +
+                "GROUP BY SW.StudyWave, SW.ISO_Code, SW.Wave ORDER BY SW.ISO_Code, SW.Wave;";
             var parameters = new { survey, varname };
             using (SqlConnection db = new SqlConnection(connectionString))
             {
@@ -643,9 +645,8 @@ namespace ITCLib
 
                 foreach (IDictionary<string, object> row in results)
                 {
-                    string surv = (string)row["Survey"];
-                    //if (surv.Equals(survey))
-                    //    continue;
+                    string surv = (string)row["StudyWave"];
+
                     if (!groupList.Contains(surv))
                         groupList.Add(surv);
                 }

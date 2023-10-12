@@ -282,6 +282,11 @@ namespace ITCLib
             return 0;
         }
 
+        /// <summary>
+        /// Delete praccing image record.
+        /// </summary>
+        /// <param name="r"></param>
+        /// <returns></returns>
         public static int DeleteRecord(PraccingImage r)
         {
             int rowsAffected = 0;

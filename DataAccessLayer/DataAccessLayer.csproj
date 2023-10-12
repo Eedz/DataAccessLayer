@@ -80,6 +80,7 @@
     <Compile Include="Record Objects\LockedSurveyRecord.cs" />
     <Compile Include="Record Objects\ModifiedQuestion.cs" />
     <Compile Include="Record Objects\PersonRecord.cs" />
+    <Compile Include="Record Objects\PraccingIssueRecord.cs" />
     <Compile Include="Record Objects\Survey Structure\QuestionRecord.cs" />
     <Compile Include="Record Objects\Record.cs" />
     <Compile Include="Record Objects\Survey Structure\RegionRecord.cs" />
