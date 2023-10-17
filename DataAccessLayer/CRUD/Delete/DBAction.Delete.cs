@@ -531,7 +531,7 @@ namespace ITCLib
             return 0;
         }
 
-        public static int DeleteRecord(VarNameChangeNotificationRecord r)
+        public static int DeleteRecord(VarNameChangeNotification r)
         {
             int rowsAffected = 0;
 
@@ -545,7 +545,7 @@ namespace ITCLib
             return 0;
         }
 
-        public static int DeleteRecord(VarNameChangeSurveyRecord r)
+        public static int DeleteRecord(VarNameChangeSurvey r)
         {
             int rowsAffected = 0;
 
@@ -559,7 +559,7 @@ namespace ITCLib
             return 0;
         }
 
-        public static int DeleteRecord(VarNameChangeRecord r)
+        public static int DeleteRecord(VarNameChange r)
         {
             int rowsAffected = 0;
 

@@ -7,41 +7,45 @@ using ITCLib;
 
 namespace ITCLib
 {
-    public class VarNameChangeRecord : VarNameChange, IRecord
+    public class VarNameChangeRecord : IRecord<VarNameChange>
     {
-        public int ID { get; set; }
-
-        public new List<VarNameChangeSurveyRecord> SurveysAffected { get; set; }
-        public new List<VarNameChangeNotificationRecord> Notifications { get; set; }
-
         public bool NewRecord { get; set; }
         public bool Dirty { get; set; }
 
-        public VarNameChangeRecord () : base()
+        public VarNameChange Item { get; set; }
+
+        public List<VarNameChangeSurvey> AddedSurveysAffected { get; set; }
+        public List<VarNameChangeSurvey> DeletedSurveysAffected { get; set; }
+        public List<VarNameChangeNotification> AddedNotifications { get; set; }
+        public List<VarNameChangeNotification> DeletedNotifications { get; set; }
+
+        public VarNameChangeRecord()
         {
-            ChangeDate = DateTime.Today;
-            SurveysAffected = new List<VarNameChangeSurveyRecord>();
-            Notifications = new List<VarNameChangeNotificationRecord>();
+            Item = new VarNameChange();
+
+            AddedSurveysAffected = new List<VarNameChangeSurvey>();
+            DeletedSurveysAffected = new List<VarNameChangeSurvey>();
+
+            AddedNotifications = new List<VarNameChangeNotification>();
+            DeletedNotifications = new List<VarNameChangeNotification>();
         }
 
-        public string GetSurveysAffected()
+        public VarNameChangeRecord(VarNameChange item)
         {
-            if (SurveysAffected.Count == 0)
-                return string.Empty;
+            Item = item;
 
-            string list = "";
-            foreach (VarNameChangeSurveyRecord s in SurveysAffected)
-                list += s.SurveyCode + ", ";
+            AddedSurveysAffected = new List<VarNameChangeSurvey>();
+            DeletedSurveysAffected = new List<VarNameChangeSurvey>();
 
-            list = Utilities.TrimString(list, ", ");
-            return list;
+            AddedNotifications = new List<VarNameChangeNotification>();
+            DeletedNotifications = new List<VarNameChangeNotification>();
         }
 
         public int SaveRecord()
         {
             if (NewRecord)
             {
-                if (DBAction.InsertVarNameChange(this) == 1)
+                if (DBAction.InsertVarNameChange(Item) == 1)
                     return 1;
 
                 NewRecord = false;
@@ -49,95 +53,50 @@ namespace ITCLib
             }
             else if (Dirty)
             {
-
-                if (DBAction.UpdateVarNameChange(this) == 1)
+                if (DBAction.UpdateVarNameChange(Item) == 1)
                     return 1;
 
                 Dirty = false;
             }
-            return 0;
-        }
-    }
 
-    public class VarNameChangeSurveyRecord : IRecord
-    {
-        public int ID { get; set; }
-        public int ChangeID { get; set; }
-        public int SurvID { get; set; }
-
-        public string SurveyCode { get; set; }
-
-        public bool NewRecord { get; set; }
-        public bool Dirty { get; set; }
-
-        public VarNameChangeSurveyRecord()
-        {
-            NewRecord = true;
-        }
-
-        public int SaveRecord()
-        {
-            if (NewRecord)
-            {
-                if (DBAction.InsertVarNameChangeSurvey(this) == 1)
-                    return 1;
-
-                NewRecord = false;
-                Dirty = false;
-            }
-            else if (Dirty)
-            {
-
-                if (DBAction.UpdateVarNameChangeSurvey(this) == 1)
-                    return 1;
-
-                Dirty = false;
-            }
+            SaveSurveysAffected();
+            SaveNotifications();
 
             return 0;
         }
-    }
 
-    public class VarNameChangeNotificationRecord : IRecord
-    {
-        public int ID { get; set; }
-        public int ChangeID { get; set; }
-        public int PersonID { get; set; }
-        public string NotifyType { get; set; }
-
-        public string Name { get; set; }
-
-        public bool NewRecord { get; set; }
-        public bool Dirty { get; set; }
-
-        public VarNameChangeNotificationRecord()
+        public int SaveSurveysAffected()
         {
-            NewRecord = true;
-            Name = string.Empty;
-            NotifyType = string.Empty;
-        }
-
-        public int SaveRecord()
-        {
-            if (NewRecord)
+            foreach(VarNameChangeSurvey s in AddedSurveysAffected)
             {
-                if (DBAction.InsertVarNameChangeNotification(this) == 1)
-                    return 1;
-
-                NewRecord = false;
-                Dirty = false;
+                DBAction.InsertVarNameChangeSurvey(s);
             }
-            else if (Dirty)
+            AddedSurveysAffected.Clear();
+
+            foreach(VarNameChangeSurvey s in DeletedSurveysAffected)
             {
-                if (DBAction.UpdateVarNameChangeNotification(this) == 1)
-                    return 1;
-
-                Dirty = false;
+                DBAction.DeleteRecord(s);
             }
+            DeletedSurveysAffected.Clear();
 
             return 0;
         }
-    }
 
-    
+        public int SaveNotifications()
+        {
+            foreach (VarNameChangeNotification n in AddedNotifications)
+            {
+                DBAction.InsertVarNameChangeNotification(n);
+            }
+            AddedNotifications.Clear();
+
+            foreach (VarNameChangeNotification n in DeletedNotifications)
+            {
+                DBAction.DeleteRecord(n);
+            }
+            DeletedNotifications.Clear();
+
+            return 0;
+        }
+    }    
 }

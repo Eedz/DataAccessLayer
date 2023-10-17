@@ -745,10 +745,10 @@ namespace ITCLib
             return recordsAffected;
         }
 
-        public static int InsertVarNameChange(VarNameChangeRecord record)
+        public static int InsertVarNameChange(VarNameChange record)
         {
             DynamicParameters parameters = new DynamicParameters();
-            parameters.Add("@refVarNameNew",record.NewRefName);
+            parameters.Add("@refVarNameNew", record.NewRefName);
             parameters.Add("@NewName", record.NewName);
             parameters.Add("@refVarNameOld", record.OldRefName);
             parameters.Add("@OldName", record.OldName);
@@ -764,13 +764,13 @@ namespace ITCLib
             int recordsAffected = SP_Insert("proc_createVarNameChange", parameters, out int newID);
             record.ID = newID;
 
-            foreach (VarNameChangeSurveyRecord sr in record.SurveysAffected)
+            foreach (VarNameChangeSurvey sr in record.SurveysAffected)
             {
                 sr.ChangeID = record.ID;
                 InsertVarNameChangeSurvey(sr);
             }
 
-            foreach (VarNameChangeNotificationRecord nr in record.Notifications)
+            foreach (VarNameChangeNotification nr in record.Notifications)
             {
                 nr.ChangeID = record.ID;
                 InsertVarNameChangeNotification(nr);
@@ -779,25 +779,25 @@ namespace ITCLib
             return recordsAffected;
         }
 
-        public static int InsertVarNameChangeSurvey(VarNameChangeSurveyRecord record)
+        public static int InsertVarNameChangeSurvey(VarNameChangeSurvey survey)
         {
             DynamicParameters parameters = new DynamicParameters();
-            parameters.Add("@changeID", record.ChangeID);
-            parameters.Add("@survID", record.SurvID);
+            parameters.Add("@changeID", survey.ChangeID);
+            parameters.Add("@survID", survey.SurveyCode.SID);
 
             parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
             int recordsAffected = SP_Insert("proc_createVarNameChangeSurvey", parameters, out int newID);
-            record.ID = newID;
+            survey.ID = newID;
 
             return recordsAffected;
         }
 
-        public static int InsertVarNameChangeNotification(VarNameChangeNotificationRecord record)
+        public static int InsertVarNameChangeNotification(VarNameChangeNotification record)
         {
             DynamicParameters parameters = new DynamicParameters();
             parameters.Add("@changeID", record.ChangeID);
-            parameters.Add("@notifyname", record.PersonID);
+            parameters.Add("@notifyname", record.Name.ID);
             parameters.Add("@notifytype", record.NotifyType);
 
             parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);

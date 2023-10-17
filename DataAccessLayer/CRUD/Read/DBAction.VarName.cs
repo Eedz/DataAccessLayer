@@ -97,10 +97,9 @@ namespace ITCLib
                 "FROM VarNames.FN_GetVarName(@varname)";
             var parameters = new { varname };
 
-
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                v = db.Query<VariableName, DomainLabel, TopicLabel, ContentLabel, ProductLabel, VariableName>(
+                var results = db.Query<VariableName, DomainLabel, TopicLabel, ContentLabel, ProductLabel, VariableName>(
                     sql, 
                     (varName, domain, topic, content, product) =>
                     {
@@ -111,7 +110,11 @@ namespace ITCLib
                         return varName;
                     }, 
                     parameters,
-                    splitOn: "DomainNum, TopicNum, ContentNum, ProductNum").ToList()[0];
+                    splitOn: "DomainNum, TopicNum, ContentNum, ProductNum").ToList();
+
+                if (results.Count > 0)
+                    v = results[0];
+                else v = new VariableName();
             }
             return v;
         }

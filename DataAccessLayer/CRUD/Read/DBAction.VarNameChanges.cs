@@ -20,17 +20,17 @@ namespace ITCLib
         /// </summary>
         /// <param name="survey"></param>
         /// <returns></returns>
-        public static List<VarNameChangeRecord> GetVarNameChanges(Survey survey)
+        public static List<VarNameChange> GetVarNameChanges(Survey survey)
         {
-            List<VarNameChangeRecord> changes = new List<VarNameChangeRecord>();
+            List<VarNameChange> changes = new List<VarNameChange>();
 
             string sql = "SELECT ID, OldName, NewName, ChangeDate, TempVar AS HiddenChange, TempVar AS PreFWChange, " +
                     "Reasoning AS Rationale, [Authorization], ChangeDateApprox AS ApproxChangeDate, Source2 AS Source, " +
                     "ChangedBy, ChangedBy AS ID, ChangedByName AS Name " +
                     "FROM FN_GetVarNameChangesSurvey (@survey);" +
-                "SELECT ID, ChangeID, SurveyID AS SurvID, Survey AS SurveyCode FROM qryVarNameChangeSurveys " +
+                "SELECT ID, ChangeID, SurveyID, SurveyID AS SID, Survey AS SurveyCode FROM qryVarNameChangeSurveys " +
                     "WHERE ChangeID IN (SELECT ChangeID FROM qryVarNameChangeSurveys WHERE Survey = @survey);" +
-                "SELECT N.ID, N.ChangeID, N.NotifyName AS PersonID, P.Name, NotifyType " + 
+                "SELECT N.ID, N.ChangeID, NotifyType, N.NotifyName, N.NotifyName AS ID, P.Name  " + 
                     "FROM qryVarNameChangeNotifications AS N " +
                     "LEFT JOIN qryIssueInit AS P ON N.NotifyName = P.ID " +
                     "LEFT JOIN qryVarNameChangeSurveys AS S ON N.ChangeID = S.ChangeID WHERE Survey = @survey";
@@ -41,7 +41,7 @@ namespace ITCLib
             {
                 var results = db.QueryMultiple(sql, parameters);
 
-                changes = results.Read<VarNameChangeRecord, Person, VarNameChangeRecord>
+                changes = results.Read<VarNameChange, Person, VarNameChange>
                     (
                         (change, name) =>
                         {
@@ -51,10 +51,19 @@ namespace ITCLib
                         splitOn: "ChangedBy"
                     ).ToList();
 
-                var surveys = results.Read<VarNameChangeSurveyRecord>();
-                var notifications = results.Read<VarNameChangeNotificationRecord>();
+                var surveys = results.Read<VarNameChangeSurvey, Survey, VarNameChangeSurvey>((change, surveyAffected) =>
+                {
+                    change.SurveyCode = surveyAffected;
+                    return change;
+                },
+                splitOn: "SurveyID");
+                var notifications = results.Read<VarNameChangeNotification, Person, VarNameChangeNotification>((change, person) =>
+                {
+                    change.Name = person;
+                    return change;
+                }, splitOn: "NotifyName");
 
-                foreach (VarNameChangeRecord change in changes)
+                foreach (VarNameChange change in changes)
                 {
                     change.SurveysAffected = surveys.Where(x => x.ChangeID == change.ID).ToList();
                     change.Notifications = notifications.Where(x => x.ChangeID == change.ID).ToList();
@@ -69,9 +78,9 @@ namespace ITCLib
         /// <param name="wave"></param>
         /// <param name="excludeTempChanges"></param>
         /// <returns></returns>
-        public static List<VarNameChangeRecord> GetVarNameChanges(StudyWave wave)
+        public static List<VarNameChange> GetVarNameChanges(StudyWave wave)
         {
-            List<VarNameChangeRecord> changes = new List<VarNameChangeRecord>();
+            List<VarNameChange> changes = new List<VarNameChange>();
 
             string sql = "SELECT C.ID, [NewName], OldName, ChangeDate, ChangeDateApprox AS ApproxChangeDate, Reasoning AS Rationale, " +
                             "[Authorization], TempVar AS HiddenChange, TempVar AS PreFWChange, [Source2] AS Source, " +
@@ -98,7 +107,7 @@ namespace ITCLib
             {
                 var results = db.QueryMultiple(sql, parameters);
 
-                changes = results.Read<VarNameChangeRecord, Person, VarNameChangeRecord>
+                changes = results.Read<VarNameChange, Person, VarNameChange>
                     (
                         (change, name) =>
                         {
@@ -108,10 +117,10 @@ namespace ITCLib
                         splitOn: "ChangedBy"
                     ).ToList();
 
-                var surveys = results.Read<VarNameChangeSurveyRecord>();
-                var notifications = results.Read<VarNameChangeNotificationRecord>();
+                var surveys = results.Read<VarNameChangeSurvey>();
+                var notifications = results.Read<VarNameChangeNotification>();
 
-                foreach (VarNameChangeRecord change in changes)
+                foreach (VarNameChange change in changes)
                 {
                     change.SurveysAffected = surveys.Where(x => x.ChangeID == change.ID).ToList();
                     change.Notifications = notifications.Where(x => x.ChangeID == change.ID).ToList();

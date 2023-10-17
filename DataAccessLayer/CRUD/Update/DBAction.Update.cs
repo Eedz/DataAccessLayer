@@ -1276,11 +1276,11 @@ namespace ITCLib
                     CommandType = CommandType.StoredProcedure
                 };
 
-                foreach (Survey s in change.SurveysAffected)
+                foreach (VarNameChangeSurvey s in change.SurveysAffected)
                 {
                     sql.UpdateCommand.Parameters.AddWithValue("@oldname", change.OldName);
                     sql.UpdateCommand.Parameters.AddWithValue("@newname", change.NewName);
-                    sql.UpdateCommand.Parameters.AddWithValue("@survey", s.SurveyCode);
+                    sql.UpdateCommand.Parameters.AddWithValue("@survey", s.SurveyCode.SurveyCode);
                 }
 
                 try
@@ -1694,7 +1694,7 @@ namespace ITCLib
             return 0;
         }
 
-        public static int UpdateVarNameChange(VarNameChangeRecord record)
+        public static int UpdateVarNameChange(VarNameChange record)
         {
             using (SqlDataAdapter sql = new SqlDataAdapter())
             using (SqlConnection conn = new SqlConnection(connectionString))
@@ -1766,7 +1766,7 @@ namespace ITCLib
             return 0;
         }
 
-        public static int UpdateVarNameChangeSurvey(VarNameChangeSurveyRecord record)
+        public static int UpdateVarNameChangeSurvey(VarNameChangeSurvey record)
         {
             using (SqlDataAdapter sql = new SqlDataAdapter())
             using (SqlConnection conn = new SqlConnection(connectionString))
@@ -1780,7 +1780,7 @@ namespace ITCLib
                 };
 
                 sql.UpdateCommand.Parameters.AddWithValue("@ID", record.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@survid", record.SurvID);
+                sql.UpdateCommand.Parameters.AddWithValue("@survid", record.SurveyCode.SID);
 
 
                 try
@@ -1797,7 +1797,7 @@ namespace ITCLib
             return 0;
         }
 
-        public static int UpdateVarNameChangeNotification(VarNameChangeNotificationRecord record)
+        public static int UpdateVarNameChangeNotification(VarNameChangeNotification record)
         {
             using (SqlDataAdapter sql = new SqlDataAdapter())
             using (SqlConnection conn = new SqlConnection(connectionString))
@@ -1811,7 +1811,7 @@ namespace ITCLib
                 };
 
                 sql.UpdateCommand.Parameters.AddWithValue("@ID", record.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@notifyname", record.PersonID);
+                sql.UpdateCommand.Parameters.AddWithValue("@notifyname", record.Name.ID);
                 sql.UpdateCommand.Parameters.AddWithValue("@notifytype", record.NotifyType);
 
                 try
@@ -2259,11 +2259,18 @@ namespace ITCLib
             int result;
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                int rowsAffected = db.Execute(queryString, parameters);
-                if (rowsAffected > 0)
-                    result = 0;
-                else
+                try
+                {
+                    int rowsAffected = db.Execute(queryString, parameters);
+                    if (rowsAffected > 0)
+                        result = 0;
+                    else
+                        result = 1;
+                }
+                catch
+                {
                     result = 1;
+                }
             }
             return result;
         }

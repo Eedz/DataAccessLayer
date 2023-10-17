@@ -14,9 +14,9 @@ namespace ITCLib
         List<Survey> SurveyList;
         List<string> ToDelete; // list of VarNames to delete
 
-        public List<string> FailedRenames;
+        public List<Survey> FailedRenames;
 
-        public List<VarNameChangeRecord> Changes { get; set; }
+        public List<VarNameChange> Changes { get; set; }
 
         public VarRenamer()
         {
@@ -34,15 +34,13 @@ namespace ITCLib
 
         public void PerformRefRename()
         {
-            FailedRenames = new List<string>();
+            FailedRenames = new List<Survey>();
             // create a list of change objects
-            Changes = new List<VarNameChangeRecord>();
+            Changes = new List<VarNameChange>();
             foreach (Survey s in SurveyList)
             {
-                VarNameChangeSurveyRecord sr = new VarNameChangeSurveyRecord();
-                sr.NewRecord = true;
-                sr.SurvID = s.SID;
-                sr.SurveyCode = s.SurveyCode;
+                VarNameChangeSurvey sr = new VarNameChangeSurvey();
+                sr.SurveyCode = s;
 
                 string oldname = Utilities.ChangeCC(OldName.RefVarName, s.CountryCode);
                 string newname = Utilities.ChangeCC(NewName.RefVarName, s.CountryCode);
@@ -54,8 +52,7 @@ namespace ITCLib
                     continue;
                 }
 
-                VarNameChangeRecord change = new VarNameChangeRecord();
-                change.NewRecord = true;
+                VarNameChange change = new VarNameChange();
                 change.OldName = oldname;
                 change.NewName = newname;
                 change.ChangeDate = DateTime.Now;
@@ -72,19 +69,19 @@ namespace ITCLib
             {
                 if (RenameVariable(OldName.RefVarName, NewName.RefVarName, s.SurveyCode) == 1)
                 {
-                    FailedRenames.Add(s.SurveyCode);
+                    FailedRenames.Add(s);
                 }
             }
             // remove failed surveys from list
-            foreach (VarNameChangeRecord record in Changes)
+            foreach (VarNameChange record in Changes)
             {
-                List<VarNameChangeSurveyRecord> matches = record.SurveysAffected.Where(x => FailedRenames.Contains(x.SurveyCode)).ToList();
+                List<VarNameChangeSurvey> matches = record.SurveysAffected.Where(x => FailedRenames.Contains(x.SurveyCode)).ToList();
                 foreach (var match in matches)
                     record.SurveysAffected.Remove(match);
             }
 
             // rename in wordings
-            var successes = SurveyList.Where(x => !FailedRenames.Contains(x.SurveyCode));
+            var successes = SurveyList.Where(x => !FailedRenames.Contains(x));
 
             foreach (Survey s in successes)
             {
@@ -220,9 +217,9 @@ namespace ITCLib
         {
             foreach (VarNameChange change in changes)
             {
-                foreach (Survey s in change.SurveysAffected)
+                foreach (VarNameChangeSurvey s in change.SurveysAffected)
                 {
-                    if (DBAction.RenameVariableName(change.OldName, change.NewName, s.SurveyCode) == 1)
+                    if (DBAction.RenameVariableName(change.OldName, change.NewName, s.SurveyCode.SurveyCode) == 1)
                     {
                         FailedRenames.Add(s.SurveyCode);
                     }
