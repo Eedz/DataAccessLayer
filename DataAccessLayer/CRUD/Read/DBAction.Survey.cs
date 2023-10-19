@@ -57,24 +57,6 @@ namespace ITCLib
         }
 
         /// <summary>
-        ///  Return a list of surveys in the renumber list.
-        /// </summary>
-        public static List<KeyValuePair<int, string>> GetRenumberedSurveys()
-        {
-            List<KeyValuePair<int, string>> surveys = new List<KeyValuePair<int, string>>();
-            string sql = "SELECT SurvID, Survey FROM qryRenumberedSurveys ORDER BY Survey";
-            using (IDbConnection db = new SqlConnection(connectionString))
-            {
-                var results = db.Query(sql).Select(x => x as IDictionary<string, object>);
-                foreach (IDictionary<string, object> row in results)
-                {
-                    surveys.Add(new KeyValuePair<int, string>(Int32.Parse(row["SurvID"].ToString()), row["Survey"].ToString()));
-                }
-            }
-            return surveys;
-        }
-
-        /// <summary>
         /// Returns the list of surveys in the database in alpha order.
         /// </summary>
         /// <returns></returns>
