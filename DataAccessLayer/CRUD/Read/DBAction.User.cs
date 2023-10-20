@@ -30,7 +30,7 @@ namespace ITCLib
                 "SELECT PersonnelID, FormCode AS FormName, FormNumber AS FormNum, RecNum AS RecordPosition, Filter, SurvID AS FilterID " +
                     "FROM qryFormManager WHERE username = @username ORDER BY FormCode, FormNumber;";
             // saved comments, sources and last used comment
-            string sql2 = "SELECT ID, NoteDate, SourceInit AS SourceName, Source," +
+            string sql2 = "SELECT ID, NoteDate, Source," +
                             "0 AS NoteID, Comment AS NoteText," +
                             "NoteInit AS AuthorID, NoteInit AS ID, Name," +
                             "AuthorityID, AuthorityID AS ID, Name," +

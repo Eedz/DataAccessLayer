@@ -489,20 +489,6 @@ namespace ITCLib
             return 0;
         }
 
-        public static int DeleteRenumberedSurvey(Survey r)
-        {
-            int rowsAffected = 0;
-
-            string sql = "proc_deleteRenumberedSurvey";
-            var parameters = new { survID = r.SID };
-
-            using (IDbConnection db = new SqlConnection(connectionString))
-            {
-                rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
-            }
-            return 0;
-        }
-
         public static int DeleteRecord(SurveyDraft r)
         {
             int rowsAffected = 0;
