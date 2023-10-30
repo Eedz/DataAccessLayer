@@ -26,15 +26,15 @@ namespace ITCLib
         /// Returns the complete list of Notes.
         /// </summary>
         /// <returns></returns>
-        public static List<NoteRecord> GetNotes()
+        public static List<Note> GetNotes()
         {
-            List<NoteRecord> notes = new List<NoteRecord>();
+            List<Note> notes = new List<Note>();
 
-            string sql = "SELECT ID, Notes AS NoteText FROM tblNotes;";
+            string sql = "SELECT ID, Notes AS NoteText FROM tblNotes ORDER BY ID;";
 
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                notes = db.Query<NoteRecord>(sql).ToList();
+                notes = db.Query<Note>(sql).ToList();
             }
 
             return notes;

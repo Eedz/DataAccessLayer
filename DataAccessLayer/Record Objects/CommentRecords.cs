@@ -6,16 +6,27 @@ using System.Threading.Tasks;
 
 namespace ITCLib
 {
-    public class NoteRecord : Note, IRecord
+    public class NoteRecord : IRecord<Note>
     {
         public bool NewRecord { get; set; }
         public bool Dirty { get; set; }
+        public Note Item { get; set; }
+
+        public NoteRecord()
+        {
+            Item = new Note();
+        }
+
+        public NoteRecord(Note note)
+        {
+            Item = note;
+        }
 
         public int SaveRecord()
         {
             if (NewRecord)
             {
-                if (DBAction.InsertNote(this) == 1)
+                if (DBAction.InsertNote(this.Item) == 1)
                     return 1;
 
                 NewRecord = false;
@@ -24,7 +35,7 @@ namespace ITCLib
             }
             else if (Dirty)
             {
-                if (DBAction.UpdateNote(this) == 1)
+                if (DBAction.UpdateNote(this.Item) == 1)
                     return 1;
 
                 Dirty = false;

@@ -162,7 +162,7 @@ namespace ITCLib
             return 0;
         }
 
-        public static int DeleteRecord(NoteRecord r)
+        public static int DeleteRecord(Note r)
         {
             int rowsAffected = 0;
 
