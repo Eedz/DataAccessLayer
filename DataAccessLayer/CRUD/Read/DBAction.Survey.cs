@@ -284,52 +284,60 @@ namespace ITCLib
                 if (images.Any(x => x.ImageName.Equals(filename)))
                     continue;
 
-                string varname = string.Empty;
-                string language = string.Empty;
-                string countries = string.Empty;
-                string description = string.Empty;
-
-                string[] parts = file.Split('_');
-
-                if (parts.Length == 5)
+                SurveyImage img = new SurveyImage(filename)
                 {
-                    varname = parts[1];
-                    language = parts[2];
-                    countries = parts[3];
-                    description = parts[4];
-                }
-                else
-                {
-                    if (file.IndexOf('_') > 0)
-                    {
-                        int first_ = file.IndexOf('_') + 1;
-                        int second_ = file.IndexOf('_', first_);
-
-                        if (second_ == -1 || first_ == -1)
-                        {
-                            varname = file.Substring(file.LastIndexOf(@"\") + 1);
-                            description = file.Substring(file.LastIndexOf(@"\") + 1);
-                        }
-                        else
-                        {
-                            varname = file.Substring(first_, second_ - first_);
-                            description = file.Substring(second_ + 1);
-                        }
-                    }
-                }
-
-                SurveyImage img = new SurveyImage()
-                {
-                    ID = id,
                     ImageName = file.Substring(file.LastIndexOf(@"\") + 1),
                     ImagePath = file,
                     Width = iWidth,
-                    Height= iHeight,
-                    Description = description,
-                    VarName = varname,
-                    Language = language,
-                    Country = countries,
+                    Height = iHeight,
                 };
+
+                //string varname = string.Empty;
+                //string language = string.Empty;
+                //string countries = string.Empty;
+                //string description = string.Empty;
+
+                //string[] parts = file.Split('_');
+
+                //if (parts.Length == 5)
+                //{
+                //    varname = parts[1];
+                //    language = parts[2];
+                //    countries = parts[3];
+                //    description = parts[4];
+                //}
+                //else
+                //{
+                //    if (file.IndexOf('_') > 0)
+                //    {
+                //        int first_ = file.IndexOf('_') + 1;
+                //        int second_ = file.IndexOf('_', first_);
+
+                //        if (second_ == -1 || first_ == -1)
+                //        {
+                //            varname = file.Substring(file.LastIndexOf(@"\") + 1);
+                //            description = file.Substring(file.LastIndexOf(@"\") + 1);
+                //        }
+                //        else
+                //        {
+                //            varname = file.Substring(first_, second_ - first_);
+                //            description = file.Substring(second_ + 1);
+                //        }
+                //    }
+                //}
+
+
+                //SurveyImage img = new SurveyImage()
+                //{
+                //    ImageName = file.Substring(file.LastIndexOf(@"\") + 1),
+                //    ImagePath = file,
+                //    Width = iWidth,
+                //    Height= iHeight,
+                //    Description = description,
+                //    VarName = varname,
+                //    Language = language,
+                //    Country = countries,
+                //};
                 images.Add(img);
                 id++;
             }

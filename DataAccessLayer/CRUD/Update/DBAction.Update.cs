@@ -510,46 +510,7 @@ namespace ITCLib
 
         }
 
-        public static int UpdateBugReport(BugReport record)
-        {
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
-
-                conn.Open();
-
-                sql.UpdateCommand = new SqlCommand("proc_updateBugReport", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@ID", record.ID);
-                //sql.UpdateCommand.Parameters.AddWithValue("@checkDate", record.CheckDate);
-                //sql.UpdateCommand.Parameters.AddWithValue("@checkInit", record.Name.ID);
-                //sql.UpdateCommand.Parameters.AddWithValue("@sendDate", record.SentOn);
-                //sql.UpdateCommand.Parameters.AddWithValue("@sendTo", record.SentTo.ID);
-                //sql.UpdateCommand.Parameters.AddWithValue("@reviewed", record.Reviewed);
-                //sql.UpdateCommand.Parameters.AddWithValue("@reviewedBy", record.ReviewedBy.ID);
-                //sql.UpdateCommand.Parameters.AddWithValue("@reviewDetails", record.ReviewDetails);
-                //sql.UpdateCommand.Parameters.AddWithValue("@editsMadeDate", record.Edited);
-                //sql.UpdateCommand.Parameters.AddWithValue("@comments", record.Comments);
-                //sql.UpdateCommand.Parameters.AddWithValue("@survID", record.SurveyCode.SID);
-                //sql.UpdateCommand.Parameters.AddWithValue("@checkType", record.CheckType.ID);
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
-            }
-            return 0;
-
-        }
+       
 
         public static int UpdateLabel(string labelType, string labelText, int labelID)
         {

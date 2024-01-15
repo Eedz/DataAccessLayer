@@ -21,6 +21,11 @@ namespace ITCLib
         static string connectionString = ConfigurationManager.ConnectionStrings["ISISConnectionString"].ConnectionString;
 #endif
 
+        public static string GetConnectionString()
+        {
+            return connectionString;
+        }
+
         /// <summary>
         /// Returns the list of people.
         /// </summary>

@@ -136,44 +136,6 @@ namespace ITCLib
         }
 
         /// <summary>
-        /// Retrieves a set of records for a particular survey ID and returns a list of SurveyQuestion objects. 
-        /// </summary>
-        /// <param name="Survey">Survey object</param>
-        /// <returns>List of SurveyQuestions</returns>
-        public static List<SurveyQuestion> GetSurveyQuestionRecords(Survey s)
-        {
-            List<SurveyQuestion> qs = new List<SurveyQuestion>();
-
-            string sql = "SELECT ID, Survey AS SurveyCode, Qnum, PreP# AS PrePNum, PreP, PreI# AS PreINum, PreI, PreA# AS PreANum, PreA, LitQ# AS LitQNum, LitQ, " +
-                    "PstI# AS PstINum, PstI, PstP# AS PstPNum, PstP, RespName, RespOptions, NRName, NRCodes, TableFormat, CorrectedFlag, ScriptOnly, AltQnum, AltQnum2, AltQnum3, " +
-                    "VarName, VarLabel, " +
-                    "DomainNum, DomainNum AS ID, Domain AS LabelText, "+
-                    "TopicNum, TopicNum AS ID, Topic AS LabelText, " +
-                    "ContentNum, ContentNum AS ID, Content AS LabelText, " +
-                    "ProductNum, ProductNum AS ID, Product AS LabelText " +
-                    "FROM Questions.FN_GetSurveyQuestions(@SID) ORDER BY Qnum";
-
-            var parameters = new { SID = s.SID };
-
-            using (IDbConnection db = new SqlConnection(connectionString))
-            {              
-                var results = db.Query<SurveyQuestion, VariableName, DomainLabel, TopicLabel, ContentLabel, ProductLabel, SurveyQuestion>(sql,
-                    (question, varname, domain, topic, content, product) =>
-                {
-                    varname.Domain = domain;
-                    varname.Topic = topic;
-                    varname.Content = content;
-                    varname.Product = product;
-                    question.VarName = varname;
-                    return question;
-                }, parameters, splitOn: "VarName, DomainNum, TopicNum, ContentNum, ProductNum").ToList();
-
-                qs = new List<SurveyQuestion>(results);
-            }
-            return qs;
-        }
-
-        /// <summary>
         /// Retrieves a set of records for a particular survey ID and returns a list of SurveyQuestion objects.
         /// </summary>
         /// <param name="Survey">Survey object</param>
@@ -196,7 +158,7 @@ namespace ITCLib
                         "LanguageID, LanguageID AS ID, Lang AS LanguageName, Abbrev, ISOAbbrev, NonLatin, PreferredFont, RTL " +
                         "FROM qryTranslation AS T LEFT JOIN qrySurveyQuestions AS Q ON T.QID = Q.ID WHERE SurvID=@SID;" +
                     "SELECT ID, QID, SurvID, Survey, VarName, NoteDate, SourceName, Source, " +
-                        "CID, CID AS ID, Notes AS NoteText, "+
+                        "CID, CID AS ID, Notes AS NoteText, " +
                         "NoteInit, NoteInit AS ID, Name, " +
                         "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, ShortForm " +
                         "FROM qryCommentsQues WHERE SurvID = @SID;" +
@@ -241,7 +203,7 @@ namespace ITCLib
                 var timeframes = results.Read<QuestionTimeFrame>().ToList();
 
                 // add translations, comments, and time frames to questions
-                foreach(SurveyQuestion qr in questions)
+                foreach (SurveyQuestion qr in questions)
                 {
                     qr.Translations = translations.Where(x => x.QID == qr.ID).ToList();
                     qr.Comments = comments.Where(x => x.QID == qr.ID).ToList();
@@ -250,6 +212,97 @@ namespace ITCLib
             }
 
             return questions;
+        }
+
+        public static List<SurveyImage> GetQuestionImages(Survey survey, SurveyQuestion question)
+        {
+            string folder = @"\\psychfile\psych$\psych-lab-gfong\SMG\Survey Images\" +
+                survey.SurveyCodePrefix + @" Images\" + survey.SurveyCode;
+
+            if (!System.IO.Directory.Exists(folder))
+                return new List<SurveyImage>();
+
+            var files = System.IO.Directory.EnumerateFiles(folder, "*.*", System.IO.SearchOption.AllDirectories)
+            .Where(s => (s.EndsWith(".png") || s.EndsWith(".jpg")) && s.Contains("_" + question.VarName.RefVarName + "_"));
+
+            List<SurveyImage> images = new List<SurveyImage>();
+
+            int id = 0;
+            foreach (var file in files)
+            {
+                int iWidth = 0;
+                int iHeight = 0;
+                using (System.Drawing.Bitmap bmp = new System.Drawing.Bitmap(file))
+                {
+                    iWidth = bmp.Width;
+                    iHeight = bmp.Height;
+                    iWidth = (int)Math.Round((decimal)iWidth * 9525);
+                    iHeight = (int)Math.Round((decimal)iHeight * 9525);
+                }
+
+                string filename = file.Substring(file.LastIndexOf(@"\") + 1);
+                if (images.Any(x => x.ImageName.Equals(filename)))
+                    continue;
+
+                SurveyImage img = new SurveyImage(filename)
+                {
+                    ImageName = file.Substring(file.LastIndexOf(@"\") + 1),
+                    ImagePath = file,
+                    Width = iWidth,
+                    Height = iHeight,
+                };
+
+                //string varname = string.Empty;
+                //string language = string.Empty;
+                //string countries = string.Empty;
+                //string description = string.Empty;
+
+                //string[] parts = file.Split('_');
+
+                //if (parts.Length == 5)
+                //{
+                //    varname = parts[1];
+                //    language = parts[2];
+                //    countries = parts[3];
+                //    description = parts[4];
+                //}
+                //else
+                //{
+                //    if (file.IndexOf('_') > 0)
+                //    {
+                //        int first_ = file.IndexOf('_') + 1;
+                //        int second_ = file.IndexOf('_', first_);
+
+                //        if (second_ == -1 || first_ == -1)
+                //        {
+                //            varname = file.Substring(file.LastIndexOf(@"\") + 1);
+                //            description = file.Substring(file.LastIndexOf(@"\") + 1);
+                //        }
+                //        else
+                //        {
+                //            varname = file.Substring(first_, second_ - first_);
+                //            description = file.Substring(second_ + 1);
+                //        }
+                //    }
+                //}
+
+                //SurveyImage img = new SurveyImage()
+                //{
+                //    ID = id,
+                //    ImageName = file.Substring(file.LastIndexOf(@"\") + 1),
+                //    ImagePath = file,
+                //    Width = iWidth,
+                //    Height = iHeight,
+                //    Description = description,
+                //    VarName = varname,
+                //    Language = language,
+                //    Country = countries,
+                //};
+                images.Add(img);
+                id++;
+            }
+
+            return images;
         }
 
         /// <summary>
