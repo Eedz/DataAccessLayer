@@ -974,7 +974,7 @@ namespace ITCLib
                 sql.UpdateCommand.Parameters.AddWithValue("@notedate", record.NoteDate.Value);
                 sql.UpdateCommand.Parameters.AddWithValue("@noteinit", record.Author.ID);
                 sql.UpdateCommand.Parameters.AddWithValue("@sourcename", record.SourceName);
-                sql.UpdateCommand.Parameters.AddWithValue("@notetype", record.NoteType.TypeName);
+                sql.UpdateCommand.Parameters.AddWithValue("@notetype", record.NoteType.ID);
                 sql.UpdateCommand.Parameters.AddWithValue("@source", record.Source);
 
                 try
@@ -1006,7 +1006,7 @@ namespace ITCLib
                 sql.UpdateCommand.Parameters.AddWithValue("@notedate", record.NoteDate.Value);
                 sql.UpdateCommand.Parameters.AddWithValue("@noteinit", record.Author.ID);
                 sql.UpdateCommand.Parameters.AddWithValue("@sourcename", record.SourceName);
-                sql.UpdateCommand.Parameters.AddWithValue("@notetype", record.NoteType.TypeName);
+                sql.UpdateCommand.Parameters.AddWithValue("@notetype", record.NoteType.ID);
                 sql.UpdateCommand.Parameters.AddWithValue("@source", record.Source);
 
                 try
@@ -1038,7 +1038,7 @@ namespace ITCLib
                 sql.UpdateCommand.Parameters.AddWithValue("@notedate", record.NoteDate.Value);
                 sql.UpdateCommand.Parameters.AddWithValue("@noteinit", record.Author.ID);
                 sql.UpdateCommand.Parameters.AddWithValue("@sourcename", record.SourceName);
-                sql.UpdateCommand.Parameters.AddWithValue("@notetype", record.NoteType.TypeName);
+                sql.UpdateCommand.Parameters.AddWithValue("@notetype", record.NoteType.ID);
                 sql.UpdateCommand.Parameters.AddWithValue("@source", record.Source);
 
                 try
@@ -1070,7 +1070,7 @@ namespace ITCLib
                 sql.UpdateCommand.Parameters.AddWithValue("@notedate", record.NoteDate.Value);
                 sql.UpdateCommand.Parameters.AddWithValue("@noteinit", record.Author.ID);
                 sql.UpdateCommand.Parameters.AddWithValue("@sourcename", record.SourceName);
-                sql.UpdateCommand.Parameters.AddWithValue("@notetype", record.NoteType.TypeName);
+                sql.UpdateCommand.Parameters.AddWithValue("@notetype", record.NoteType.ID);
                 sql.UpdateCommand.Parameters.AddWithValue("@source", record.Source);
 
                 try
@@ -1103,7 +1103,7 @@ namespace ITCLib
                 sql.UpdateCommand.Parameters.AddWithValue("@notedate", record.NoteDate.Value);
                 sql.UpdateCommand.Parameters.AddWithValue("@noteinit", record.Author.ID);
                 sql.UpdateCommand.Parameters.AddWithValue("@sourcename", record.SourceName);
-                sql.UpdateCommand.Parameters.AddWithValue("@notetype", record.NoteType.TypeName);
+                sql.UpdateCommand.Parameters.AddWithValue("@notetype", record.NoteType.ID);
                 sql.UpdateCommand.Parameters.AddWithValue("@source", record.Source);
 
                 try

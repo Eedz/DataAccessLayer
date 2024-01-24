@@ -167,9 +167,9 @@ namespace ITCLib
         /// </summary>
         /// <param name="CID"></param>
         /// <returns></returns>
-        public static List<QuestionCommentRecord> GetQuesCommentsByCID (int CID)
+        public static List<QuestionComment> GetQuesCommentsByCID (int CID)
         {
-            List<QuestionCommentRecord> cs = new List<QuestionCommentRecord>();
+            List<QuestionComment> cs = new List<QuestionComment>();
 
             string query = "SELECT ID, QID, SurvID, Survey, VarName, NoteDate, SourceName, Source, " + 
                 "CID, CID AS ID, Notes AS NoteText, " + 
@@ -181,7 +181,7 @@ namespace ITCLib
 
             using (SqlConnection db = new SqlConnection(connectionString))
             {
-                cs = db.Query<QuestionCommentRecord, Note, Person, CommentType, QuestionCommentRecord>(query, (record, note, person, type) =>
+                cs = db.Query<QuestionComment, Note, Person, CommentType, QuestionComment>(query, (record, note, person, type) =>
                 {
                     record.Notes = note;
                     record.Author = person;
@@ -378,9 +378,9 @@ namespace ITCLib
         /// </summary>
         /// <param name="CID"></param>
         /// <returns></returns>
-        public static List<SurveyCommentRecord> GetSurvCommentsByCID(int CID)
+        public static List<SurveyComment> GetSurvCommentsByCID(int CID)
         {
-            List<SurveyCommentRecord> comments = new List<SurveyCommentRecord>();
+            List<SurveyComment> comments = new List<SurveyComment>();
 
             string query = "SELECT ID, SurvID, Survey, NoteDate, SourceName, Source, " +
                 "CID, CID AS ID, Notes AS NoteText, " +
@@ -392,7 +392,7 @@ namespace ITCLib
 
             using (SqlConnection db = new SqlConnection(connectionString))
             {
-                comments = db.Query<SurveyCommentRecord, Note, Person, CommentType, SurveyCommentRecord>(query, (record, note, person, type) =>
+                comments = db.Query<SurveyComment, Note, Person, CommentType, SurveyComment>(query, (record, note, person, type) =>
                 {
                     record.Notes = note;
                     record.Author = person;
@@ -466,9 +466,9 @@ namespace ITCLib
         /// </summary>
         /// <param name="CID"></param>
         /// <returns></returns>
-        public static List<WaveCommentRecord> GetWaveCommentsByCID(int CID)
+        public static List<WaveComment> GetWaveCommentsByCID(int CID)
         {
-            List<WaveCommentRecord> comments = new List<WaveCommentRecord>();
+            List<WaveComment> comments = new List<WaveComment>();
 
             string query = "SELECT ID, WID AS WaveID, StudyWave, NoteDate, SourceName, Source, " +
                 "CID, CID AS ID, Notes AS NoteText, " +
@@ -480,7 +480,7 @@ namespace ITCLib
 
             using (SqlConnection db = new SqlConnection(connectionString))
             {
-                comments = db.Query<WaveCommentRecord, Note, Person, CommentType, WaveCommentRecord>(query, (record, note, person, type) =>
+                comments = db.Query<WaveComment, Note, Person, CommentType, WaveComment>(query, (record, note, person, type) =>
                 {
                     record.Notes = note;
                     record.Author = person;
@@ -590,9 +590,9 @@ namespace ITCLib
         /// </summary>
         /// <param name="CID"></param>
         /// <returns></returns>
-        public static List<DeletedCommentRecord> GetDeletedCommentsByCID(int CID)
+        public static List<DeletedComment> GetDeletedCommentsByCID(int CID)
         {
-            List<DeletedCommentRecord> comments = new List<DeletedCommentRecord>();
+            List<DeletedComment> comments = new List<DeletedComment>();
 
             string query = "SELECT ID, Survey, VarName, NoteDate, SourceName, Source, " +
                 "CID, CID AS ID, Notes AS NoteText, " +
@@ -604,7 +604,7 @@ namespace ITCLib
 
             using (SqlConnection db = new SqlConnection(connectionString))
             {
-                comments = db.Query<DeletedCommentRecord, Note, Person, CommentType, DeletedCommentRecord>(query, (record, note, person, type) =>
+                comments = db.Query<DeletedComment, Note, Person, CommentType, DeletedComment>(query, (record, note, person, type) =>
                 {
                     record.Notes = note;
                     record.Author = person;
@@ -625,9 +625,9 @@ namespace ITCLib
         /// </summary>
         /// <param name="CID"></param>
         /// <returns></returns>
-        public static List<RefVarCommentRecord> GetRefVarCommentsByCID(int CID)
+        public static List<RefVarComment> GetRefVarCommentsByCID(int CID)
         {
-            List<RefVarCommentRecord> comments = new List<RefVarCommentRecord>();
+            List<RefVarComment> comments = new List<RefVarComment>();
 
             string query = "SELECT ID, RefVarName, NoteDate, SourceName, Source, " +
                 "CID, CID AS ID, Notes AS NoteText, " +
@@ -639,7 +639,7 @@ namespace ITCLib
 
             using (SqlConnection db = new SqlConnection(connectionString))
             {
-                comments = db.Query<RefVarCommentRecord, Note, Person, CommentType, RefVarCommentRecord>(query, (record, note, person, type) =>
+                comments = db.Query<RefVarComment, Note, Person, CommentType, RefVarComment>(query, (record, note, person, type) =>
                 {
                     record.Notes = note;
                     record.Author = person;

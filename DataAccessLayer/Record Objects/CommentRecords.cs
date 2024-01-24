@@ -45,18 +45,27 @@ namespace ITCLib
         }
     }
 
-    public class QuestionCommentRecord : QuestionComment, IRecord
+    public class QuestionCommentRecord : IRecord<QuestionComment>
     {
         public bool NewRecord { get; set; }
         public bool Dirty { get; set; }
+        public QuestionComment Item { get; set; }
+
+        public QuestionCommentRecord()
+        {
+            Item = new QuestionComment();
+        }
+
+        public QuestionCommentRecord(QuestionComment comment)
+        {
+            Item = comment;
+        }
 
         public int SaveRecord()
         {
-
             if (NewRecord)
             {
-
-                if (DBAction.InsertQuestionComment(this) == 1)
+                if (DBAction.InsertQuestionComment(Item) == 1)
                     return 1;
 
                 NewRecord = false;
@@ -65,8 +74,7 @@ namespace ITCLib
             }
             else if (Dirty)
             {
-
-                if (DBAction.UpdateQuestionComment(this) == 1)
+                if (DBAction.UpdateQuestionComment(Item) == 1)
                     return 1;
 
                 Dirty = false;
@@ -76,18 +84,27 @@ namespace ITCLib
         }
     }
 
-    public class SurveyCommentRecord : SurveyComment, IRecord
+    public class SurveyCommentRecord : IRecord<SurveyComment>
     {
         public bool NewRecord { get; set; }
         public bool Dirty { get; set; }
+        public SurveyComment Item { get; set; }
+
+        public SurveyCommentRecord()
+        {
+            Item = new SurveyComment();
+        }
+
+        public SurveyCommentRecord(SurveyComment comment)
+        {
+            Item = comment;
+        }
 
         public int SaveRecord()
         {
-
             if (NewRecord)
             {
-
-                if (DBAction.InsertSurveyComment(this) == 1)
+                if (DBAction.InsertSurveyComment(Item) == 1)
                     return 1;
 
                 NewRecord = false;
@@ -96,8 +113,7 @@ namespace ITCLib
             }
             else if (Dirty)
             {
-
-                if (DBAction.UpdateSurveyComment(this) == 1)
+                if (DBAction.UpdateSurveyComment(Item) == 1)
                     return 1;
 
                 Dirty = false;
@@ -107,18 +123,27 @@ namespace ITCLib
         }
     }
 
-    public class WaveCommentRecord : WaveComment, IRecord
+    public class WaveCommentRecord : IRecord<WaveComment>
     {
         public bool NewRecord { get; set; }
         public bool Dirty { get; set; }
+        public WaveComment Item { get; set; }
+
+        public WaveCommentRecord()
+        {
+            Item = new WaveComment();   
+        }
+
+        public WaveCommentRecord(WaveComment comment)
+        {
+            Item = comment;
+        }
 
         public int SaveRecord()
         {
-
             if (NewRecord)
             {
-
-                if (DBAction.InsertWaveComment(this) == 1)
+                if (DBAction.InsertWaveComment(Item) == 1)
                     return 1;
 
                 NewRecord = false;
@@ -127,8 +152,7 @@ namespace ITCLib
             }
             else if (Dirty)
             {
-
-                if (DBAction.UpdateWaveComment(this) == 1)
+                if (DBAction.UpdateWaveComment(Item) == 1)
                     return 1;
 
                 Dirty = false;
@@ -138,18 +162,27 @@ namespace ITCLib
         }
     }
 
-    public class DeletedCommentRecord : DeletedComment, IRecord
+    public class DeletedCommentRecord : IRecord<DeletedComment>
     {
         public bool NewRecord { get; set; }
         public bool Dirty { get; set; }
+        public DeletedComment Item { get; set; }
+
+        public DeletedCommentRecord()
+        {
+            Item = new DeletedComment();
+        }
+
+        public DeletedCommentRecord(DeletedComment comment)
+        {
+            Item = comment;
+        }
 
         public int SaveRecord()
         {
-
             if (NewRecord)
             {
-
-                if (DBAction.InsertDeletedComment(this) == 1)
+                if (DBAction.InsertDeletedComment(Item) == 1)
                     return 1;
 
                 NewRecord = false;
@@ -158,8 +191,7 @@ namespace ITCLib
             }
             else if (Dirty)
             {
-
-                if (DBAction.UpdateDeletedQuestionComment(this) == 1)
+                if (DBAction.UpdateDeletedQuestionComment(Item) == 1)
                     return 1;
 
                 Dirty = false;
@@ -169,18 +201,27 @@ namespace ITCLib
         }
     }
 
-    public class RefVarCommentRecord : RefVarComment, IRecord
+    public class RefVarCommentRecord : IRecord<RefVarComment>
     {
         public bool NewRecord { get; set; }
         public bool Dirty { get; set; }
+        public RefVarComment Item { get; set; }
+
+        public RefVarCommentRecord()
+        {
+            Item = new RefVarComment();
+        }
+
+        public RefVarCommentRecord(RefVarComment comment)
+        {
+            Item = comment;
+        }
 
         public int SaveRecord()
         {
-
             if (NewRecord)
             {
-
-                if (DBAction.InsertRefVarComment(this) == 1)
+                if (DBAction.InsertRefVarComment(Item) == 1)
                     return 1;
 
                 NewRecord = false;
@@ -189,8 +230,7 @@ namespace ITCLib
             }
             else if (Dirty)
             {
-
-                if (DBAction.UpdateRefVarComment(this) == 1)
+                if (DBAction.UpdateRefVarComment(Item) == 1)
                     return 1;
 
                 Dirty = false;

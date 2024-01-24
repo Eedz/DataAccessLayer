@@ -9,7 +9,6 @@ namespace ITCLib
     /// <summary>
     /// Container to keep track of changes to a question.
     /// </summary>
-    /// // TODO implement change event and set dirty = true when things change
     public class QuestionRecord : IRecord<SurveyQuestion>
     {
         public bool DirtyLabels { get; set; }

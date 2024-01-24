@@ -201,7 +201,7 @@ namespace ITCLib
         /// <summary>
         /// Returns a list of VariableNameSurveys objects with the provided refVarName.
         /// </summary>
-        /// <param name="refVarName"></param>
+        /// <param name="prefix"></param>
         /// <returns></returns>
         async public static Task<List<VariableNameSurveys>> GetVarNamesPrefixAsync(string prefix)
         {
@@ -246,7 +246,6 @@ namespace ITCLib
         /// <summary>
         /// Returns the list of VariableNames in the database with their usages.
         /// </summary>
-        /// <param name="refVarName"></param>
         /// <returns></returns>
         async public static Task<List<VariableNameSurveys>> GetVarNameUsageAsync()
         {
@@ -275,6 +274,49 @@ namespace ITCLib
                         varname.Product = product;
                         return varname; 
                     }, 
+                    splitOn: "DomainNum, TopicNum, ContentNum, ProductNum"
+                );
+                refVarNames = results.ToList();
+            }
+
+            return refVarNames;
+        }
+
+        /// <summary>
+        /// Returns the list of VariableNames in the database with their usages.
+        /// </summary>
+        /// <param name="startsWith"></param>
+        /// <returns></returns>
+        async public static Task<List<VariableNameSurveys>> GetVarNameUsageAsync(string startsWith)
+        {
+            List<VariableNameSurveys> refVarNames = new List<VariableNameSurveys>();
+
+            string query = "SELECT refVarName, VarName, VarLabel, " +
+                                "STUFF((SELECT  ',' + Survey FROM qrySurveyQuestions SQ2 WHERE VarName = sq1.VarName GROUP BY SQ2.Survey ORDER BY Survey " +
+                                "FOR XML PATH(''), TYPE).value('text()[1]', 'nvarchar(max)') ,1, LEN(','), '') AS SurveyList, " +
+                            "DomainNum, DomainNum AS ID, Domain AS LabelText, " +
+                            "TopicNum, TopicNum AS ID, Topic AS LabelText, " +
+                            "ContentNum, ContentNum AS ID, Content AS LabelText, " +
+                            "ProductNum, ProductNum AS ID, Product AS LabelText " +
+                            "FROM qrySurveyQuestions Sq1 " +
+                            "WHERE sq1.refVarName LIKE @startsWith + '%' " +
+                             "GROUP BY sq1.refVarName, VarName, Sq1.VarLabel, Sq1.Domain, DomainNum, Sq1.Content, ContentNum, Sq1.Topic, TopicNum, Sq1.Product, ProductNum " +
+                            "ORDER BY refVarName";
+
+            var parameters = new { startsWith };
+
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                var results = await db.QueryAsync<VariableNameSurveys, DomainLabel, TopicLabel, ContentLabel, ProductLabel, VariableNameSurveys>(
+                    query,
+                    (varname, domain, topic, content, product) =>
+                    {
+                        varname.Domain = domain;
+                        varname.Topic = topic;
+                        varname.Content = content;
+                        varname.Product = product;
+                        return varname;
+                    }, parameters,
                     splitOn: "DomainNum, TopicNum, ContentNum, ProductNum"
                 );
                 refVarNames = results.ToList();

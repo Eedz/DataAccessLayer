@@ -177,21 +177,6 @@ namespace ITCLib
             return 0;
         }
 
-        public static int DeleteRecord(QuestionCommentRecord r)
-        {
-            int rowsAffected = 0;
-
-            string sql = "proc_deleteComment";
-            var parameters = new { ID = r.ID };
-
-            using (IDbConnection db = new SqlConnection(connectionString))
-            {
-                rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
-            }
-
-            return 0;
-        }
-
         public static int DeleteDeletedComment(int commentID)
         {
             int rowsAffected = 0;
@@ -591,7 +576,63 @@ namespace ITCLib
         {
             int rowsAffected = 0;
 
-            string sql = "DELETE FROM tblCommentsQues WHERE ID = @ID";
+            string sql = "DELETE FROM tblNotesByQues WHERE ID = @ID";
+            var parameters = new { ID = r.ID };
+
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(sql, parameters);
+            }
+            return 0;
+        }
+
+        public static int DeleteRecord(SurveyComment r)
+        {
+            int rowsAffected = 0;
+
+            string sql = "DELETE FROM tblNotesBySurv WHERE ID = @ID";
+            var parameters = new { ID = r.ID };
+
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(sql, parameters);
+            }
+            return 0;
+        }
+
+        public static int DeleteRecord(WaveComment r)
+        {
+            int rowsAffected = 0;
+
+            string sql = "DELETE FROM tblNotesByWave WHERE ID = @ID";
+            var parameters = new { ID = r.ID };
+
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(sql, parameters);
+            }
+            return 0;
+        }
+
+        public static int DeleteRecord(RefVarComment r)
+        {
+            int rowsAffected = 0;
+
+            string sql = "DELETE FROM tblNotesByRefVar WHERE ID = @ID";
+            var parameters = new { ID = r.ID };
+
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(sql, parameters);
+            }
+            return 0;
+        }
+
+        public static int DeleteRecord(DeletedComment r)
+        {
+            int rowsAffected = 0;
+
+            string sql = "DELETE FROM tblNotesByDeletedVar WHERE ID = @ID";
             var parameters = new { ID = r.ID };
 
             using (IDbConnection db = new SqlConnection(connectionString))
