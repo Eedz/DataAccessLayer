@@ -67,6 +67,27 @@ namespace ITCLib
         }
 
         /// <summary>
+        /// Returns the list of people.
+        /// </summary>
+        /// <returns></returns>
+        public static List<Person> GetAllPeople()
+        {
+            List<Person> people = new List<Person>();
+
+            string sql = "SELECT ID, Name, Init AS FirstName, LastName, Email, Active, PraccID, username, HomePhoneNo, OfficeNo, SMG, PM, Analyst, Pracc AS Praccer, Firm, " +
+                        "Programmer, CountryTeam, Admin, RA AS ResearchAssistant, Dissem AS Dissemination, PI AS Investigator, Stat AS Statistician, Institution, CommentEntry AS Entry, " +
+                        "PraccEntry, VarNameNotify AS VarNameChangeNotify FROM qryIssueInit ORDER BY Name;";
+                       
+
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                people = db.Query<Person>(sql).ToList();
+            }
+
+            return people;
+        }
+
+        /// <summary>
         /// Returns the list of screened products.
         /// </summary>
         /// <returns></returns>

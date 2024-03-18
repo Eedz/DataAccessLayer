@@ -87,6 +87,29 @@ namespace ITCLib
                 return 0;
         }
 
+        public static int InsertQuestion(SurveyQuestion question)
+        {
+            string sql = "proc_createQuestion";
+
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@survey", question.SurveyCode);
+            parameters.Add("@varname", question.VarName.VarName);
+            parameters.Add("@qnum", question.Qnum);
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+            int rowsAffected;
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
+                question.ID = parameters.Get<int>("@newID");
+            }
+
+            if (rowsAffected == 0)
+                return 1;
+            else
+                return 0;
+        }
+
         public static int InsertVariable(VariableName varname)
         {
             DynamicParameters parameters = new DynamicParameters();
@@ -271,7 +294,7 @@ namespace ITCLib
         {
             DynamicParameters parameters = new DynamicParameters();
             parameters.Add("@wording", wording.WordingText);
-            parameters.Add("@fieldname", wording.FieldName);
+            parameters.Add("@fieldname", wording.FieldType);
             parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
             int recordsAffected = SP_Insert("proc_createWording", parameters, out int newID);
@@ -656,7 +679,7 @@ namespace ITCLib
             parameters.Add("@commentText", record.Notes.NoteText);
             parameters.Add("@notedate", record.NoteDate);
             parameters.Add("@noteinit", record.Author.ID);
-            parameters.Add("@sourcename", record.SourceName);
+            parameters.Add("@authority", record.Authority.ID);
             parameters.Add("@notetype", record.NoteType.ID);
             parameters.Add("@source", record.Source);
 
@@ -675,7 +698,7 @@ namespace ITCLib
             parameters.Add("@commentText", record.Notes.NoteText);
             parameters.Add("@notedate", record.NoteDate);
             parameters.Add("@noteinit", record.Author.ID);
-            parameters.Add("@sourcename", record.SourceName);
+            parameters.Add("@authority", record.Authority.ID); 
             parameters.Add("@notetype", record.NoteType.ID);
             parameters.Add("@source", record.Source);
 
@@ -694,7 +717,7 @@ namespace ITCLib
             parameters.Add("@commentText", record.Notes.NoteText);
             parameters.Add("@notedate", record.NoteDate);
             parameters.Add("@noteinit", record.Author.ID);
-            parameters.Add("@sourcename", record.SourceName);
+            parameters.Add("@authority", record.Authority.ID);
             parameters.Add("@notetype", record.NoteType.ID);
             parameters.Add("@source", record.Source);
 
@@ -714,7 +737,7 @@ namespace ITCLib
             parameters.Add("@commentText", record.Notes.NoteText);
             parameters.Add("@notedate", record.NoteDate);
             parameters.Add("@noteinit", record.Author.ID);
-            parameters.Add("@sourcename", record.SourceName);
+            parameters.Add("@authority", record.Authority.ID);
             parameters.Add("@notetype", record.NoteType.ID);
             parameters.Add("@source", record.Source);
 
@@ -733,7 +756,7 @@ namespace ITCLib
             parameters.Add("@commentText", record.Notes.NoteText);
             parameters.Add("@notedate", record.NoteDate);
             parameters.Add("@noteinit", record.Author.ID);
-            parameters.Add("@sourcename", record.SourceName);
+            parameters.Add("@authority", record.Authority.ID);
             parameters.Add("@notetype", record.NoteType.ID);
             parameters.Add("@source", record.Source);
 
@@ -1070,6 +1093,23 @@ namespace ITCLib
 
             int rowsAffected = SP_Insert(sql, parameters, out int newID);
             
+            return rowsAffected;
+        }
+
+        public static int InsertLastUsedComment(UserPrefs user, Comment comment)
+        {
+            string sql = "proc_upsertLastUsedComment";
+
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@userID", user.userid);
+            parameters.Add("@date", comment.NoteDate);
+            parameters.Add("@type", comment.NoteType.ID);
+            parameters.Add("@author", comment.Author.ID);
+            parameters.Add("@source", comment.Source);
+            parameters.Add("@authority", comment.Authority.ID);
+
+            int rowsAffected = SP_Insert(sql, parameters, out int newID);
+
             return rowsAffected;
         }
     }

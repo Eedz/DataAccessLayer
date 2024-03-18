@@ -526,10 +526,11 @@ namespace ITCLib
             List<DeletedQuestion> list = new List<DeletedQuestion>();
 
             string query = "SELECT ID, Survey AS SurveyCode, VarName, VarLabel, ContentLabel, TopicLabel, DomainLabel, DeleteDate, DeletedBy FROM qryDeletedSurveyVars WHERE Survey = @survey;" +
-                "SELECT ID, Survey, VarName, NoteDate, SourceName, Source, " +
+                "SELECT ID, Survey, VarName, NoteDate, Source, " +
                     "CID, CID AS ID, Notes AS NoteText, " +
                     "NoteInit, NoteInit AS ID, Name, "+
-                    "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName " +
+                    "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, " +
+                    "AuthorityID, AuthorityID AS ID, Authority AS Name " +
                     "FROM qryNotesByDeletedVar WHERE Survey = @survey;";
 
             var parameters = new { survey };
@@ -540,14 +541,15 @@ namespace ITCLib
 
                 list = results.Read<DeletedQuestion>().ToList();
 
-                var comments = results.Read<DeletedComment, Note, Person, CommentType, DeletedComment>(
-                    (comment, note, author, type) =>
+                var comments = results.Read<DeletedComment, Note, Person, CommentType, Person, DeletedComment>(
+                    (comment, note, author, type, authority) =>
                     {
                         comment.Notes = note;
                         comment.Author = author;
                         comment.NoteType = type;
+                        comment.Authority = authority;
                         return comment;
-                    }, splitOn: "CID, NoteInit, NoteTypeID").ToList();
+                    }, splitOn: "CID, NoteInit, NoteTypeID, AuthorityID").ToList();
 
                 foreach  (DeletedQuestion dq in list)
                 {

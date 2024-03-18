@@ -73,6 +73,35 @@ namespace ITCLib
         }
 
         /// <summary>
+        /// Updates the wording numbers for the provided question. 
+        /// </summary>
+        /// <param name="question"></param>
+        /// <returns></returns>
+        public static int UpdateQuestionWordings2(SurveyQuestion question)
+        {
+            string sql = "proc_updateQuestionWordings";
+            var parameters = new
+            {
+                QID = question.ID,
+                prep = question.PrePW.WordID,
+                prei = question.PreIW.WordID,
+                prea = question.PreAW.WordID,
+                litq = question.LitQW.WordID,
+                psti = question.PstIW.WordID,
+                pstp = question.PstPW.WordID,
+                respname = question.RespOptionsS.RespSetName,
+                nrname = question.NRCodesS.RespSetName
+            };
+            int rowsAffected = 0;
+
+            using (SqlConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
+            }
+            return 0;
+        }
+
+        /// <summary>
         /// Updates/inserts the plain filter for the provided question. 
         /// </summary>
         /// <param name="question"></param>
@@ -973,7 +1002,7 @@ namespace ITCLib
                 sql.UpdateCommand.Parameters.AddWithValue("@commentText", record.Notes.NoteText);
                 sql.UpdateCommand.Parameters.AddWithValue("@notedate", record.NoteDate.Value);
                 sql.UpdateCommand.Parameters.AddWithValue("@noteinit", record.Author.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@sourcename", record.SourceName);
+                sql.UpdateCommand.Parameters.AddWithValue("@authority", record.Authority.ID);
                 sql.UpdateCommand.Parameters.AddWithValue("@notetype", record.NoteType.ID);
                 sql.UpdateCommand.Parameters.AddWithValue("@source", record.Source);
 
@@ -1005,7 +1034,7 @@ namespace ITCLib
                 sql.UpdateCommand.Parameters.AddWithValue("@commentText", record.Notes.NoteText);
                 sql.UpdateCommand.Parameters.AddWithValue("@notedate", record.NoteDate.Value);
                 sql.UpdateCommand.Parameters.AddWithValue("@noteinit", record.Author.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@sourcename", record.SourceName);
+                sql.UpdateCommand.Parameters.AddWithValue("@authority", record.Authority.ID);
                 sql.UpdateCommand.Parameters.AddWithValue("@notetype", record.NoteType.ID);
                 sql.UpdateCommand.Parameters.AddWithValue("@source", record.Source);
 
@@ -1037,7 +1066,7 @@ namespace ITCLib
                 sql.UpdateCommand.Parameters.AddWithValue("@commentText", record.Notes.NoteText);
                 sql.UpdateCommand.Parameters.AddWithValue("@notedate", record.NoteDate.Value);
                 sql.UpdateCommand.Parameters.AddWithValue("@noteinit", record.Author.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@sourcename", record.SourceName);
+                sql.UpdateCommand.Parameters.AddWithValue("@authority", record.Authority.ID);
                 sql.UpdateCommand.Parameters.AddWithValue("@notetype", record.NoteType.ID);
                 sql.UpdateCommand.Parameters.AddWithValue("@source", record.Source);
 
@@ -1069,7 +1098,7 @@ namespace ITCLib
                 sql.UpdateCommand.Parameters.AddWithValue("@commentText", record.Notes.NoteText);
                 sql.UpdateCommand.Parameters.AddWithValue("@notedate", record.NoteDate.Value);
                 sql.UpdateCommand.Parameters.AddWithValue("@noteinit", record.Author.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@sourcename", record.SourceName);
+                sql.UpdateCommand.Parameters.AddWithValue("@authority", record.Authority.ID);
                 sql.UpdateCommand.Parameters.AddWithValue("@notetype", record.NoteType.ID);
                 sql.UpdateCommand.Parameters.AddWithValue("@source", record.Source);
 
@@ -1102,7 +1131,7 @@ namespace ITCLib
                 sql.UpdateCommand.Parameters.AddWithValue("@commentText", record.Notes.NoteText);
                 sql.UpdateCommand.Parameters.AddWithValue("@notedate", record.NoteDate.Value);
                 sql.UpdateCommand.Parameters.AddWithValue("@noteinit", record.Author.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@sourcename", record.SourceName);
+                sql.UpdateCommand.Parameters.AddWithValue("@authority", record.Authority.ID);
                 sql.UpdateCommand.Parameters.AddWithValue("@notetype", record.NoteType.ID);
                 sql.UpdateCommand.Parameters.AddWithValue("@source", record.Source);
 

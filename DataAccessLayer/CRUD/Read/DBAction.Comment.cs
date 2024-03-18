@@ -91,23 +91,25 @@ namespace ITCLib
         {
             List<DeletedComment> comments = new List<DeletedComment>();
             
-            string sql = "SELECT ID, Survey, VarName, NoteDate, SourceName, Source, " +
+            string sql = "SELECT ID, Survey, VarName, NoteDate, Source, " +
                 "CID, CID AS ID, Notes, " +
                 "NoteInit, NoteInit AS ID, Name, " + 
-                "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName " +
+                "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, " +
+                "AuthorityID, AuthorityID AS ID, Authority AS Name " +
                 "FROM Comments.FN_GetDeletedComments (@survey, @varname);";
 
             var parameters = new { survey, varname };
 
             using (SqlConnection db = new SqlConnection(connectionString))
             {
-                comments = db.Query<DeletedComment, Note, Person, CommentType, DeletedComment>(sql, (comment, note, author, type) =>
+                comments = db.Query<DeletedComment, Note, Person, CommentType, Person, DeletedComment>(sql, (comment, note, author, type, authority) =>
                 {
                     comment.Notes = note;
                     comment.Author = author;
                     comment.NoteType = type;
+                    comment.Authority = authority;
                     return comment;
-                }, parameters, splitOn: "CID, NoteInit, NoteTypeID").ToList();
+                }, parameters, splitOn: "CID, NoteInit, NoteTypeID, AuthorityID").ToList();
             }
 
             return comments;
@@ -171,23 +173,25 @@ namespace ITCLib
         {
             List<QuestionComment> cs = new List<QuestionComment>();
 
-            string query = "SELECT ID, QID, SurvID, Survey, VarName, NoteDate, SourceName, Source, " + 
+            string query = "SELECT ID, QID, SurvID, Survey, VarName, NoteDate, Source, " + 
                 "CID, CID AS ID, Notes AS NoteText, " + 
                 "NoteInit, NoteInit AS ID, Name, " +
-                "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, ShortForm " +
+                "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, ShortForm, " +
+                "AuthorityID, AuthorityID AS ID, Authority AS Name " +
                 "FROM Comments.FN_GetQuesCommentsByCID (@cid);";
 
             var parameters = new { cid = CID };
 
             using (SqlConnection db = new SqlConnection(connectionString))
             {
-                cs = db.Query<QuestionComment, Note, Person, CommentType, QuestionComment>(query, (record, note, person, type) =>
+                cs = db.Query<QuestionComment, Note, Person, CommentType, Person, QuestionComment>(query, (record, note, person, type, authority) =>
                 {
                     record.Notes = note;
                     record.Author = person;
                     record.NoteType = type;
+                    record.Authority = authority;
                     return record;
-                }, parameters, splitOn: "CID, NoteInit, NoteTypeID").ToList();
+                }, parameters, splitOn: "CID, NoteInit, NoteTypeID, AuthorityID").ToList();
             }
 
             return cs;
@@ -202,23 +206,24 @@ namespace ITCLib
         {
             List<QuestionComment> cs = new List<QuestionComment>();
             
-            string query = "SELECT ID, QID, SurvID, Survey, VarName, NoteDate, SourceName, Source, " +
+            string query = "SELECT ID, QID, SurvID, Survey, VarName, NoteDate, Source, " +
                 "CID, CID AS ID, Notes AS NoteText, " +
                 "NoteInit, NoteInit AS ID, Name, " +
-                "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, ShortForm " +
+                "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, ShortForm, " +
+                "AuthorityID, AuthorityID AS ID, Authority AS Name " +
                 "FROM Comments.FN_GetQuesCommentsBySurvID(@sid);";
 
             var parameters = new { sid = survey.SID };
 
             using (SqlConnection db = new SqlConnection(connectionString))
             {
-                cs = db.Query<QuestionComment, Note, Person, CommentType, QuestionComment>(query, (record, note, person, type) =>
+                cs = db.Query<QuestionComment, Note, Person, CommentType, Person, QuestionComment>(query, (record, note, person, type, authority) =>
                 {
                     record.Notes = note;
                     record.Author = person;
                     record.NoteType = type;
                     return record;
-                }, parameters, splitOn: "CID, NoteInit, NoteTypeID").ToList();
+                }, parameters, splitOn: "CID, NoteInit, NoteTypeID, AuthorityID").ToList();
             }
 
             return cs;
@@ -233,23 +238,25 @@ namespace ITCLib
         {
             List<QuestionComment> cs = new List<QuestionComment>();
 
-            string query = "SELECT ID, QID, SurvID, Survey, VarName, NoteDate, SourceName, Source, " +
+            string query = "SELECT ID, QID, SurvID, Survey, VarName, NoteDate, Source, " +
                 "CID, CID AS ID, Notes AS NoteText, " +
                 "NoteInit, NoteInit AS ID, Name, " +
-                "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, ShortForm " +
+                "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, ShortForm, " +
+                "AuthorityID, AuthorityID AS ID, Authority AS Name " +
                 "FROM Comments.FN_GetQuesCommentsByQID(@qid);";
 
             var parameters = new { qid = question.ID };
 
             using (SqlConnection db = new SqlConnection(connectionString))
             {
-                cs = db.Query<QuestionComment, Note, Person, CommentType, QuestionComment>(query, (record, note, person, type) =>
+                cs = db.Query<QuestionComment, Note, Person, CommentType, Person, QuestionComment>(query, (record, note, person, type, authority) =>
                 {
                     record.Notes = note;
                     record.Author = person;
                     record.NoteType = type;
+                    record.Authority = authority;
                     return record;
-                }, parameters, splitOn: "CID, NoteInit, NoteTypeID").ToList();
+                }, parameters, splitOn: "CID, NoteInit, NoteTypeID, AuthorityID").ToList();
             }
 
             return cs;
@@ -275,17 +282,19 @@ namespace ITCLib
 
             string query;
             if (refVarName)
-                query = "SELECT ID, SurvID, Survey, VarName, NoteDate, SourceName, Source, " +
+                query = "SELECT ID, SurvID, Survey, VarName, NoteDate, Source, " +
                             "CID, CID AS ID, Notes AS NoteText, " +
                             "NoteInit, NoteInit AS ID, Name, " +
-                            "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName " + 
+                            "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, " +
+                            "AuthorityID, AuthorityID AS ID, Authority AS Name " +
                         "FROM " +
                             "dbo.FN_QuestionCommentSearchRefVar(@survey,@varname,@LDate,@UDate,@author,@commentText,@commentSource,@commentType)";
             else 
-                query = "SELECT ID, SurvID, Survey, VarName, NoteDate, SourceName, Source, " +
+                query = "SELECT ID, SurvID, Survey, VarName, NoteDate, Source, " +
                             "CID, CID AS ID, Notes AS NoteText, " + 
                             "NoteInit, NoteInit AS ID, Name, " + 
-                            "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName " +
+                            "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, " +
+                            "AuthorityID, AuthorityID AS ID, Authority AS Name " +
                         "FROM " +
                             "dbo.FN_QuestionCommentSearchVar(@survey, @varname, @LDate, @UDate, @author, @commentText, @commentSource, @commentType)";
 
@@ -293,13 +302,14 @@ namespace ITCLib
           
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                comments = db.Query<QuestionComment, Note, Person, CommentType, QuestionComment>(query, (comment, note, person, type)=>
+                comments = db.Query<QuestionComment, Note, Person, CommentType, Person, QuestionComment>(query, (comment, note, person, type, authority)=>
                 {
                     comment.Notes = note;
                     comment.Author = person;
                     comment.NoteType = type;
+                    comment.Authority = authority;
                     return comment;
-                },parameters, splitOn: "CID, NoteInit, NoteTypeID").ToList();
+                },parameters, splitOn: "CID, NoteInit, NoteTypeID, AuthorityID").ToList();
             }
 
             return comments;
@@ -350,10 +360,11 @@ namespace ITCLib
 
             string query;
            
-            query = "SELECT ID, SID AS SurvID, Survey, NoteDate, SourceName, Source, " +
+            query = "SELECT ID, SID AS SurvID, Survey, NoteDate, Source, " +
                         "CID, CID AS ID, Notes AS NoteText, " + 
                         "NoteInit, NoteInit AS ID, Name, " +
-                        "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName " +
+                        "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, " +
+                        "AuthorityID, AuthorityID AS ID, Authority AS Name " +
                     "FROM " + 
                         "dbo.FN_SurveyCommentSearch(@survey,@LDate,@UDate,@author,@commentText,@commentSource,@commentType)";
 
@@ -361,13 +372,14 @@ namespace ITCLib
 
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                comments = db.Query<SurveyComment, Note, Person, CommentType, SurveyComment>(query, (comment, note, person, type) =>
+                comments = db.Query<SurveyComment, Note, Person, CommentType, Person, SurveyComment>(query, (comment, note, person, type, authority) =>
                 {
                     comment.Notes = note;
                     comment.Author = person;
                     comment.NoteType = type;
+                    comment.Authority = authority;
                     return comment;
-                }, parameters, splitOn: "CID, NoteInit, NoteTypeID").ToList();
+                }, parameters, splitOn: "CID, NoteInit, NoteTypeID, AuthorityID").ToList();
             }
 
             return comments;
@@ -382,23 +394,25 @@ namespace ITCLib
         {
             List<SurveyComment> comments = new List<SurveyComment>();
 
-            string query = "SELECT ID, SurvID, Survey, NoteDate, SourceName, Source, " +
+            string query = "SELECT ID, SurvID, Survey, NoteDate, Source, " +
                 "CID, CID AS ID, Notes AS NoteText, " +
                 "NoteInit, NoteInit AS ID, Name, " +
-                "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, ShortForm " +
+                "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, ShortForm, " +
+                "AuthorityID, AuthorityID AS ID, Authority AS Name " +
                 "FROM Comments.FN_GetSurvCommentsByCID (@cid);";
 
             var parameters = new { cid = CID };
 
             using (SqlConnection db = new SqlConnection(connectionString))
             {
-                comments = db.Query<SurveyComment, Note, Person, CommentType, SurveyComment>(query, (record, note, person, type) =>
+                comments = db.Query<SurveyComment, Note, Person, CommentType, Person, SurveyComment>(query, (record, note, person, type, authority) =>
                 {
                     record.Notes = note;
                     record.Author = person;
                     record.NoteType = type;
+                    record.Authority = authority;
                     return record;
-                }, parameters, splitOn: "CID, NoteInit, NoteTypeID").ToList();
+                }, parameters, splitOn: "CID, NoteInit, NoteTypeID, AuthorityID").ToList();
             }
 
             return comments;
@@ -414,23 +428,25 @@ namespace ITCLib
         {
             List<SurveyComment> cs = new List<SurveyComment>();
 
-            string query = "SELECT ID, SurvID, Survey, NoteDate, SourceName, Source, " +
+            string query = "SELECT ID, SurvID, Survey, NoteDate, Source, " +
                 "CID, CID AS ID, Notes AS NoteText, " +
                 "NoteInit, NoteInit AS ID, Name, " +
-                "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, ShortForm " +
+                "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, ShortForm, " +
+                "AuthorityID, AuthorityID AS ID, Authority AS Name " +
                 "FROM Comments.FN_GetSurvCommentsBySurvID (@sid);";
 
             var parameters = new { sid = survey.SID };
 
             using (SqlConnection db = new SqlConnection(connectionString))
             {
-                cs = db.Query<SurveyComment, Note, Person, CommentType, SurveyComment>(query, (record, note, person, type) =>
+                cs = db.Query<SurveyComment, Note, Person, CommentType, Person, SurveyComment>(query, (record, note, person, type, authority) =>
                 {
                     record.Notes = note;
                     record.Author = person;
                     record.NoteType = type;
+                    record.Authority = authority;
                     return record;
-                }, parameters, splitOn: "CID, NoteInit, NoteTypeID").ToList();
+                }, parameters, splitOn: "CID, NoteInit, NoteTypeID, AuthorityID").ToList();
             }
 
             return cs;
@@ -470,23 +486,25 @@ namespace ITCLib
         {
             List<WaveComment> comments = new List<WaveComment>();
 
-            string query = "SELECT ID, WID AS WaveID, StudyWave, NoteDate, SourceName, Source, " +
+            string query = "SELECT ID, WID AS WaveID, StudyWave, NoteDate, Source, " +
                 "CID, CID AS ID, Notes AS NoteText, " +
                 "NoteInit, NoteInit AS ID, Name, " +
-                "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, ShortForm " +
+                "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, ShortForm, " +
+                "AuthorityID, AuthorityID AS ID, Authority AS Name " +
                 "FROM Comments.FN_GetWaveCommentsByCID (@cid);";
 
             var parameters = new { cid = CID };
 
             using (SqlConnection db = new SqlConnection(connectionString))
             {
-                comments = db.Query<WaveComment, Note, Person, CommentType, WaveComment>(query, (record, note, person, type) =>
+                comments = db.Query<WaveComment, Note, Person, CommentType, Person, WaveComment>(query, (record, note, person, type, authority) =>
                 {
                     record.Notes = note;
                     record.Author = person;
                     record.NoteType = type;
+                    record.Authority = authority;
                     return record;
-                }, parameters, splitOn: "CID, NoteInit, NoteTypeID").ToList();
+                }, parameters, splitOn: "CID, NoteInit, NoteTypeID, AuthorityID").ToList();
             }
 
             return comments;
@@ -507,10 +525,11 @@ namespace ITCLib
         {
             List<WaveComment> comments = new List<WaveComment>();
 
-            string query = "SELECT ID, WID AS WaveID, StudyWave, NoteDate, SourceName, Source, " +
+            string query = "SELECT ID, WID AS WaveID, StudyWave, NoteDate, Source, " +
                                 "CID, CID AS ID, Notes AS NoteText, " +
                                 "NoteInit, NoteInit AS ID, Name, " +
-                                "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName " +
+                                "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, " +
+                                "AuthorityID, AuthorityID AS ID, Authority AS Name " +
                             "FROM " +
                                 "dbo.FN_WaveCommentSearch(@wave,@LDate,@UDate,@author,@commentText,@commentSource,@commentType)";
 
@@ -518,13 +537,14 @@ namespace ITCLib
 
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                comments = db.Query<WaveComment, Note, Person, CommentType, WaveComment>(query, (comment, note, person, type) =>
+                comments = db.Query<WaveComment, Note, Person, CommentType, Person, WaveComment>(query, (comment, note, person, type, authority) =>
                 {
                     comment.Notes = note;
                     comment.Author = person;
                     comment.NoteType = type;
+                    comment.Authority = authority;
                     return comment;
-                }, parameters, splitOn: "CID, NoteInit, NoteTypeID").ToList();
+                }, parameters, splitOn: "CID, NoteInit, NoteTypeID, AuthorityID").ToList();
             }
 
             return comments;
@@ -555,17 +575,19 @@ namespace ITCLib
 
             string query;
             if (refVarName)
-                query = "SELECT ID, Survey, VarName, NoteDate, SourceName, Source, " +
+                query = "SELECT ID, Survey, VarName, NoteDate, Source, " +
                                 "CID, CID AS ID, Notes AS NoteText, " +
                                 "NoteInit, NoteInit AS ID, Name, " +
-                                "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName " +
+                                "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, " +
+                                "AuthorityID, AuthorityID AS ID, Authority AS Name " +
                             "FROM " + 
                                 "dbo.FN_DeletedCommentSearchRefVar(@survey,@varname,@LDate,@UDate,@author,@commentText,@commentSource,@commentType)";
             else
-                query = "SELECT ID, WID AS WaveID, StudyWave, NoteDate, SourceName, Source, " +
+                query = "SELECT ID, WID AS WaveID, StudyWave, NoteDate, Source, " +
                                 "CID, CID AS ID, Notes AS NoteText, " +
                                 "NoteInit, NoteInit AS ID, Name, " +
-                                "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName " +
+                                "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, " +
+                                "AuthorityID, AuthorityID AS ID, Authority AS Name " +
                             "FROM " + 
                                 "dbo.FN_DeletedCommentSearchVar(@survey, @varname, @LDate, @UDate, @author, @commentText, @commentSource, @commentType)";
 
@@ -573,13 +595,14 @@ namespace ITCLib
 
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                comments = db.Query<DeletedComment, Note, Person, CommentType, DeletedComment>(query, (comment, note, person, type) =>
+                comments = db.Query<DeletedComment, Note, Person, CommentType, Person, DeletedComment>(query, (comment, note, person, type, authority) =>
                 {
                     comment.Notes = note;
                     comment.Author = person;
                     comment.NoteType = type;
+                    comment.Authority = authority;
                     return comment;
-                }, parameters, splitOn: "CID, NoteInit, NoteTypeID").ToList();
+                }, parameters, splitOn: "CID, NoteInit, NoteTypeID, AuthorityID").ToList();
             }
 
             return comments;
@@ -594,23 +617,25 @@ namespace ITCLib
         {
             List<DeletedComment> comments = new List<DeletedComment>();
 
-            string query = "SELECT ID, Survey, VarName, NoteDate, SourceName, Source, " +
+            string query = "SELECT ID, Survey, VarName, NoteDate, Source, " +
                 "CID, CID AS ID, Notes AS NoteText, " +
                 "NoteInit, NoteInit AS ID, Name, " +
-                "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, ShortForm " +
+                "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, ShortForm, " +
+                "AuthorityID, AuthorityID AS ID, Authority AS Name " +
                 "FROM Comments.FN_GetDeletedCommentsByCID (@cid);";
 
             var parameters = new { cid = CID };
 
             using (SqlConnection db = new SqlConnection(connectionString))
             {
-                comments = db.Query<DeletedComment, Note, Person, CommentType, DeletedComment>(query, (record, note, person, type) =>
+                comments = db.Query<DeletedComment, Note, Person, CommentType, Person, DeletedComment>(query, (record, note, person, type, authority) =>
                 {
                     record.Notes = note;
                     record.Author = person;
                     record.NoteType = type;
+                    record.Authority = authority;
                     return record;
-                }, parameters, splitOn: "CID, NoteInit, NoteTypeID").ToList();
+                }, parameters, splitOn: "CID, NoteInit, NoteTypeID, AuthorityID").ToList();
             }
 
             return comments;
@@ -629,23 +654,25 @@ namespace ITCLib
         {
             List<RefVarComment> comments = new List<RefVarComment>();
 
-            string query = "SELECT ID, RefVarName, NoteDate, SourceName, Source, " +
+            string query = "SELECT ID, RefVarName, NoteDate, Source, " +
                 "CID, CID AS ID, Notes AS NoteText, " +
                 "NoteInit, NoteInit AS ID, Name, " +
-                "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, ShortForm " +
+                "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, ShortForm, " +
+                "AuthorityID, AuthorityID AS ID, Authority AS Name " +
                 "FROM Comments.FN_GetRefVarCommentsByCID (@cid);";
 
             var parameters = new { cid = CID };
 
             using (SqlConnection db = new SqlConnection(connectionString))
             {
-                comments = db.Query<RefVarComment, Note, Person, CommentType, RefVarComment>(query, (record, note, person, type) =>
+                comments = db.Query<RefVarComment, Note, Person, CommentType, Person, RefVarComment>(query, (record, note, person, type, authority) =>
                 {
                     record.Notes = note;
                     record.Author = person;
                     record.NoteType = type;
+                    record.Authority = authority;
                     return record;
-                }, parameters, splitOn: "CID, NoteInit, NoteTypeID").ToList();
+                }, parameters, splitOn: "CID, NoteInit, NoteTypeID, AuthorityID").ToList();
             }
 
             return comments;

@@ -39,7 +39,7 @@ namespace ITCLib
                         "SELECT ID, NoteDate, SourceName, Source," +
                         "0 AS NoteID, '' AS NoteText," +
                         "NoteInit AS AuthorID, NoteInit AS ID, Name," +
-                        "NoteTypeID, NoteTypeID AS ID, NoteType AS TypeName FROM qryLastUsedComment WHERE PersonnelID = @userid;" +
+                        "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName FROM qryLastUsedComment WHERE PersonnelID = @userid;" +
                         "SELECT SourceText FROM qrySavedSources WHERE PersonnelID = @userid ORDER BY SourceNumber ASC;";
 
             using (IDbConnection db = new SqlConnection(connectionString))
@@ -69,7 +69,7 @@ namespace ITCLib
                 var sources = grid2.Read<string>().ToList();
                 prefs.SavedSources = sources;
                 prefs.SavedComments = savedComments;
-                prefs.LastUsedComment = lastComment;
+                prefs.LastUsedComment = lastComment ?? new Comment();
 
             }
             return prefs;

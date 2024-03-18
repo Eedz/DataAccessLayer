@@ -13,8 +13,29 @@ namespace ITCLib
         // Translations
         //
         // 
+         
+        public static Translation GetTranslation (int ID)
+        {
+            Translation t;
+            string sql = "SELECT ID, QID, Survey, VarName, [Translation] AS TranslationText, LitQ, Bilingual, " +
+                "LanguageID, LanguageID AS ID, Lang AS LanguageName, Abbrev, ISOAbbrev, NonLatin, RTL, PreferredFont " +
+                "FROM qryTranslation WHERE ID =@ID";
 
-        #region Reviewed
+            var parameters = new { ID };
+
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                t = db.Query<Translation, Language, Translation>(sql, (translation, lang) =>
+                {
+                    translation.LanguageName = lang;
+                    return translation;
+                }, parameters, splitOn: "LanguageID").ToList().FirstOrDefault();
+
+            }
+
+            return t;
+        }
+        
         /// <summary>
         /// Returns a list of translations for a particular survey and language.
         /// </summary>
@@ -228,7 +249,7 @@ namespace ITCLib
 
             return translation;
         }
-        #endregion
+
 
         
     }
