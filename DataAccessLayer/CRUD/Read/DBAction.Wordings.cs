@@ -22,7 +22,34 @@ namespace ITCLib
 
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                wordings = db.Query<Wording>(query).ToList();
+                //wordings = db.Query<Wording>(query).ToList();
+                var results = db.Query(query).Select(x => x as IDictionary<string, object>);
+
+                foreach(IDictionary<string, object> row in results)
+                {
+                    switch (row["FieldName"])
+                    {
+                        case "PreP":
+                            wordings.Add(new Wording((int)row["WordID"], WordingType.PreP, (string)row["Wording"]));
+                            break;
+                        case "PreI":
+                            wordings.Add(new Wording((int)row["WordID"], WordingType.PreI, (string)row["Wording"]));
+                            break;
+                        case "PreA":
+                            wordings.Add(new Wording((int)row["WordID"], WordingType.PreA, (string)row["Wording"]));
+                            break;
+                        case "LitQ":
+                            wordings.Add(new Wording((int)row["WordID"], WordingType.LitQ, (string)row["Wording"]));
+                            break;
+                        case "PstI":
+                            wordings.Add(new Wording((int)row["WordID"], WordingType.PstI, (string)row["Wording"]));
+                            break;
+                        case "PstP":
+                            wordings.Add(new Wording((int)row["WordID"], WordingType.PstP, (string)row["Wording"]));
+                            break;
+                    }
+                    
+                }
             }
 
             return wordings;
@@ -33,6 +60,7 @@ namespace ITCLib
         /// </summary>
         /// <param name="fieldname">Name of wording type.</param>
         /// <returns></returns>
+        /// <throws
         public static List<Wording> GetWordings(string fieldname)
         {
             List<Wording> wordings = new List<Wording>();
@@ -43,6 +71,34 @@ namespace ITCLib
             using (IDbConnection db = new SqlConnection(connectionString))
             {
                 wordings = db.Query<Wording>(sql, parameters).ToList();
+
+                WordingType type;
+                switch (fieldname)
+                {
+                    case "PreP":
+                        type = WordingType.PreP;
+                        break;
+                    case "PreI":
+                        type = WordingType.PreI;
+                        break;
+                    case "PreA":
+                        type = WordingType.PreA;
+                        break;
+                    case "LitQ":
+                        type = WordingType.LitQ;
+                        break;
+                    case "PstI":
+                        type = WordingType.PstI;
+                        break;
+                    case "PstP":
+                        type = WordingType.PstP;
+                        break;
+                    default: 
+                        throw new Exception("Invalid wording type");
+                }
+
+                foreach (Wording w in wordings)
+                    w.Type = type;
             }
 
             return wordings;
@@ -63,6 +119,22 @@ namespace ITCLib
             using (IDbConnection db = new SqlConnection(connectionString))
             {
                 wordings = db.Query<ResponseSet>(sql, parameters).ToList();
+
+                ResponseType type;
+                switch (fieldname)
+                {
+                    case "RespOptions":
+                        type = ResponseType.RespOptions;
+                        break;
+                    case "NRCodes":
+                        type = ResponseType.NRCodes;
+                        break;
+                    default:
+                        throw new Exception("Invalid wording type");
+                }
+
+                foreach (ResponseSet w in wordings)
+                    w.Type = type;
             }
 
             return wordings;
@@ -101,7 +173,10 @@ namespace ITCLib
 
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                setList = db.Query<ResponseSet>(query, parameters).ToList();       
+                setList = db.Query<ResponseSet>(query, parameters).ToList();
+
+                foreach (ResponseSet w in setList)
+                    w.Type = ResponseType.RespOptions;
             }
 
             return setList;
@@ -140,6 +215,9 @@ namespace ITCLib
             using (IDbConnection db = new SqlConnection(connectionString))
             {
                 setList = db.Query<ResponseSet>(query, parameters).ToList();
+
+                foreach (ResponseSet w in setList)
+                    w.Type = ResponseType.NRCodes;
             }
 
             return setList;
@@ -264,6 +342,9 @@ namespace ITCLib
             using (IDbConnection db = new SqlConnection(connectionString))
             {
                 wordings = db.Query<Wording>(query, parameters).ToList();
+
+                foreach (Wording w in wordings)
+                    w.Type = WordingType.PreP;
             }
 
             return wordings;
@@ -285,6 +366,9 @@ namespace ITCLib
             using (IDbConnection db = new SqlConnection(connectionString))
             {
                 wordings = db.Query<Wording>(query, parameters).ToList();
+
+                foreach (Wording w in wordings)
+                    w.Type = WordingType.PreI;
             }
 
             return wordings;
@@ -306,6 +390,9 @@ namespace ITCLib
             using (IDbConnection db = new SqlConnection(connectionString))
             {
                 wordings = db.Query<Wording>(query, parameters).ToList();
+
+                foreach (Wording w in wordings)
+                    w.Type = WordingType.PreA;
             }
 
             return wordings;
@@ -327,6 +414,9 @@ namespace ITCLib
             using (IDbConnection db = new SqlConnection(connectionString))
             {
                 wordings = db.Query<Wording>(query, parameters).ToList();
+
+                foreach (Wording w in wordings)
+                    w.Type = WordingType.LitQ;
             }
 
             return wordings;
@@ -348,6 +438,9 @@ namespace ITCLib
             using (IDbConnection db = new SqlConnection(connectionString))
             {
                 wordings = db.Query<Wording>(query, parameters).ToList();
+
+                foreach (Wording w in wordings)
+                    w.Type = WordingType.PstI;
             }
 
             return wordings;
@@ -369,6 +462,9 @@ namespace ITCLib
             using (IDbConnection db = new SqlConnection(connectionString))
             {
                 wordings = db.Query<Wording>(query, parameters).ToList();
+
+                foreach (Wording w in wordings)
+                    w.Type = WordingType.PstP;
             }
 
             return wordings;

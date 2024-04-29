@@ -14,7 +14,7 @@ namespace ITCLib
     {
         public static int SP_Insert(string procedureName, DynamicParameters parameters, out int newID)
         {
-            int rowsAffected=0;
+            int rowsAffected = 0;
             newID = 0;
             using (IDbConnection db = new SqlConnection(connectionString))
             {
@@ -31,16 +31,14 @@ namespace ITCLib
                 }
                 catch (SqlException)
                 {
-                    return -1;
+                    return 1;
                 }
                 catch 
                 {
 
                 }
             }
-
-            return rowsAffected;
-
+            return 0;
         }
 
         public static int InsertNote(Note record)
@@ -314,7 +312,7 @@ namespace ITCLib
             DynamicParameters parameters = new DynamicParameters();
             parameters.Add("@wording", respSet.RespList);
             parameters.Add("@setname", respSet.RespSetName);
-            parameters.Add("@fieldname", respSet.FieldName);
+            parameters.Add("@fieldname", respSet.FieldType);
 
             int recordsAffected = SP_Insert("proc_createResponseSet", parameters, out int newID);          
 

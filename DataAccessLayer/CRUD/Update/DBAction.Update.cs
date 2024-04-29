@@ -48,36 +48,36 @@ namespace ITCLib
         /// </summary>
         /// <param name="question"></param>
         /// <returns></returns>
-        public static int UpdateQuestionWordings(SurveyQuestion question)
-        {
-            string sql = "proc_updateQuestionWordings";
-            var parameters = new
-            {
-                QID = question.ID,
-                prep = question.PrePNum,
-                prei = question.PreINum,
-                prea = question.PreANum,
-                litq = question.LitQNum,
-                psti = question.PstINum,
-                pstp = question.PstPNum,
-                respname = question.RespName,
-                nrname = question.NRName
-            };
-            int rowsAffected = 0;
+        //public static int UpdateQuestionWordings(SurveyQuestion question)
+        //{
+        //    string sql = "proc_updateQuestionWordings";
+        //    var parameters = new
+        //    {
+        //        QID = question.ID,
+        //        prep = question.PrePNum,
+        //        prei = question.PreINum,
+        //        prea = question.PreANum,
+        //        litq = question.LitQNum,
+        //        psti = question.PstINum,
+        //        pstp = question.PstPNum,
+        //        respname = question.RespName,
+        //        nrname = question.NRName
+        //    };
+        //    int rowsAffected = 0;
 
-            using (SqlConnection db = new SqlConnection(connectionString))
-            {
-                rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
-            }
-            return 0;
-        }
+        //    using (SqlConnection db = new SqlConnection(connectionString))
+        //    {
+        //        rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
+        //    }
+        //    return 0;
+        //}
 
         /// <summary>
         /// Updates the wording numbers for the provided question. 
         /// </summary>
         /// <param name="question"></param>
         /// <returns></returns>
-        public static int UpdateQuestionWordings2(SurveyQuestion question)
+        public static int UpdateQuestionWordings(SurveyQuestion question)
         {
             string sql = "proc_updateQuestionWordings";
             var parameters = new
@@ -154,26 +154,26 @@ namespace ITCLib
 
         public static int UpdateWording(Wording wording)
         {
-            string field = wording.FieldName;
+            
             string query = "";
-            switch (field)
+            switch (wording.Type)
             {
-                case "PreP":
+                case WordingType.PreP:
                     query = "UPDATE tblPreP SET Wording =@wording WHERE ID =@ID";
                     break;
-                case "PreI":
+                case WordingType.PreI:
                     query = "UPDATE tblPreI SET Wording =@wording WHERE ID =@ID";
                     break;
-                case "PreA":
+                case WordingType.PreA:
                     query = "UPDATE tblPreA SET Wording =@wording WHERE ID =@ID";
                     break;
-                case "LitQ":
+                case WordingType.LitQ:
                     query = "UPDATE tblLitQ SET Wording =@wording WHERE ID =@ID";
                     break;
-                case "PstI":
+                case WordingType.PstI:
                     query = "UPDATE tblPstI SET Wording =@wording WHERE ID =@ID";
                     break;
-                case "PstP":
+                case WordingType.PstP:
                     query = "UPDATE tblPstP SET Wording =@wording WHERE ID =@ID";
                     break;
             }
@@ -202,7 +202,7 @@ namespace ITCLib
 
         public static int UpdateResponseSet (ResponseSet respSet)
         {
-            string field = respSet.FieldName;
+            string field = respSet.FieldType;
             string query = "";
             switch (field)
             {
