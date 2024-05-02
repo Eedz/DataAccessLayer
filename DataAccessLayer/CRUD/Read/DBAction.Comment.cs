@@ -92,7 +92,7 @@ namespace ITCLib
             List<DeletedComment> comments = new List<DeletedComment>();
             
             string sql = "SELECT ID, Survey, VarName, NoteDate, Source, " +
-                "CID, CID AS ID, Notes, " +
+                "CID, CID AS ID, Notes AS NoteText, " +
                 "NoteInit, NoteInit AS ID, Name, " + 
                 "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, " +
                 "AuthorityID, AuthorityID AS ID, Authority AS Name " +
