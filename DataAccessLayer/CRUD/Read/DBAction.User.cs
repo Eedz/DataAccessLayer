@@ -36,9 +36,10 @@ namespace ITCLib
                             "AuthorityID, AuthorityID AS ID, Name," +
                             "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName FROM qrySavedComments WHERE PersonnelID = @userid "+
                             "ORDER BY qrySavedComments.ID ASC;" +
-                        "SELECT ID, NoteDate, SourceName, Source," +
+                        "SELECT ID, NoteDate, Source," +
                         "0 AS NoteID, '' AS NoteText," +
                         "NoteInit AS AuthorID, NoteInit AS ID, Name," +
+                        "AuthorityID, AuthorityID AS ID, Name," +
                         "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName FROM qryLastUsedComment WHERE PersonnelID = @userid;" +
                         "SELECT SourceText FROM qrySavedSources WHERE PersonnelID = @userid ORDER BY SourceNumber ASC;";
 
@@ -59,13 +60,14 @@ namespace ITCLib
                     comment.NoteType = type;
                     return comment;
                 }, splitOn: "NoteID, AuthorID, AuthorityID, NoteTypeID").ToList();
-                var lastComment = grid2.Read<Comment, Note, Person, CommentType, Comment>((comment, note, author, type) =>
+                var lastComment = grid2.Read<Comment, Note, Person, Person, CommentType, Comment>((comment, note, author, authority, type) =>
                 {
                     comment.Notes = note;
                     comment.Author = author;
                     comment.NoteType = type;
+                    comment.Authority = authority;
                     return comment;
-                }, splitOn: "NoteID, AuthorID, NoteTypeID").FirstOrDefault();
+                }, splitOn: "NoteID, AuthorID, AuthorityID, NoteTypeID").FirstOrDefault();
                 var sources = grid2.Read<string>().ToList();
                 prefs.SavedSources = sources;
                 prefs.SavedComments = savedComments;

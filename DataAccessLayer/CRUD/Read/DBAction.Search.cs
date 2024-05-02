@@ -25,6 +25,14 @@ namespace ITCLib
 
             string query = "SELECT ID, Survey AS SurveyCode, Qnum, PreP# AS PrePNum, PreP, PreI# AS PreINum, PreI, PreA# AS PreANum, PreA, " +
                     "LitQ# AS LitQNum, LitQ, PstI#, PstI, RespName, RespOptions, NRName, NRCodes, CorrectedFlag, ScriptOnly, AltQnum, AltQnum2, AltQnum3, " +
+                    "PreP# AS WordID, PreP As WordingText, 'PreP' AS FieldName, " +
+                    "PreI# AS WordID, PreI As WordingText, 'PreI' AS FieldName, " +
+                    "PreA# AS WordID, PreA As WordingText, 'PreA' AS FieldName, " +
+                    "LitQ# AS WordID, LitQ As WordingText, 'LitQ' AS FieldName, " +
+                    "PstI# AS WordID, PstI As WordingText, 'PstI' AS FieldName, " +
+                    "PstP# AS WordID, PstP As WordingText, 'PstP' AS FieldName, " +
+                    "RespName AS RespSetName, RespOptions As RespList, 'RespOptions' AS FieldName, " +
+                    "NRName AS RespSetName, NRCodes As RespList, 'NRCodes' AS FieldName, " +
                     "VarName, VarLabel, " +
                     "DomainNum, DomainNum AS ID, Domain AS LabelText, " +
                     "TopicNum, TopicNum AS ID, Topic AS LabelText, " +
@@ -66,17 +74,60 @@ namespace ITCLib
                     }
             }
 
+            var types = new[]
+                {
+                    typeof(SurveyQuestion),
+                    typeof(Wording),
+                    typeof(Wording),
+                    typeof(Wording),
+                    typeof(Wording),
+                    typeof(Wording),
+                    typeof(Wording),
+                    typeof(ResponseSet),
+                    typeof(ResponseSet),
+                    typeof(VariableName),
+                    typeof(DomainLabel),
+                    typeof(TopicLabel),
+                    typeof(ContentLabel),
+                    typeof(ProductLabel)
+                };
+
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                qs = db.Query<SurveyQuestion, VariableName, DomainLabel, TopicLabel, ContentLabel, ProductLabel, SurveyQuestion>(query, (question, variable, domain, topic, content, product) =>
+                //qs = db.Query<SurveyQuestion, VariableName, DomainLabel, TopicLabel, ContentLabel, ProductLabel, SurveyQuestion>(query, (question, variable, domain, topic, content, product) =>
+                qs = db.Query<SurveyQuestion>(query, types, (objects) =>
                 {
-                    variable.Domain = domain;
-                    variable.Topic = topic;
-                    variable.Content = content;
-                    variable.Product = product;
-                    question.VarName = variable;
+                    SurveyQuestion question = objects[0] as SurveyQuestion;
+                    Wording prep = objects[1] as Wording;
+                    Wording prei = objects[2] as Wording;
+                    Wording prea = objects[3] as Wording;
+                    Wording litq = objects[4] as Wording;
+                    Wording psti = objects[5] as Wording;
+                    Wording pstp = objects[6] as Wording;
+                    ResponseSet ros = objects[7] as ResponseSet;
+                    ResponseSet nrs = objects[8] as ResponseSet;
+                    VariableName varname = objects[9] as VariableName;
+                    DomainLabel domain = objects[10] as DomainLabel;
+                    TopicLabel topic = objects[11] as TopicLabel;
+                    ContentLabel content = objects[12] as ContentLabel;
+                    ProductLabel product = objects[13] as ProductLabel;
+
+                    question.PrePW = prep;
+                    question.PreIW = prei;
+                    question.PreAW = prea;
+                    question.LitQW = litq;
+                    question.PstIW = psti;
+                    question.PstPW = pstp;
+                    question.RespOptionsS = ros;
+                    question.NRCodesS = nrs;
+
+                    varname.Domain = domain;
+                    varname.Topic = topic;
+                    varname.Content = content;
+                    varname.Product = product;
+                    question.VarName = varname;
                     return question;
-                }, parameters,splitOn: "VarName, DomainNum, TopicNum, ContentNum, ProductNum").ToList();
+                }, parameters, splitOn: "WordID, WordID, WordID, WordID, WordID, WordID, RespSetName, RespSetName, VarName, DomainNum, TopicNum, ContentNum, ProductNum").ToList();
             
             }
 
@@ -154,6 +205,14 @@ namespace ITCLib
 
             string query = "SELECT ID, Survey AS SurveyCode, Qnum, PreP# AS PrePNum, PreP, PreI# AS PreINum, PreI, PreA# AS PreANum, PreA, " +
                     "LitQ# AS LitQNum, LitQ, PstI#, PstI, RespName, RespOptions, NRName, NRCodes, CorrectedFlag, ScriptOnly, AltQnum, AltQnum2, AltQnum3, " +
+                    "PreP# AS WordID, PreP As WordingText, 'PreP' AS FieldName, " +
+                    "PreI# AS WordID, PreI As WordingText, 'PreI' AS FieldName, " +
+                    "PreA# AS WordID, PreA As WordingText, 'PreA' AS FieldName, " +
+                    "LitQ# AS WordID, LitQ As WordingText, 'LitQ' AS FieldName, " +
+                    "PstI# AS WordID, PstI As WordingText, 'PstI' AS FieldName, " +
+                    "PstP# AS WordID, PstP As WordingText, 'PstP' AS FieldName, " +
+                    "RespName AS RespSetName, RespOptions As RespList, 'RespOptions' AS FieldName, " +
+                    "NRName AS RespSetName, NRCodes As RespList, 'NRCodes' AS FieldName, " +
                     "VarName, VarLabel, " +
                     "DomainNum, DomainNum AS ID, Domain AS LabelText, " +
                     "TopicNum, TopicNum AS ID, Topic AS LabelText, " +
@@ -191,17 +250,59 @@ namespace ITCLib
                     }
             }
 
+            var types = new[]
+                {
+                    typeof(SurveyQuestion),
+                    typeof(Wording),
+                    typeof(Wording),
+                    typeof(Wording),
+                    typeof(Wording),
+                    typeof(Wording),
+                    typeof(Wording),
+                    typeof(ResponseSet),
+                    typeof(ResponseSet),
+                    typeof(VariableName),
+                    typeof(DomainLabel),
+                    typeof(TopicLabel),
+                    typeof(ContentLabel),
+                    typeof(ProductLabel)
+                };
+
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                qs = db.Query<SurveyQuestion, VariableName, DomainLabel, TopicLabel, ContentLabel, ProductLabel, SurveyQuestion>(query, (question, variable, domain, topic, content, product) =>
+                qs = db.Query<SurveyQuestion>(query, types, (objects) =>
                 {
-                    variable.Domain = domain;
-                    variable.Topic = topic;
-                    variable.Content = content;
-                    variable.Product = product;
-                    question.VarName = variable;
+                    SurveyQuestion question = objects[0] as SurveyQuestion;
+                    Wording prep = objects[1] as Wording;
+                    Wording prei = objects[2] as Wording;
+                    Wording prea = objects[3] as Wording;
+                    Wording litq = objects[4] as Wording;
+                    Wording psti = objects[5] as Wording;
+                    Wording pstp = objects[6] as Wording;
+                    ResponseSet ros = objects[7] as ResponseSet;
+                    ResponseSet nrs = objects[8] as ResponseSet;
+                    VariableName varname = objects[9] as VariableName;
+                    DomainLabel domain = objects[10] as DomainLabel;
+                    TopicLabel topic = objects[11] as TopicLabel;
+                    ContentLabel content = objects[12] as ContentLabel;
+                    ProductLabel product = objects[13] as ProductLabel;
+
+                    question.PrePW = prep;
+                    question.PreIW = prei;
+                    question.PreAW = prea;
+                    question.LitQW = litq;
+                    question.PstIW = psti;
+                    question.PstPW = pstp;
+                    question.RespOptionsS = ros;
+                    question.NRCodesS = nrs;
+
+                    varname.Domain = domain;
+                    varname.Topic = topic;
+                    varname.Content = content;
+                    varname.Product = product;
+                    question.VarName = varname;
                     return question;
-                }, parameters, splitOn: "VarName, DomainNum, TopicNum, ContentNum, ProductNum").ToList();
+                }, parameters, splitOn: "WordID, WordID, WordID, WordID, WordID, WordID, RespSetName, RespSetName, VarName, DomainNum, TopicNum, ContentNum, ProductNum").ToList();
 
             }
 

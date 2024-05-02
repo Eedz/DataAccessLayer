@@ -242,7 +242,7 @@ namespace ITCLib
             int rowsAffected = 0;
 
             string sql = "proc_deleteResponseSet";
-            var parameters = new { fieldname = responseset.FieldName, ID = responseset.RespSetName };
+            var parameters = new { fieldname = responseset.FieldType, ID = responseset.RespSetName };
 
             using (IDbConnection db = new SqlConnection(connectionString))
             {

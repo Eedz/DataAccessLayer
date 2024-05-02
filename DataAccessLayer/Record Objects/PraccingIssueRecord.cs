@@ -128,6 +128,9 @@ namespace ITCLib
 
             foreach (PraccingImage img in AddedResponseImages)
             {
+                var response = Item.Responses.Where(x => x.Images.Contains(img)).FirstOrDefault();
+                if (response == null) continue;
+                img.PraccID = response.ID;
                 DBAction.InsertPraccingResponseImage(img);
             }
             AddedResponseImages.Clear();

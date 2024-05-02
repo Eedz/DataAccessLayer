@@ -52,23 +52,14 @@ namespace ITCLib
 
                 q.Qnum = (string)r["Qnum"];
                 if (!DBNull.Value.Equals(r["AltQnum"])) q.AltQnum = (string)r["AltQnum"];
-                //q.PreP = new Wording(Convert.ToInt32(r["PreP#"]), (string)r["PreP"]);
-                q.PrePNum = Convert.ToInt32(r["PreP#"]);
-                q.PreP = r["PreP"].Equals(DBNull.Value) ? "" : (string)r["PreP"];
-                q.PreINum = Convert.ToInt32(r["PreI#"]);
-                q.PreI = r["PreI"].Equals(DBNull.Value) ? "" : (string)r["PreI"];
-                q.PreANum = Convert.ToInt32(r["PreA#"]);
-                q.PreA = r["PreA"].Equals(DBNull.Value) ? "" : (string)r["PreA"];
-                q.LitQNum = Convert.ToInt32(r["LitQ#"]);
-                q.LitQ = r["LitQ"].Equals(DBNull.Value) ? "" : (string)r["LitQ"];
-                q.PstINum = Convert.ToInt32(r["PstI#"]);
-                if (DBNull.Value.Equals(r["PstI"])) q.PstI = ""; else q.PstI = (string)r["PstI"];
-                q.PstPNum = Convert.ToInt32(r["PstP#"]);
-                q.PstP = r["PstP"].Equals(DBNull.Value) ? "" : (string)r["PstP"];
-                q.RespName = (string)r["RespName"];
-                q.RespOptions = r["RespOptions"].Equals(DBNull.Value) ? "" : (string)r["RespOptions"];
-                q.NRName = (string)r["NRName"];
-                q.NRCodes = r["NRCodes"].Equals(DBNull.Value) ? "" : (string)r["NRCodes"];
+                q.PrePW = new Wording(Convert.ToInt32(r["PreP#"]), WordingType.PreP, r["PreP"].Equals(DBNull.Value) ? "" : (string)r["PreP"]);
+                q.PreIW = new Wording(Convert.ToInt32(r["PreI#"]), WordingType.PreI, r["PreI"].Equals(DBNull.Value) ? "" : (string)r["PreI"]);
+                q.PreAW = new Wording(Convert.ToInt32(r["PreA#"]), WordingType.PreA, r["PreA"].Equals(DBNull.Value) ? "" : (string)r["PreA"]);
+                q.LitQW = new Wording(Convert.ToInt32(r["LitQ#"]), WordingType.LitQ, r["LitQ"].Equals(DBNull.Value) ? "" : (string)r["LitQ"]);
+                q.PstIW = new Wording(Convert.ToInt32(r["PstI#"]), WordingType.PstI, r["PstI"].Equals(DBNull.Value) ? "" : (string)r["PstI"]);
+                q.PstPW = new Wording(Convert.ToInt32(r["PstP#"]), WordingType.PstP, r["PstP"].Equals(DBNull.Value) ? "" : (string)r["PstP"]);
+                q.RespOptionsS = new ResponseSet((string)r["RespName"], ResponseType.RespOptions, r["RespOptions"].Equals(DBNull.Value) ? "" : (string)r["RespOptions"]);
+                q.NRCodesS = new ResponseSet((string)r["NRName"], ResponseType.NRCodes, r["NRCodes"].Equals(DBNull.Value) ? "" : (string)r["NRCodes"]);
 
                 q.VarName = new VariableName((string)r["VarName"])
                 {

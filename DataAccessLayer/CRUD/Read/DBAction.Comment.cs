@@ -92,7 +92,7 @@ namespace ITCLib
             List<DeletedComment> comments = new List<DeletedComment>();
             
             string sql = "SELECT ID, Survey, VarName, NoteDate, Source, " +
-                "CID, CID AS ID, Notes, " +
+                "CID, CID AS ID, Notes AS NoteText, " +
                 "NoteInit, NoteInit AS ID, Name, " + 
                 "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, " +
                 "AuthorityID, AuthorityID AS ID, Authority AS Name " +
@@ -578,15 +578,15 @@ namespace ITCLib
                 query = "SELECT ID, Survey, VarName, NoteDate, Source, " +
                                 "CID, CID AS ID, Notes AS NoteText, " +
                                 "NoteInit, NoteInit AS ID, Name, " +
-                                "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, " +
+                                "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, ShortForm, " +
                                 "AuthorityID, AuthorityID AS ID, Authority AS Name " +
                             "FROM " + 
                                 "dbo.FN_DeletedCommentSearchRefVar(@survey,@varname,@LDate,@UDate,@author,@commentText,@commentSource,@commentType)";
             else
-                query = "SELECT ID, WID AS WaveID, StudyWave, NoteDate, Source, " +
+                query = "SELECT ID, Survey, VarName, NoteDate, Source, " +
                                 "CID, CID AS ID, Notes AS NoteText, " +
                                 "NoteInit, NoteInit AS ID, Name, " +
-                                "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, " +
+                                "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, ShortForm, " +
                                 "AuthorityID, AuthorityID AS ID, Authority AS Name " +
                             "FROM " + 
                                 "dbo.FN_DeletedCommentSearchVar(@survey, @varname, @LDate, @UDate, @author, @commentText, @commentSource, @commentType)";
