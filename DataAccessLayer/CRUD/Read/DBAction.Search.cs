@@ -55,7 +55,7 @@ namespace ITCLib
             if (excludeHiddenSurveys)
                 where += " NOT Survey IN (SELECT Survey FROM qrySurveyInfo WHERE HideSurvey = 1)";
             else
-                where = Utilities.TrimString(where, " AND ");
+                where = where.Trim(" AND ".ToCharArray());
 
 
             if (!string.IsNullOrEmpty(where))
@@ -169,7 +169,7 @@ namespace ITCLib
                 }
             }
 
-            where = Utilities.TrimString(where, " AND ");
+            where = where.Trim(" AND ".ToCharArray());
 
             if (!string.IsNullOrEmpty(where))
                 query += "WHERE " + where;
@@ -232,7 +232,7 @@ namespace ITCLib
                 }
             }
 
-            where = Utilities.TrimString(where, " AND ");
+            where = where.Trim(" AND ".ToCharArray());
 
             if (!string.IsNullOrEmpty(where))
                 query += "WHERE " + where;

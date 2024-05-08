@@ -76,7 +76,7 @@ namespace ITCLib
         {
             PraccingIssue issue;
 
-            string query = "SELECT ID, IssueNo, VarNames, IssueDescription AS Description, Date AS IssueDate, Resolved, ResDate AS ResolvedDate, Language, EnteredOn " +
+            string query = "SELECT ID, IssueNo, VarNames, IssueDescription AS Description, Date AS IssueDate, Resolved, ResDate AS ResolvedDate, Language, EnteredOn, PinNo, " +
                     "SurvID, SurvID AS SID, Survey AS SurveyCode, " +
                     "[By], [By] AS ID, IssueFrom AS Name, " +
                     "[To], [To] AS ID, IssueTo AS Name, " +
@@ -85,7 +85,7 @@ namespace ITCLib
                     "EnteredBy, EnteredBy AS ID, EnteredName AS Name " +
                     "FROM qryPraccingIssues WHERE ID = @id ORDER BY IssueNo;" +
                 "SELECT M.ID, PraccID, ImagePath AS Path FROM tblPraccingImages AS M INNER JOIN qryPraccingIssues AS I ON M.PraccID =I.ID WHERE I.ID = @id;" +
-                "SELECT R.ID, R.IssueID, R.Date AS ResponseDate, R.Comment AS Response, " +
+                "SELECT R.ID, R.IssueID, R.Date AS ResponseDate, R.Comment AS Response, PinNo, " +
                     "R.From_By, R.From_By AS ID, R.ResponseFrom AS Name, " +
                     "R.[To], R.[To] AS ID, ResponseTo AS Name FROM qryPraccingResponses AS R INNER JOIN qryPraccingIssues AS I ON R.IssueID =I.ID WHERE I.ID = @id " +
                     "ORDER BY ResponseDate;" +
@@ -148,7 +148,7 @@ namespace ITCLib
         {
             List<PraccingIssue> issues = new List<PraccingIssue>();
 
-            string query = "SELECT ID, IssueNo, VarNames, IssueDescription AS Description, Date AS IssueDate, Resolved, ResDate AS ResolvedDate, Language, EnteredOn " +
+            string query = "SELECT ID, IssueNo, VarNames, IssueDescription AS Description, Date AS IssueDate, Resolved, ResDate AS ResolvedDate, Language, EnteredOn, PinNo, " +
                     "SurvID, SurvID AS SID, Survey AS SurveyCode, " +
                     "[By], [By] AS ID, IssueFrom AS Name, " +
                     "[To], [To] AS ID, IssueTo AS Name, " +
@@ -157,7 +157,7 @@ namespace ITCLib
                     "EnteredBy, EnteredBy AS ID, EnteredName AS Name " +
                     "FROM qryPraccingIssues WHERE SurvID = @survid ORDER BY IssueNo;" +
                 "SELECT M.ID, PraccID, ImagePath AS Path FROM tblPraccingImages AS M INNER JOIN qryPraccingIssues AS I ON M.PraccID =I.ID WHERE I.SurvID = @survid;" +
-                "SELECT R.ID, R.IssueID, R.Date AS ResponseDate, R.Comment AS Response, " + 
+                "SELECT R.ID, R.IssueID, R.Date AS ResponseDate, R.Comment AS Response, R.PinNo, " + 
                     "R.From_By, R.From_By AS ID, R.ResponseFrom AS Name, " +
                     "R.[To], R.[To] AS ID, ResponseTo AS Name FROM qryPraccingResponses AS R INNER JOIN qryPraccingIssues AS I ON R.IssueID =I.ID WHERE SurvID = @survid " +
                     "ORDER BY ResponseDate;" +
@@ -265,7 +265,7 @@ namespace ITCLib
         {
             List<PraccingIssue> issues = new List<PraccingIssue>();
 
-            string sql = "SELECT ID, IssueNo, VarNames, IssueDescription AS Description, Date AS IssueDate, Resolved, ResDate AS ResolvedDate, LastUpdate, Language, Fixed,Notify, EnteredOn " +
+            string sql = "SELECT ID, IssueNo, VarNames, IssueDescription AS Description, Date AS IssueDate, Resolved, ResDate AS ResolvedDate, LastUpdate, Language, Fixed,Notify, EnteredOn, PinNo,  " +
                     "SurvID, SurvID AS SID, Survey AS SurveyCode, " +
                     "[By], [By] AS ID, IssueFrom AS Name, " +
                     "[To], [To] AS ID, [IssueTo] AS Name, " +

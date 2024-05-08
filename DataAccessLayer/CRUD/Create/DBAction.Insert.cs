@@ -538,6 +538,7 @@ namespace ITCLib
             parameters.Add("@resolvedby", record.ResolvedBy.ID);
             parameters.Add("@resolvedon", record.ResolvedDate);
             parameters.Add("@language", record.Language);
+            parameters.Add("@pin", record.PinNo);
 
             parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
             parameters.Add("@newNo", dbType: DbType.Int32, direction: ParameterDirection.Output);
@@ -561,6 +562,8 @@ namespace ITCLib
             parameters.Add("@from", record.ResponseFrom.ID);
             parameters.Add("@to", record.ResponseTo.ID);
             parameters.Add("@response", record.Response);
+            parameters.Add("@pin", record.PinNo);
+
             parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
             int recordsAffected = SP_Insert("proc_createPraccResponse", parameters, out int newID);

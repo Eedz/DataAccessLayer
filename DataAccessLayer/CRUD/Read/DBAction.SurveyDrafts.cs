@@ -173,7 +173,7 @@ namespace ITCLib
                     sql.SelectCommand.Parameters.AddWithValue("@commentText", commentText);
                 }
 
-                where = Utilities.TrimString(where, " AND ");
+                where = where.Trim(" AND ".ToCharArray());
 
                 if (!string.IsNullOrWhiteSpace(where))
                     query +=  " WHERE " + where;

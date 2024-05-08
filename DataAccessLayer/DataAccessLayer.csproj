@@ -145,8 +145,8 @@
     <Compile Include="CRUD\Read\DBAction.Wordings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Record Objects\VarNameRecord.cs" />
+    <Compile Include="Repositories\SurveyQuestionRepository.cs" />
     <Compile Include="VarRenamer.cs" />
-    <Compile Include="_OLD_ORM\DBActionOLD.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\ITCLib\ITCLib\ITCLib.csproj">

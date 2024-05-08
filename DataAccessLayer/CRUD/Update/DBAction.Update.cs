@@ -122,33 +122,25 @@ namespace ITCLib
 
         public static int UpdateLabels(VariableName varname)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string sql = "proc_updateLabels";
+
+            var parameters = new
             {
-                conn.Open();
+                varname = varname.VarName,
+                varlabel = varname.VarLabel,
+                domain = varname.Domain.ID,
+                topic = varname.Topic.ID,
+                content = varname.Content.ID,
+                product = varname.Product.ID
+            };
 
-                sql.UpdateCommand = new SqlCommand("proc_updateLabels", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
+            int rowsAffected = 0;
 
-                sql.UpdateCommand.Parameters.AddWithValue("@varname", varname.VarName);
-                sql.UpdateCommand.Parameters.AddWithValue("@varlabel", varname.VarLabel);
-                sql.UpdateCommand.Parameters.AddWithValue("@domain", varname.Domain.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@topic", varname.Topic.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@content", varname.Content.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@product", varname.Product.ID);
-                
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
             }
+
             return 0;
         }
 
@@ -783,7 +775,7 @@ namespace ITCLib
                 sql.UpdateCommand.Parameters.AddWithValue("@resolvedby", record.ResolvedBy.ID);
                 sql.UpdateCommand.Parameters.AddWithValue("@resolvedon", record.ResolvedDate);
                 sql.UpdateCommand.Parameters.AddWithValue("@language", record.Language);
-
+                sql.UpdateCommand.Parameters.AddWithValue("@pin", record.PinNo);
 
                 try
                 {
@@ -822,6 +814,7 @@ namespace ITCLib
                 sql.UpdateCommand.Parameters.AddWithValue("@from", record.ResponseFrom.ID);
                 sql.UpdateCommand.Parameters.AddWithValue("@to", record.ResponseTo.ID);
                 sql.UpdateCommand.Parameters.AddWithValue("@description", record.Response);
+                sql.UpdateCommand.Parameters.AddWithValue("@pin", record.PinNo);
 
                 try
                 {
