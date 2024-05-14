@@ -17,7 +17,23 @@ namespace ITCLib
         /// General form for delete methods
         /// </summary>
         /// <returns></returns>
-        //static public int DeleteRecord<T>(T record)
+        //static public int DeleteRecord_Text <T>(IRecord<T> record, string query)
+        //{
+        //    int rowsAffected = 0;
+
+        //    var parameters = new { ID = record.Item.ID };
+        //    using (IDbConnection db = new SqlConnection(connectionString))
+        //    {
+        //        rowsAffected = db.Execute(query, parameters, commandType: CommandType.Text);
+        //    }
+        //    return rowsAffected;
+        //}
+
+        ///// <summary>
+        ///// General form for delete methods
+        ///// </summary>
+        ///// <returns></returns>
+        //static public int DeleteRecord_Proc(IRecord record, string query)
         //{
         //    int rowsAffected = 0;
 
@@ -25,7 +41,7 @@ namespace ITCLib
         //    var parameters = new { ID = record.ID };
         //    using (IDbConnection db = new SqlConnection(connectionString))
         //    {
-        //        rowsAffected = db.Execute(sql, parameters);
+        //        rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
         //    }
         //    return rowsAffected;
         //}

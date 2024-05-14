@@ -48,35 +48,6 @@ namespace ITCLib
         /// </summary>
         /// <param name="question"></param>
         /// <returns></returns>
-        //public static int UpdateQuestionWordings(SurveyQuestion question)
-        //{
-        //    string sql = "proc_updateQuestionWordings";
-        //    var parameters = new
-        //    {
-        //        QID = question.ID,
-        //        prep = question.PrePNum,
-        //        prei = question.PreINum,
-        //        prea = question.PreANum,
-        //        litq = question.LitQNum,
-        //        psti = question.PstINum,
-        //        pstp = question.PstPNum,
-        //        respname = question.RespName,
-        //        nrname = question.NRName
-        //    };
-        //    int rowsAffected = 0;
-
-        //    using (SqlConnection db = new SqlConnection(connectionString))
-        //    {
-        //        rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
-        //    }
-        //    return 0;
-        //}
-
-        /// <summary>
-        /// Updates the wording numbers for the provided question. 
-        /// </summary>
-        /// <param name="question"></param>
-        /// <returns></returns>
         public static int UpdateQuestionWordings(SurveyQuestion question)
         {
             string sql = "proc_updateQuestionWordings";
@@ -120,6 +91,11 @@ namespace ITCLib
             return 0;
         }
 
+        /// <summary>
+        /// Updates the labels for a VariableName.
+        /// </summary>
+        /// <param name="varname"></param>
+        /// <returns></returns>
         public static int UpdateLabels(VariableName varname)
         {
             string sql = "proc_updateLabels";
@@ -144,10 +120,14 @@ namespace ITCLib
             return 0;
         }
 
+        /// <summary>
+        /// Updates a record in the appropriate wording table.
+        /// </summary>
+        /// <param name="wording"></param>
+        /// <returns></returns>
         public static int UpdateWording(Wording wording)
         {
-            
-            string query = "";
+            string query = string.Empty;
             switch (wording.Type)
             {
                 case WordingType.PreP:
@@ -170,32 +150,27 @@ namespace ITCLib
                     break;
             }
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            var parameters = new { ID = wording.WordID, wording = wording.WordingText };
+
+            int rowsAffected = 0;
+
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
-                conn.Open();
-
-                sql.UpdateCommand = new SqlCommand(query, conn);
-                
-                sql.UpdateCommand.Parameters.AddWithValue("@ID", wording.WordID);
-                sql.UpdateCommand.Parameters.AddWithValue("@wording", wording.WordingText);                
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.Text);
             }
+
             return 0;
         }
 
-        public static int UpdateResponseSet (ResponseSet respSet)
+        /// <summary>
+        /// Updates a record in the appropriate response set table.
+        /// </summary>
+        /// <param name="respSet"></param>
+        /// <returns></returns>
+        public static int UpdateResponseSet(ResponseSet respSet)
         {
             string field = respSet.FieldType;
-            string query = "";
+            string query = string.Empty;
             switch (field)
             {
                 case "RespOptions":
@@ -206,130 +181,97 @@ namespace ITCLib
                     break;
             }
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            var parameters = new { setname = respSet.RespSetName, wording = respSet.RespList };
+
+            int rowsAffected = 0;
+
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
-                conn.Open();
-
-                sql.UpdateCommand = new SqlCommand(query, conn);
-
-                sql.UpdateCommand.Parameters.AddWithValue("@setname", respSet.RespSetName);
-                sql.UpdateCommand.Parameters.AddWithValue("@wording", respSet.RespList);
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch 
-                {
-                    return 1;
-                }
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.Text);
             }
+
             return 0;
         }
 
+        /// <summary>
+        /// Updates a record in the region table.
+        /// </summary>
+        /// <param name="region"></param>
+        /// <returns></returns>
         public static int UpdateRegion(Region region)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "proc_updateRegion";
+
+            var parameters = new
             {
-                conn.Open();
+                id = region.ID,
+                regionName = region.RegionName,
+                tempPrefix = region.TempVarPrefix
+            };
 
-                sql.UpdateCommand = new SqlCommand("proc_updateRegion", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
+            int rowsAffected = 0;
 
-                sql.UpdateCommand.Parameters.AddWithValue("@id", region.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@regionName", region.RegionName);
-                sql.UpdateCommand.Parameters.AddWithValue("@tempPrefix", region.TempVarPrefix);
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch
-                {
-                    return 1;
-                }
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.StoredProcedure);
             }
+
             return 0;
         }
 
         /// <summary>
         /// Updates Study info for specified study object.
         /// </summary>
-        /// <param name="sq"></param>
+        /// <param name="study"></param>
         /// <returns></returns>
         public static int UpdateStudy(Study study)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "proc_updateStudy";
+            var parameters = new
             {
-                conn.Open();
+                StudyID = study.ID,
+                studyName = study.StudyName,
+                countryName = study.CountryName,
+                ageGroup = study.AgeGroup,
+                countryCode = study.CountryCode,
+                ISO_Code = study.ISO_Code,
+                region = study.RegionID,
+                cohort = study.Cohort,
+                languages = study.Languages
+            };
+            int rowsAffected = 0;
 
-                sql.UpdateCommand = new SqlCommand("proc_updateStudy", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@StudyID", study.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@studyName", study.StudyName);
-                sql.UpdateCommand.Parameters.AddWithValue("@countryName", study.CountryName);
-                sql.UpdateCommand.Parameters.AddWithValue("@ageGroup", study.AgeGroup);
-                sql.UpdateCommand.Parameters.AddWithValue("@countryCode", study.CountryCode);
-                sql.UpdateCommand.Parameters.AddWithValue("@ISO_Code", study.ISO_Code);
-                sql.UpdateCommand.Parameters.AddWithValue("@region", study.RegionID);
-                sql.UpdateCommand.Parameters.AddWithValue("@cohort", study.Cohort);
-                sql.UpdateCommand.Parameters.AddWithValue("@languages", study.Languages);
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch
-                {
-                    return 1;
-                }
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.StoredProcedure);
             }
+
             return 0;
         }
 
         /// <summary>
         /// Updates Study info for specified study object.
         /// </summary>
-        /// <param name="sq"></param>
+        /// <param name="wave"></param>
         /// <returns></returns>
         public static int UpdateWave(StudyWave wave)
         {
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "proc_updateWave";
+            var parameters = new
             {
-                conn.Open();
+                id = wave.ID,
+                studyID = wave.StudyID,
+                waveNum = wave.Wave,
+                countries = wave.Countries,
+                englishRouting = wave.EnglishRouting
+            };
+            int rowsAffected = 0;
 
-                sql.UpdateCommand = new SqlCommand("proc_updateWave", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@id", wave.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@studyID", wave.StudyID);
-                sql.UpdateCommand.Parameters.AddWithValue("@waveNum", wave.Wave);
-                sql.UpdateCommand.Parameters.AddWithValue("@countries", wave.Countries);
-                sql.UpdateCommand.Parameters.AddWithValue("@englishRouting", wave.EnglishRouting);
-
-
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.StoredProcedure);
             }
+
             return 0;
         }
 
@@ -340,29 +282,19 @@ namespace ITCLib
         /// <returns></returns>
         public static int UpdateQnum(SurveyQuestion sq)
         {
-           
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "proc_updateQnum";
+            var parameters = new
             {
-                conn.Open();
+                newqnum = sq.Qnum,
+                qid = sq.ID
+            };
+            int rowsAffected = 0;
 
-                sql.UpdateCommand = new SqlCommand("proc_updateQnum", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@newqnum", sq.Qnum);
-                sql.UpdateCommand.Parameters.AddWithValue("@qid", sq.ID);
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.StoredProcedure);
             }
+
             return 0;
         }
 
@@ -373,196 +305,126 @@ namespace ITCLib
         /// <returns></returns>
         public static int UpdateAltQnum(SurveyQuestion sq)
         {
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "UPDATE tblSurveyNumbers SET AltQnum=@altqnum, AltQnum2 = @altqnum2, AltQnum3 =@altqnum3 WHERE ID = @id";
+            var parameters = new
             {
-                conn.Open();
+                altqnum = sq.AltQnum,
+                altqnum2 = sq.AltQnum2,
+                altqnum3 = sq.AltQnum3,
+                id = sq.ID
+            };
+            int rowsAffected = 0;
 
-                sql.UpdateCommand = new SqlCommand("UPDATE tblSurveyNumbers SET AltQnum=@altqnum, AltQnum2 = @altqnum2, AltQnum3 =@altqnum3 WHERE ID = @id", conn)
-                {
-                    CommandType = CommandType.Text
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@altqnum", !string.IsNullOrEmpty(sq.AltQnum) ? (object)sq.AltQnum : DBNull.Value);
-                sql.UpdateCommand.Parameters.AddWithValue("@altqnum2", !string.IsNullOrEmpty(sq.AltQnum2) ? (object)sq.AltQnum2 : DBNull.Value);
-                sql.UpdateCommand.Parameters.AddWithValue("@altqnum3", !string.IsNullOrEmpty(sq.AltQnum3) ? (object)sq.AltQnum3 : DBNull.Value);
-                sql.UpdateCommand.Parameters.AddWithValue("@id", sq.ID);
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.Text);
             }
+
             return 0;
         }
 
         /// <summary>
-        /// Saves User Preferences for specified user. USES TEST BACKEND. 
+        /// Saves User Preferences for specified user.
         /// </summary>
         /// <param name="u"></param>
         /// <returns></returns>
         public static int UpdateUser(UserPrefs u)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "proc_updateUser";
+            var parameters = new
             {
-                conn.Open();
+                userid = u.userid,
+                accessLevel = u.accessLevel,
+                reportPath = u.ReportPath,
+                reportPrompt = u.reportPrompt,
+                wordingNumbers = u.wordingNumbers
+            };
+            int rowsAffected = 0;
 
-                sql.UpdateCommand = new SqlCommand("proc_updateUser", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@userid", u.userid);
-                sql.UpdateCommand.Parameters.AddWithValue("@accessLevel", u.accessLevel);
-                sql.UpdateCommand.Parameters.AddWithValue("@reportPath", u.ReportPath);
-                sql.UpdateCommand.Parameters.AddWithValue("@reportPrompt", u.reportPrompt);
-                sql.UpdateCommand.Parameters.AddWithValue("@wordingNumbers", u.wordingNumbers);
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.StoredProcedure);
             }
+
             return 0;
         }
-
-        public static void UpdateSurveyDraftQuestion(DraftQuestionRecord d)
-        {
-            string query = "UPDATE qrySurveyDrafts SET QuestionText = @questionText, Comment=@comment WHERE ID = @id";
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
-                conn.Open();
-
-                sql.UpdateCommand = new SqlCommand(query, conn);
-                sql.UpdateCommand.Parameters.AddWithValue("@id", d.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@questionText", d.QuestionText);
-                sql.UpdateCommand.Parameters.AddWithValue("@comment", d.Comments);
-
-                sql.UpdateCommand.ExecuteNonQuery();
-            }
-        }
-
+        
+        /// <summary>
+        /// Updates a record in the survey checks table.
+        /// </summary>
+        /// <param name="record"></param>
+        /// <returns></returns>
         public static int UpdateSurveyCheckRecord(SurveyCheckRec record)
         {
-            
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "proc_updateSurveyCheckRecord";
+            var parameters = new
             {
+                ID = record.ID,
+                checkDate = record.CheckDate,
+                checkInit = record.Name.ID,
+                comments = record.Comments,
+                survID = record.SurveyCode.SID,
+                checkType = record.CheckType.ID
+            };
+            int rowsAffected = 0;
 
-                conn.Open();
-
-                sql.UpdateCommand = new SqlCommand("proc_updateSurveyCheckRecord", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@ID", record.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@checkDate", record.CheckDate);
-                sql.UpdateCommand.Parameters.AddWithValue("@checkInit", record.Name.ID);
-                //sql.UpdateCommand.Parameters.AddWithValue("@sendDate", record.SentOn);
-                //sql.UpdateCommand.Parameters.AddWithValue("@sendTo", record.SentTo.ID);
-                //sql.UpdateCommand.Parameters.AddWithValue("@reviewed", record.Reviewed);
-                //sql.UpdateCommand.Parameters.AddWithValue("@reviewedBy", record.ReviewedBy.ID);
-                //sql.UpdateCommand.Parameters.AddWithValue("@reviewDetails", record.ReviewDetails);
-                //sql.UpdateCommand.Parameters.AddWithValue("@editsMadeDate", record.Edited);
-                sql.UpdateCommand.Parameters.AddWithValue("@comments", record.Comments);
-                sql.UpdateCommand.Parameters.AddWithValue("@survID", record.SurveyCode.SID);
-                sql.UpdateCommand.Parameters.AddWithValue("@checkType", record.CheckType.ID);
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.StoredProcedure);
             }
-            return 0;
-            
+
+            return 0;                    
         }
 
+        /// <summary>
+        /// Updates a record in the survey check reference survey table
+        /// </summary>
+        /// <param name="record"></param>
+        /// <returns></returns>
         public static int UpdateSurveyCheckRefRecord(SurveyCheckRefSurvey record)
         {
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "proc_updateSurveyCheckRef";
+            var parameters = new
             {
+                ID = record.ID,
+                checkID = record.CheckID,
+                survID = record.SID,
+                survDate = record.SurveyDate
+            };
+            int rowsAffected = 0;
 
-                conn.Open();
-
-                sql.UpdateCommand = new SqlCommand("proc_updateSurveyCheckRef", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@ID", record.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@checkID", record.CheckID);
-                sql.UpdateCommand.Parameters.AddWithValue("@survID", record.SID);
-                if (record.SurveyDate == null)
-                    sql.UpdateCommand.Parameters.AddWithValue("@survDate", DBNull.Value);
-                else
-                    sql.UpdateCommand.Parameters.AddWithValue("@survDate", record.SurveyDate);
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.StoredProcedure);
             }
-            return 0;
 
+            return 0;
         }
 
-       
-
+        /// <summary>
+        /// Updates a label in the appropriate label table.
+        /// </summary>
+        /// <param name="labelType"></param>
+        /// <param name="labelText"></param>
+        /// <param name="labelID"></param>
+        /// <returns></returns>
         public static int UpdateLabel(string labelType, string labelText, int labelID)
         {
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "proc_updateLabel";
+            var parameters = new
             {
+                type = labelType,
+                label = labelText,
+                id = labelID
+            };
+            int rowsAffected = 0;
 
-                conn.Open();
-
-                sql.UpdateCommand = new SqlCommand("proc_updateLabel", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@type", labelType);
-                sql.UpdateCommand.Parameters.AddWithValue("@label", labelText);
-                sql.UpdateCommand.Parameters.AddWithValue("@id", labelID);
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.StoredProcedure);
             }
-            return 0;
 
+            return 0;
         }
 
         /// <summary>
@@ -572,32 +434,22 @@ namespace ITCLib
         /// <returns></returns>
         public static int UpdateTranslation(Translation translation)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "proc_updateTranslation";
+            var parameters = new
             {
-                conn.Open();
+                id = translation.ID,
+                lang = translation.LanguageName.LanguageName,
+                langID = translation.LanguageName.ID,
+                text = translation.TranslationText,
+                bilingual = translation.Bilingual
+            };
+            int rowsAffected = 0;
 
-                sql.UpdateCommand = new SqlCommand("proc_updateTranslation", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@id", translation.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@lang", translation.LanguageName.LanguageName);
-                sql.UpdateCommand.Parameters.AddWithValue("@langID", translation.LanguageName.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@text", translation.TranslationText);
-                sql.UpdateCommand.Parameters.AddWithValue("@bilingual", translation.Bilingual);
-             
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.StoredProcedure);
             }
+
             return 0;
         }
 
@@ -608,674 +460,411 @@ namespace ITCLib
         /// <returns></returns>
         public static int UpdateLanguage(Language language)
         {
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "proc_updateLanguage";
+            var parameters = new
             {
-                conn.Open();
+                id = language.ID,
+                language = language.LanguageName,
+                abbrev = language.Abbrev,
+                isoabbrev = language.ISOAbbrev,
+                nonLatin = language.NonLatin,
+                font = language.PreferredFont
+            };
+            int rowsAffected = 0;
 
-                sql.UpdateCommand = new SqlCommand("proc_updateLanguage", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@id", language.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@language", language.LanguageName);
-                sql.UpdateCommand.Parameters.AddWithValue("@abbrev", language.Abbrev);
-                sql.UpdateCommand.Parameters.AddWithValue("@isoabbrev", language.ISOAbbrev);
-                sql.UpdateCommand.Parameters.AddWithValue("@nonLatin", language.NonLatin);
-                sql.UpdateCommand.Parameters.AddWithValue("@font", language.PreferredFont);
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-            }
-            return 0;
-        }
-
-        /// <summary>
-        /// Updates Language info for specified language object.
-        /// </summary>
-        /// <param name="language"></param>
-        /// <returns></returns>
-        public static int UpdateSurveyLanguage(SurveyLanguage language)
-        {
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
-                conn.Open();
-
-                sql.UpdateCommand = new SqlCommand("UPDATE tblSurveyLanguages SET SurvID=@survID, LanguageID = @langID WHERE ID =@id", conn)
-                {
-                    CommandType = CommandType.Text
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@id", language.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@survID", language.SurvID);
-                sql.UpdateCommand.Parameters.AddWithValue("@langID", language.SurvLanguage.ID);
-                
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.StoredProcedure);
             }
-            return 0;
-        }
 
-
-        /// <summary>
-        /// Updates user state record for particular survey.
-        /// </summary>
-        /// <param name="language"></param>
-        /// <returns></returns>
-        public static int UpdateSurveyUserState(SurveyUserState userstate)
-        {
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
-                conn.Open();
-
-                sql.UpdateCommand = new SqlCommand("UPDATE tblSurveyUserStates SET SurvID=@survID, UserStateID = @userStateID WHERE ID =@id", conn)
-                {
-                    CommandType = CommandType.Text
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@id", userstate.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@survID", userstate.SurvID);
-                sql.UpdateCommand.Parameters.AddWithValue("@userStateID", userstate.State.ID);
-
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-            }
-            return 0;
-        }
-
-        /// <summary>
-        /// Updates user state record for particular survey.
-        /// </summary>
-        /// <param name="language"></param>
-        /// <returns></returns>
-        public static int UpdateSurveyScreenedProduct(SurveyScreenedProduct product)
-        {
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
-                conn.Open();
-
-                sql.UpdateCommand = new SqlCommand("UPDATE tblSurveyProducts SET SurvID=@survID, ProductID = @productID WHERE ID =@id", conn)
-                {
-                    CommandType = CommandType.Text
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@id", product.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@survID", product.SurvID);
-                sql.UpdateCommand.Parameters.AddWithValue("@productID", product.Product.ID);
-
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-            }
             return 0;
         }
 
         /// <summary>
         /// Updates the specified praccing record.
         /// </summary>
-        /// <param name="language"></param>
+        /// <param name="record"></param>
         /// <returns></returns>
         public static int UpdatePraccingIssue(PraccingIssue record)
         {
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "proc_updatePraccIssue";
+            var parameters = new
             {
-                conn.Open();
+                id = record.ID,
+                survID = record.Survey.SID,
+                issueNo = record.IssueNo,
+                varnames = record.VarNames,
+                date = record.IssueDate,
+                from = record.IssueFrom.ID,
+                to = record.IssueTo.ID,
+                description = record.Description,
+                category = record.Category.ID,
+                resolved = record.Resolved,
+                resolvedby = record.ResolvedBy.ID,
+                resolvedon = record.ResolvedDate,
+                language = record.Language,
+                pin = record.PinNo
+            };
+            int rowsAffected = 0;
 
-                sql.UpdateCommand = new SqlCommand("proc_updatePraccIssue", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@id", record.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@survID", record.Survey.SID);
-                sql.UpdateCommand.Parameters.AddWithValue("@issueNo", record.IssueNo);
-                sql.UpdateCommand.Parameters.AddWithValue("@varnames", record.VarNames);
-                sql.UpdateCommand.Parameters.AddWithValue("@date", record.IssueDate);
-                sql.UpdateCommand.Parameters.AddWithValue("@from", record.IssueFrom.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@to", record.IssueTo.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@description", record.Description);
-                sql.UpdateCommand.Parameters.AddWithValue("@category", record.Category.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@resolved", record.Resolved);
-                sql.UpdateCommand.Parameters.AddWithValue("@resolvedby", record.ResolvedBy.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@resolvedon", record.ResolvedDate);
-                sql.UpdateCommand.Parameters.AddWithValue("@language", record.Language);
-                sql.UpdateCommand.Parameters.AddWithValue("@pin", record.PinNo);
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.StoredProcedure);
             }
+
             return 0;
         }
 
         /// <summary>
-        /// Updates the specified praccing record.
+        /// Updates the specified praccing response record.
         /// </summary>
-        /// <param name="language"></param>
+        /// <param name="record"></param>
         /// <returns></returns>
         public static int UpdatePraccingResponse(PraccingResponse record)
         {
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "proc_updatePraccResponse";
+            var parameters = new
             {
-                conn.Open();
+                id = record.ID,
+                issueID = record.IssueID,
+                date = record.ResponseDate,
+                from = record.ResponseFrom.ID,
+                to = record.ResponseTo.ID,
+                description = record.Response,
+                pin = record.PinNo
+            };
+            int rowsAffected = 0;
 
-                sql.UpdateCommand = new SqlCommand("proc_updatePraccResponse", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@id", record.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@issueID", record.IssueID);
-                sql.UpdateCommand.Parameters.AddWithValue("@date", record.ResponseDate);
-                sql.UpdateCommand.Parameters.AddWithValue("@from", record.ResponseFrom.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@to", record.ResponseTo.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@description", record.Response);
-                sql.UpdateCommand.Parameters.AddWithValue("@pin", record.PinNo);
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.StoredProcedure);
             }
+
             return 0;
         }
 
+        /// <summary>
+        /// Updates a record in the survey processing dates table.
+        /// </summary>
+        /// <param name="record"></param>
+        /// <returns></returns>
         public static int UpdateSurveyProcessingDate(SurveyProcessingDate record)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "UPDATE tblSurveyProcessingDates Set StageDate = @stagedate, EntryDate = @entrydate, StageInit = @stageinit, StageContact = @contact " +
+                "WHERE ID = @ID";
+            var parameters = new
             {
+                ID = record.ID,
+                stagedate = record.StageDate,
+                entrydate = record.EntryDate,
+                stageinit = record.EnteredBy.ID,
+                contact = record.Contact.ID
+            };
+            int rowsAffected = 0;
 
-                conn.Open();
-
-                sql.UpdateCommand = new SqlCommand("UPDATE tblSurveyProcessingDates Set StageDate = @stagedate, EntryDate = @entrydate, StageInit = @stageinit, StageContact=@contact " +
-                        "WHERE ID=@ID", conn)
-                {
-                    CommandType = CommandType.Text
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@ID", record.ID);
-                
-                if (record.StageDate ==null)
-                    sql.UpdateCommand.Parameters.AddWithValue("@stagedate", DBNull.Value);
-                else
-                    sql.UpdateCommand.Parameters.AddWithValue("@stagedate", record.StageDate);
-
-                if (record.EntryDate == null)
-                    sql.UpdateCommand.Parameters.AddWithValue("@entrydate", DBNull.Value);
-                else
-                    sql.UpdateCommand.Parameters.AddWithValue("@entrydate", record.EntryDate);
-
-                sql.UpdateCommand.Parameters.AddWithValue("@stageinit", record.EnteredBy.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@contact", record.Contact.ID);
-
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                   
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.Text);
             }
 
             return 0;
-
-
         }
 
+        /// <summary>
+        /// Updates a record in the survey processing notes table.
+        /// </summary>
+        /// <param name="record"></param>
+        /// <returns></returns>
         public static int UpdateSurveyProcessingNote(SurveyProcessingNote record)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "UPDATE tblSurveyProcessingNotes SET EnteredBy = @enteredby, CommentDate = @commentdate, Note = @note " +
+                "WHERE ID = @ID";
+            var parameters = new
             {
+                ID = record.ID,
+                enteredby = record.Author.ID,
+                commentdate = record.NoteDate,
+                note = record.Note
+            };
+            int rowsAffected = 0;
 
-                conn.Open();
-
-                sql.UpdateCommand = new SqlCommand("UPDATE tblSurveyProcessingNotes SET EnteredBy=@enteredby, CommentDate = @commentdate, Note=@note " +
-                        "WHERE ID=@ID", conn)
-                {
-                    CommandType = CommandType.Text
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@ID", record.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@enteredby", record.Author.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@commentdate", record.NoteDate);
-                sql.UpdateCommand.Parameters.AddWithValue("@note", record.Note);
-
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.Text);
             }
 
             return 0;
-
-
         }
 
+        /// <summary>
+        /// Updates a record in the survey processing stage table.
+        /// </summary>
+        /// <param name="record"></param>
+        /// <returns></returns>
         public static int UpdateSurveyProcessingStage(SurveyProcessingRecord record)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "UPDATE tblSurveyProcessing SET Stage = @stage, NA = @na, Done = @done WHERE ID = @ID";
+            var parameters = new
             {
+                ID = record.ID,
+                stage = record.Stage.ID,
+                na = record.NotApplicable,
+                done = record.Done
+            };
+            int rowsAffected = 0;
 
-                conn.Open();
-
-                sql.UpdateCommand = new SqlCommand("UPDATE tblSurveyProcessing SET Stage=@stage, NA = @na, Done=@done WHERE ID=@ID", conn)
-                {
-                    CommandType = CommandType.Text
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@ID", record.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@stage", record.Stage.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@na", record.NotApplicable);
-                sql.UpdateCommand.Parameters.AddWithValue("@done", record.Done);
-
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.Text);
             }
 
             return 0;
-
-
         }
 
-
+        /// <summary>
+        /// Updates a record in the notes table.
+        /// </summary>
+        /// <param name="record"></param>
+        /// <returns></returns>
         public static int UpdateNote(Note record)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "UPDATE tblNotes SET Notes = @notes WHERE ID = @ID";
+            var parameters = new
             {
+                ID = record.ID,
+                notes = record.NoteText
+            };
+            int rowsAffected = 0;
 
-                conn.Open();
-
-                sql.UpdateCommand = new SqlCommand("UPDATE tblNotes SET Notes=@notes WHERE ID=@ID", conn)
-                {
-                    CommandType = CommandType.Text
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@ID", record.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@notes", record.NoteText);
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.Text);
             }
+
             return 0;
         }
 
+        /// <summary>
+        /// Updates a record in the question comment table.
+        /// </summary>
+        /// <param name="record"></param>
+        /// <returns></returns>
         public static int UpdateQuestionComment(QuestionComment record)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "proc_updateQuestionComment";
+            var parameters = new
             {
-                conn.Open();
+                survey = record.Survey,
+                varname = record.VarName,
+                commentText = record.Notes.NoteText,
+                notedate = record.NoteDate.Value,
+                noteinit = record.Author.ID,
+                authority = record.Authority.ID,
+                notetype = record.NoteType.ID,
+                source = record.Source
+            };
+            int rowsAffected = 0;
 
-                sql.UpdateCommand = new SqlCommand("proc_updateQuestionComment", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@survey", record.Survey);
-                sql.UpdateCommand.Parameters.AddWithValue("@varname", record.VarName);
-                sql.UpdateCommand.Parameters.AddWithValue("@commentText", record.Notes.NoteText);
-                sql.UpdateCommand.Parameters.AddWithValue("@notedate", record.NoteDate.Value);
-                sql.UpdateCommand.Parameters.AddWithValue("@noteinit", record.Author.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@authority", record.Authority.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@notetype", record.NoteType.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@source", record.Source);
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.StoredProcedure);
             }
+
             return 0;
         }
 
+        /// <summary>
+        /// Updates a record in the survey comment table.
+        /// </summary>
+        /// <param name="record"></param>
+        /// <returns></returns>
         public static int UpdateSurveyComment(SurveyComment record)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "proc_updateSurveyComment";
+            var parameters = new
             {
-                conn.Open();
+                survey = record.Survey,
+                commentText = record.Notes.NoteText,
+                notedate = record.NoteDate.Value,
+                noteinit = record.Author.ID,
+                authority = record.Authority.ID,
+                notetype = record.NoteType.ID,
+                source = record.Source
+            };
+            int rowsAffected = 0;
 
-                sql.UpdateCommand = new SqlCommand("proc_updateSurveyComment", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@survey", record.Survey);
-                sql.UpdateCommand.Parameters.AddWithValue("@commentText", record.Notes.NoteText);
-                sql.UpdateCommand.Parameters.AddWithValue("@notedate", record.NoteDate.Value);
-                sql.UpdateCommand.Parameters.AddWithValue("@noteinit", record.Author.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@authority", record.Authority.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@notetype", record.NoteType.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@source", record.Source);
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.StoredProcedure);
             }
+
             return 0;
         }
 
+        /// <summary>
+        /// Updates a record in the wave comment table.
+        /// </summary>
+        /// <param name="record"></param>
+        /// <returns></returns>
         public static int UpdateWaveComment(WaveComment record)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "proc_updateWaveComment";
+            var parameters = new
             {
-                conn.Open();
+                wave = record.StudyWave,
+                commentText = record.Notes.NoteText,
+                notedate = record.NoteDate.Value,
+                noteinit = record.Author.ID,
+                authority = record.Authority.ID,
+                notetype = record.NoteType.ID,
+                source = record.Source
+            };
+            int rowsAffected = 0;
 
-                sql.UpdateCommand = new SqlCommand("proc_updateWaveComment", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@wave", record.StudyWave);
-                sql.UpdateCommand.Parameters.AddWithValue("@commentText", record.Notes.NoteText);
-                sql.UpdateCommand.Parameters.AddWithValue("@notedate", record.NoteDate.Value);
-                sql.UpdateCommand.Parameters.AddWithValue("@noteinit", record.Author.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@authority", record.Authority.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@notetype", record.NoteType.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@source", record.Source);
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.StoredProcedure);
             }
+
             return 0;
         }
 
+        /// <summary>
+        /// Updates a record in the refvar comment table.
+        /// </summary>
+        /// <param name="record"></param>
+        /// <returns></returns>
         public static int UpdateRefVarComment(RefVarComment record)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "proc_updateRefVarComment";
+            var parameters = new
             {
-                conn.Open();
+                varname = record.RefVarName,
+                commentText = record.Notes.NoteText,
+                notedate = record.NoteDate.Value,
+                noteinit = record.Author.ID,
+                authority = record.Authority.ID,
+                notetype = record.NoteType.ID,
+                source = record.Source
+            };
+            int rowsAffected = 0;
 
-                sql.UpdateCommand = new SqlCommand("proc_updateWaveComment", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@varname", record.RefVarName);
-                sql.UpdateCommand.Parameters.AddWithValue("@commentText", record.Notes.NoteText);
-                sql.UpdateCommand.Parameters.AddWithValue("@notedate", record.NoteDate.Value);
-                sql.UpdateCommand.Parameters.AddWithValue("@noteinit", record.Author.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@authority", record.Authority.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@notetype", record.NoteType.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@source", record.Source);
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.StoredProcedure);
             }
+
             return 0;
         }
 
+        /// <summary>
+        /// Updates a record in the deleted question comments table.
+        /// </summary>
+        /// <param name="record"></param>
+        /// <returns></returns>
         public static int UpdateDeletedQuestionComment(DeletedComment record)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "proc_updateDeletedComment";
+            var parameters = new
             {
-                conn.Open();
+                survey = record.Survey,
+                varname = record.VarName,
+                commentText = record.Notes.NoteText,
+                notedate = record.NoteDate.Value,
+                noteinit = record.Author.ID,
+                authority = record.Authority.ID,
+                notetype = record.NoteType.ID,
+                source = record.Source
+            };
+            int rowsAffected = 0;
 
-                sql.UpdateCommand = new SqlCommand("proc_updateDeletedComment", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@survey", record.Survey);
-                sql.UpdateCommand.Parameters.AddWithValue("@varname", record.VarName);
-                sql.UpdateCommand.Parameters.AddWithValue("@commentText", record.Notes.NoteText);
-                sql.UpdateCommand.Parameters.AddWithValue("@notedate", record.NoteDate.Value);
-                sql.UpdateCommand.Parameters.AddWithValue("@noteinit", record.Author.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@authority", record.Authority.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@notetype", record.NoteType.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@source", record.Source);
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.StoredProcedure);
             }
+
             return 0;
         }
 
+        /// <summary>
+        /// Updates a user's stored comment.
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="record"></param>
+        /// <param name="recordNumber"></param>
+        /// <returns></returns>
         public static int UpdateStoredComment(int userID, Comment record, int recordNumber)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "UPDATE tblSavedComments SET NoteDate = @notedate, NoteInit = @noteinit, NoteTypeID = @notetypeid, Comment = @comment, " +
+                "Source = @source, AuthorityID = @authority WHERE PersonnelID = @userID AND ID = @id";
+            var parameters = new
             {
+                notedate = record.NoteDate.Value,
+                noteinit = record.Author.ID,
+                notetypeid = record.NoteType.ID,
+                authority = record.Authority.ID,
+                comment = record.Notes.NoteText,
+                source = record.Source,
+                userID = userID,
+                id = recordNumber
+            };
+            int rowsAffected = 0;
 
-                conn.Open();
-
-                sql.UpdateCommand = new SqlCommand("UPDATE tblSavedComments SET NoteDate=@notedate, NoteInit=@noteinit, NoteTypeID=@notetypeid, Comment=@comment, Source=@source, AuthorityID=@authority " +
-                        "WHERE PersonnelID = @userID AND ID = @id", conn)
-                {
-                    CommandType = CommandType.Text
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@notedate", record.NoteDate.Value);
-                sql.UpdateCommand.Parameters.AddWithValue("@noteinit", record.Author.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@notetypeid", record.NoteType.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@authority", record.Authority.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@comment", record.Notes.NoteText);
-                sql.UpdateCommand.Parameters.AddWithValue("@source", record.Source);
-                
-                sql.UpdateCommand.Parameters.AddWithValue("@userID", userID);
-                sql.UpdateCommand.Parameters.AddWithValue("@id", recordNumber);
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.Text);
             }
 
             return 0;
-
-
         }
 
+        /// <summary>
+        /// Updates a user's saved sources.
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="source"></param>
+        /// <param name="recordNumber"></param>
+        /// <returns></returns>
         public static int UpdateSavedSource(int userID, string source, int recordNumber)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "UPDATE tblSavedSources SET SourceText=@source WHERE PersonnelID = @userID AND SourceNumber = @id";
+            var parameters = new
             {
+                source = source,
+                userID = userID,
+                id = recordNumber
+            };
+            int rowsAffected = 0;
 
-                conn.Open();
-
-                sql.UpdateCommand = new SqlCommand("UPDATE tblSavedSources SET SourceText=@source WHERE PersonnelID = @userID AND SourceNumber = @id", conn)
-                {
-                    CommandType = CommandType.Text
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@source", source);
-
-                sql.UpdateCommand.Parameters.AddWithValue("@userID", userID);
-                sql.UpdateCommand.Parameters.AddWithValue("@id", recordNumber);
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.Text);
             }
 
             return 0;
         }
 
+        /// <summary>
+        /// Updates VarName field for a survey in the survey questions table.
+        /// </summary>
+        /// <param name="oldname"></param>
+        /// <param name="newname"></param>
+        /// <param name="survey"></param>
+        /// <returns></returns>
         public static int RenameVariableName(string oldname, string newname, string survey)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "proc_renameVariable";
+            var parameters = new
             {
+                oldname = oldname,
+                newname = newname,
+                survey = survey
+            };
+            int rowsAffected = 0;
 
-                conn.Open();
-
-                sql.UpdateCommand = new SqlCommand("proc_renameVariable", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@oldname", oldname);
-                sql.UpdateCommand.Parameters.AddWithValue("@newname", newname);
-                sql.UpdateCommand.Parameters.AddWithValue("@survey", survey);
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
-            }
-
-            return 0;
-        }
-
-        public static int RenameVariableName(VarNameChange change)
-        {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
-
-                conn.Open();
-
-                sql.UpdateCommand = new SqlCommand("proc_renameVariable", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                foreach (VarNameChangeSurvey s in change.SurveysAffected)
-                {
-                    sql.UpdateCommand.Parameters.AddWithValue("@oldname", change.OldName);
-                    sql.UpdateCommand.Parameters.AddWithValue("@newname", change.NewName);
-                    sql.UpdateCommand.Parameters.AddWithValue("@survey", s.SurveyCode.SurveyCode);
-                }
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.StoredProcedure);
             }
 
             return 0;
@@ -1283,37 +872,25 @@ namespace ITCLib
 
         public static int UpdatePreP(Wording wording, string oldval, string newval, bool overwrite)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "proc_updatePreP";
+
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@prepid", wording.WordID);
+            parameters.Add("@oldval", oldval);
+            parameters.Add("@newval", newval);
+            parameters.Add("@overwrite", overwrite);
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+            int rowsAffected = 0;
+
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
-
-                conn.Open();
-
-                sql.UpdateCommand = new SqlCommand("proc_updatePreP", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@prepid", wording.WordID);
-                sql.UpdateCommand.Parameters.AddWithValue("@oldval", oldval);
-                sql.UpdateCommand.Parameters.AddWithValue("@newval", newval);
-                sql.UpdateCommand.Parameters.AddWithValue("@overwrite", overwrite);
-                sql.UpdateCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                    wording.WordID = Convert.ToInt32(sql.UpdateCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.StoredProcedure);
+                wording.WordID = parameters.Get<int>("@newID");
             }
 
             return 0;
+
         }
 
         public static int UpdatePreI(Wording wording, string oldval, string newval, bool overwrite)
@@ -1677,379 +1254,242 @@ namespace ITCLib
             return 0;
         }
 
+        /// <summary>
+        /// Updates a record in the varname changes table.
+        /// </summary>
+        /// <param name="record"></param>
+        /// <returns></returns>
         public static int UpdateVarNameChange(VarNameChange record)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
-
-                conn.Open();
-
-                sql.UpdateCommand = new SqlCommand("UPDATE tblVarNameChanges Set [refVarNameNew] = @refVarNameNew, [NewName]=@NewName, @refVarNameOld=@refVarNameOld, OldName=@OldName, " +
+            string query = "UPDATE tblVarNameChanges Set[refVarNameNew] = @refVarNameNew, [NewName] = @NewName, @refVarNameOld = @refVarNameOld, OldName = @OldName, " +
                     "[ChangeDate]=@changeDate,[ChangedBy]=@changedby, [Authorization]=@authorization,[Reasoning]=@reasoning,[Source2]=@source,[TempVar]=@tempvar " +
-                    "WHERE ID = @changeID", conn)
-                {
-                    CommandType = CommandType.Text
-                };
+                    "WHERE ID = @changeID;";
 
-                sql.UpdateCommand.Parameters.AddWithValue("@changeID", record.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@refVarNameNew", record.NewRefName);
-                sql.UpdateCommand.Parameters.AddWithValue("@NewName", record.NewName);
-                sql.UpdateCommand.Parameters.AddWithValue("@refVarNameOld", record.OldRefName);
-                sql.UpdateCommand.Parameters.AddWithValue("@OldName", record.OldName);
-                sql.UpdateCommand.Parameters.AddWithValue("@changeDate", record.ChangeDate);
-                sql.UpdateCommand.Parameters.AddWithValue("@changedby", record.ChangedBy.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@authorization", record.Authorization);
-                sql.UpdateCommand.Parameters.AddWithValue("@reasoning", record.Rationale);
-                sql.UpdateCommand.Parameters.AddWithValue("@source", record.Source);
-                sql.UpdateCommand.Parameters.AddWithValue("@tempvar", record.HiddenChange);
+            var parameters = new {
+                changeID = record.ID,
+                refVarNameNew = record.NewRefName,
+                NewName = record.NewName,
+                refVarNameOld = record.OldRefName,
+                OldName = record.OldName,
+                changeDate = record.ChangeDate,
+                changedby = record.ChangedBy.ID,
+                authorization = record.Authorization,
+                reasoning = record.Rationale,
+                source = record.Source,
+                tempvar = record.HiddenChange
+            };
 
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+            int rowsAffected = 0;
 
-            }
-
-            return 0;
-        }
-
-        public static int UpdateVarNameChangeSurvey(int changeID, Survey s)
-        {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
-
-                conn.Open();
-
-                sql.UpdateCommand = new SqlCommand("UPDATE tblVarNameChangeSurveys Set [SurveyID] = @survid WHERE ID = @changeID", conn)
-                {
-                    CommandType = CommandType.Text
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@changeID", changeID);
-                sql.UpdateCommand.Parameters.AddWithValue("@survid", s.SID);
-                
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.Text);
             }
 
             return 0;
         }
 
-        public static int UpdateVarNameChangeSurvey(VarNameChangeSurvey record)
-        {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
-
-                conn.Open();
-
-                sql.UpdateCommand = new SqlCommand("UPDATE tblVarNameChangeSurveys Set [SurveyID] = @survid WHERE ID = @ID", conn)
-                {
-                    CommandType = CommandType.Text
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@ID", record.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@survid", record.SurveyCode.SID);
-
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
-            }
-
-            return 0;
-        }
-
-        public static int UpdateVarNameChangeNotification(VarNameChangeNotification record)
-        {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
-
-                conn.Open();
-
-                sql.UpdateCommand = new SqlCommand("UPDATE tblVarNameChangeNotifications Set [NotifyName] = @notifyname, NotifyType = @notifytype WHERE ID = @ID", conn)
-                {
-                    CommandType = CommandType.Text
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@ID", record.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@notifyname", record.Name.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@notifytype", record.NotifyType);
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
-            }
-
-            return 0;
-        }
-
+        /// <summary>
+        /// Updates a record in the personnel table.
+        /// </summary>
+        /// <param name="record"></param>
+        /// <returns></returns>
         public static int UpdatePersonnel(Person record)
         {
+            string query = "proc_updatePersonnel";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            var parameters = new
             {
+                ID = record.ID,
+                firstname = record.FirstName,
+                lastname = record.LastName,
+                username = record.Username,
+                email = record.Email,
+                workphone = record.WorkPhone,
+                homephone = record.HomePhone,
+                officeno = record.OfficeNo,
+                institution = record.Institution,
+                active = record.Active,
+                smg = record.SMG,
+                analyst = record.Analyst,
+                praccer = record.Praccer,
+                praccid = record.PraccID,
+                programmer = record.Programmer,
+                firm = record.Firm,
+                countryteam = record.CountryTeam,
+                entry = record.Entry,
+                praccentry = record.PraccEntry,
+                admin = record.Admin,
+                ra = record.ResearchAssistant,
+                dissemination = record.Dissemination,
+                investigator = record.Investigator,
+                projectmanager = record.ProjectManager,
+                statistician = record.Statistician,
+                varnamechangenotify = record.VarNameChangeNotify
+            };
 
-                conn.Open();
+            int rowsAffected = 0;
 
-                sql.UpdateCommand = new SqlCommand("proc_updatePersonnel", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-
-                sql.UpdateCommand.Parameters.AddWithValue("@ID", record.ID);
-
-                sql.UpdateCommand.Parameters.AddWithValue("@firstname", string.IsNullOrEmpty(record.FirstName) ? DBNull.Value : (object)record.FirstName);
-                sql.UpdateCommand.Parameters.AddWithValue("@lastname", string.IsNullOrEmpty(record.LastName) ? DBNull.Value : (object)record.LastName);
-                sql.UpdateCommand.Parameters.AddWithValue("@username", string.IsNullOrEmpty(record.Username) ? DBNull.Value : (object)record.Username);
-                sql.UpdateCommand.Parameters.AddWithValue("@email", string.IsNullOrEmpty(record.Email) ? DBNull.Value : (object)record.Email);
-                sql.UpdateCommand.Parameters.AddWithValue("@workphone", string.IsNullOrEmpty(record.WorkPhone) ? DBNull.Value : (object)record.WorkPhone);
-                sql.UpdateCommand.Parameters.AddWithValue("@homephone", string.IsNullOrEmpty(record.HomePhone) ? DBNull.Value : (object)record.HomePhone);
-                sql.UpdateCommand.Parameters.AddWithValue("@officeno", string.IsNullOrEmpty(record.OfficeNo) ? DBNull.Value : (object)record.OfficeNo);
-                sql.UpdateCommand.Parameters.AddWithValue("@institution", string.IsNullOrEmpty(record.Institution) ? DBNull.Value : (object)record.Institution);
-                sql.UpdateCommand.Parameters.AddWithValue("@active", record.Active);
-                sql.UpdateCommand.Parameters.AddWithValue("@smg", record.SMG);
-                sql.UpdateCommand.Parameters.AddWithValue("@analyst", record.Analyst);
-                sql.UpdateCommand.Parameters.AddWithValue("@praccer", record.Praccer);
-                sql.UpdateCommand.Parameters.AddWithValue("@praccid", string.IsNullOrEmpty(record.PraccID) ? DBNull.Value : (object)record.PraccID);
-                sql.UpdateCommand.Parameters.AddWithValue("@programmer", record.Programmer);
-                sql.UpdateCommand.Parameters.AddWithValue("@firm", record.Firm);
-                sql.UpdateCommand.Parameters.AddWithValue("@countryteam", record.CountryTeam);
-                sql.UpdateCommand.Parameters.AddWithValue("@entry", record.Entry);
-                sql.UpdateCommand.Parameters.AddWithValue("@praccentry", record.PraccEntry);
-                sql.UpdateCommand.Parameters.AddWithValue("@admin", record.Admin);
-                sql.UpdateCommand.Parameters.AddWithValue("@ra", record.ResearchAssistant);
-                sql.UpdateCommand.Parameters.AddWithValue("@dissemination", record.Dissemination);
-                sql.UpdateCommand.Parameters.AddWithValue("@investigator", record.Investigator);
-                sql.UpdateCommand.Parameters.AddWithValue("@projectmanager", record.ProjectManager);
-                sql.UpdateCommand.Parameters.AddWithValue("@statistician", record.Statistician);
-                sql.UpdateCommand.Parameters.AddWithValue("@varnamechangenotify", record.VarNameChangeNotify);
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.StoredProcedure);
             }
 
             return 0;
         }
 
+        /// <summary>
+        /// Updates a record in the personnel study table.
+        /// </summary>
+        /// <param name="record"></param>
+        /// <returns></returns>
         public static int UpdatePersonnelStudy(PersonnelStudyRecord record)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "UPDATE tblPersonnelCountry SET CountryID = @countryID WHERE ID = @ID";
+
+            var parameters = new
             {
+                ID = record.ID,
+                countryID = record.StudyID
+            };
 
-                conn.Open();
+            int rowsAffected = 0;
 
-                sql.UpdateCommand = new SqlCommand("UPDATE tblPersonnelCountry SET CountryID = @countryID WHERE ID = @ID", conn)
-                {
-                    CommandType = CommandType.Text
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@ID", record.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@countryID", record.StudyID);
-               
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.Text);
             }
 
             return 0;
         }
 
+        /// <summary>
+        /// Updates a record in the personnel comment table.
+        /// </summary>
+        /// <param name="record"></param>
+        /// <returns></returns>
         public static int UpdatePersonnelComment(PersonnelCommentRecord record)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "UPDATE tblPersonnelComments SET CommentType = @commentType, Comment = @comment WHERE ID = @ID";
+
+            var parameters = new
             {
+                ID = record.ID,
+                commentType = record.CommentType,
+                comment = record.Comment
+            };
 
-                conn.Open();
+            int rowsAffected = 0;
 
-                sql.UpdateCommand = new SqlCommand("UPDATE tblPersonnelComments SET CommentType = @commentType, Comment = @comment WHERE ID = @ID", conn)
-                {
-                    CommandType = CommandType.Text
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@ID", record.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@commentType", record.CommentType);
-                sql.UpdateCommand.Parameters.AddWithValue("@comment", record.Comment);
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.Text);
             }
 
             return 0;
         }
-
+        
+        /// <summary>
+        /// Updates a record in the cohort table.
+        /// </summary>
+        /// <param name="record"></param>
+        /// <returns></returns>
         public static int UpdateCohort(SurveyCohortRecord record)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "UPDATE tblCohort SET Cohort = @cohort, Code = @code, WebName =@webname WHERE ID = @ID";
+
+            var parameters = new
             {
+                ID = record.ID,
+                cohort = record.Cohort,
+                code = record.Code,
+                webname = record.WebName
+            };
 
-                conn.Open();
+            int rowsAffected = 0;
 
-                sql.UpdateCommand = new SqlCommand("UPDATE tblCohort SET Cohort = @cohort, Code = @code, WebName =@webname WHERE ID = @ID", conn)
-                {
-                    CommandType = CommandType.Text
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@ID", record.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@cohort", record.Cohort);
-                sql.UpdateCommand.Parameters.AddWithValue("@code", record.Code);
-                sql.UpdateCommand.Parameters.AddWithValue("@webname", record.WebName);
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.Text);
             }
 
             return 0;
         }
-
+        // TODO
         public static int UpdateUserState(UserStateRecord record)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "UPDATE tblUserStates SET UserState = @userstate WHERE ID = @ID";
+
+            var parameters = new
             {
+                ID = record.ID,
+                userstate = record.UserStateName,
+            };
 
-                conn.Open();
+            int rowsAffected = 0;
 
-                sql.UpdateCommand = new SqlCommand("UPDATE tblUserStates SET UserState = @userstate WHERE ID = @ID", conn)
-                {
-                    CommandType = CommandType.Text
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@ID", record.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@userstate", record.UserStateName);
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.Text);
             }
 
             return 0;
         }
 
+        // TODO
         public static int UpdateSimilarWords(SimilarWordsRecord record)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "UPDATE tblAlternateSpelling SET Word = @words WHERE ID = @ID";
+
+            var parameters = new
             {
-                conn.Open();
+                ID = record.ID,
+                words = record.Words,
+            };
 
-                sql.UpdateCommand = new SqlCommand("UPDATE tblAlternateSpelling SET Word = @words WHERE ID = @ID", conn)
-                {
-                    CommandType = CommandType.Text
-                };
+            int rowsAffected = 0;
 
-                sql.UpdateCommand.Parameters.AddWithValue("@ID", record.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@words", record.Words);
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.Text);
             }
 
             return 0;
         }
 
+        /// <summary>
+        /// Updates a record in the canonical varnames table.
+        /// </summary>
+        /// <param name="record"></param>
+        /// <returns></returns>
         public static int UpdateCanonVar(CanonicalVariableRecord record)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "UPDATE tblCanonVars SET VarName = @refvarname, AnySuffix=@anysuffix, Notes=@notes, Active= @active WHERE ID = @ID;";
+
+            var parameters = new
             {
-                conn.Open();
+                ID = record.ID,
+                refvarname = record.RefVarName,
+                anysuffix = record.AnySuffix,
+                notes = record.Notes,
+                active = record.Active
+            };
 
-                sql.UpdateCommand = new SqlCommand("UPDATE tblCanonVars SET VarName = @refvarname, AnySuffix=@anysuffix, Notes=@notes, Active= @active WHERE ID = @ID", conn)
-                {
-                    CommandType = CommandType.Text
-                };
+            int rowsAffected = 0;
 
-                sql.UpdateCommand.Parameters.AddWithValue("@ID", record.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@refvarname", record.RefVarName);
-                sql.UpdateCommand.Parameters.AddWithValue("@anysuffix", record.AnySuffix);
-                sql.UpdateCommand.Parameters.AddWithValue("@notes", record.Notes);
-                sql.UpdateCommand.Parameters.AddWithValue("@active", record.Active);
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.Text);
             }
 
             return 0;
         }
 
+        /// <summary>
+        /// Updates a record in the prefix table.
+        /// </summary>
+        /// <param name="record"></param>
+        /// <returns></returns>
         public static int UpdatePrefix(VariablePrefix record)
         {
             string sql = "UPDATE tblDomainList SET prefix = @prefix, PrefixName=@prefixName, ProductType=@productType, RelatedPrefixes= @relatedPrefixes,DomainName=@domainName, " +
@@ -2076,6 +1516,11 @@ namespace ITCLib
 
         }
 
+        /// <summary>
+        /// Updates a record in the prefix range table.
+        /// </summary>
+        /// <param name="record"></param>
+        /// <returns></returns>
         public static int UpdatePrefixRange(VariableRange record)
         {
             string sql = "proc_updatePrefixRange";
@@ -2098,64 +1543,58 @@ namespace ITCLib
 
         }
 
+        /// <summary>
+        /// Updates a record in the survey drafts table.
+        /// </summary>
+        /// <param name="record"></param>
+        /// <returns></returns>
         public static int UpdateSurveyDraft(SurveyDraft record)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "UPDATE qrySurveyDraftInfo SET SurvID=@survID, DraftTitle=@title, DraftDate=@date, DraftComments=@comments, Investigator=@investigator WHERE ID = @ID;";
+
+            var parameters = new
             {
-                conn.Open();
+                ID = record.ID,
+                title = record.DraftTitle,
+                date = record.DraftDate,
+                comments = record.DraftComments,
+                investigator = record.Investigator,
+                survID = record.SurvID
+            };
 
-                sql.UpdateCommand = new SqlCommand("UPDATE qrySurveyDraftInfo SET SurvID=@survID, DraftTitle=@title, DraftDate=@date, DraftComments=@comments, Investigator=@investigator WHERE ID = @ID", conn)
-                {
-                    CommandType = CommandType.Text
-                };
+            int rowsAffected = 0;
 
-                sql.UpdateCommand.Parameters.AddWithValue("@ID", record.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@title", record.DraftTitle);
-                sql.UpdateCommand.Parameters.AddWithValue("@date", record.DraftDate);
-                sql.UpdateCommand.Parameters.AddWithValue("@comments", record.DraftComments);
-                sql.UpdateCommand.Parameters.AddWithValue("@investigator", record.Investigator);
-                sql.UpdateCommand.Parameters.AddWithValue("@survID", record.SurvID);
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.Text);
             }
 
             return 0;
         }
 
+        /// <summary>
+        /// Updates a record in the survey drafts extra fields table.
+        /// </summary>
+        /// <param name="record"></param>
+        /// <returns></returns>
         public static int UpdateSurveyDraftExtraField(SurveyDraftExtraField record)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "UPDATE qrySurveyDraftExtraFields SET DraftID=@draftID, ExtraFieldNum=@fieldNum, ExtraFieldLabel=@fieldLabel WHERE ID = @ID;";
+
+            var parameters = new
             {
-                conn.Open();
+                ID = record.ID,
+                draftID = record.DraftID,
+                fieldNum = record.FieldNumber,
+                fieldLabel = record.Label
 
-                sql.UpdateCommand = new SqlCommand("UPDATE qrySurveyDraftExtraFields SET DraftID=@draftID, ExtraFieldNum=@fieldNum, ExtraFieldLabel=@fieldLabel WHERE ID = @ID", conn)
-                {
-                    CommandType = CommandType.Text
-                };
+            };
 
-                sql.UpdateCommand.Parameters.AddWithValue("@ID", record.ID);
-                sql.UpdateCommand.Parameters.AddWithValue("@draftID", record.DraftID);
-                sql.UpdateCommand.Parameters.AddWithValue("@fieldNum", record.FieldNumber);
-                sql.UpdateCommand.Parameters.AddWithValue("@fieldLabel", record.Label);
-                
+            int rowsAffected = 0;
 
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.Text);
             }
 
             return 0;

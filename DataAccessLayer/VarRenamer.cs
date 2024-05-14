@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 namespace ITCLib
 {
-    // TODO delete unused varnames after rename
     public class VarRenamer
     {
         RefVariableName OldName;
@@ -18,11 +17,15 @@ namespace ITCLib
 
         public List<VarNameChange> Changes { get; set; }
 
+        public List<Wording> WordingChanges { get; set; }
+        
+
         public VarRenamer()
         {
             OldName = new RefVariableName();
             NewName = new RefVariableName();
             SurveyList = new List<Survey>();
+            WordingChanges = new List<Wording>();
         }
 
         public VarRenamer(RefVariableName old, RefVariableName newname, List<Survey> surveys)
@@ -30,6 +33,7 @@ namespace ITCLib
             OldName = old;
             NewName = newname;
             SurveyList = surveys;
+            WordingChanges = new List<Wording>();
         }
 
         public void PerformRefRename()
@@ -116,6 +120,7 @@ namespace ITCLib
                 {
                     DBAction.UpdateSurveyPreP(survey, oldID, w.WordID);
                 }
+                WordingChanges.Add(w);
             }
         }
 
@@ -133,6 +138,7 @@ namespace ITCLib
                 {
                     DBAction.UpdateSurveyPreI(survey, oldID, w.WordID);
                 }
+                WordingChanges.Add(w);
             }
         }
 
@@ -150,6 +156,7 @@ namespace ITCLib
                 {
                     DBAction.UpdateSurveyPreA(survey, oldID, w.WordID);
                 }
+                WordingChanges.Add(w);
             }
         }
 
@@ -167,6 +174,7 @@ namespace ITCLib
                 {
                     DBAction.UpdateSurveyLitQ(survey, oldID, w.WordID);
                 }
+                WordingChanges.Add(w);
             }
         }
 
@@ -184,6 +192,7 @@ namespace ITCLib
                 {
                     DBAction.UpdateSurveyPstI(survey, oldID, w.WordID);
                 }
+                WordingChanges.Add(w);
             }
         }
 
@@ -201,6 +210,7 @@ namespace ITCLib
                 {
                     DBAction.UpdateSurveyPstP(survey, oldID, w.WordID);
                 }
+                WordingChanges.Add(w);
             }
         }
 
