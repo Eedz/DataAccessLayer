@@ -870,6 +870,14 @@ namespace ITCLib
             return 0;
         }
 
+        /// <summary>
+        /// Updates or inserts a new PreP record.
+        /// </summary>
+        /// <param name="wording"></param>
+        /// <param name="oldval"></param>
+        /// <param name="newval"></param>
+        /// <param name="overwrite"></param>
+        /// <returns></returns>
         public static int UpdatePreP(Wording wording, string oldval, string newval, bool overwrite)
         {
             string query = "proc_updatePreP";
@@ -890,368 +898,331 @@ namespace ITCLib
             }
 
             return 0;
-
         }
 
+        /// <summary>
+        /// Updates or inserts a new PreI record.
+        /// </summary>
+        /// <param name="wording"></param>
+        /// <param name="oldval"></param>
+        /// <param name="newval"></param>
+        /// <param name="overwrite"></param>
+        /// <returns></returns>
         public static int UpdatePreI(Wording wording, string oldval, string newval, bool overwrite)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "proc_updatePreI";
+
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@preiid", wording.WordID);
+            parameters.Add("@oldval", oldval);
+            parameters.Add("@newval", newval);
+            parameters.Add("@overwrite", overwrite);
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+            int rowsAffected = 0;
+
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
-
-                conn.Open();
-
-                sql.UpdateCommand = new SqlCommand("proc_updatePreI", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@preiid", wording.WordID);
-                sql.UpdateCommand.Parameters.AddWithValue("@oldval", oldval);
-                sql.UpdateCommand.Parameters.AddWithValue("@newval", newval);
-                sql.UpdateCommand.Parameters.AddWithValue("@overwrite", overwrite);
-                sql.UpdateCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                    wording.WordID = Convert.ToInt32(sql.UpdateCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.StoredProcedure);
+                wording.WordID = parameters.Get<int>("@newID");
             }
 
             return 0;
         }
 
+        /// <summary>
+        /// Updates or inserts a new PreA record.
+        /// </summary>
+        /// <param name="wording"></param>
+        /// <param name="oldval"></param>
+        /// <param name="newval"></param>
+        /// <param name="overwrite"></param>
+        /// <returns></returns>
         public static int UpdatePreA(Wording wording, string oldval, string newval, bool overwrite)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "proc_updatePreA";
+
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@preaid", wording.WordID);
+            parameters.Add("@oldval", oldval);
+            parameters.Add("@newval", newval);
+            parameters.Add("@overwrite", overwrite);
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+            int rowsAffected = 0;
+
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
-
-                conn.Open();
-
-                sql.UpdateCommand = new SqlCommand("proc_updatePreA", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@preaid", wording.WordID);
-                sql.UpdateCommand.Parameters.AddWithValue("@oldval", oldval);
-                sql.UpdateCommand.Parameters.AddWithValue("@newval", newval);
-                sql.UpdateCommand.Parameters.AddWithValue("@overwrite", overwrite);
-                sql.UpdateCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                    wording.WordID = Convert.ToInt32(sql.UpdateCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.StoredProcedure);
+                wording.WordID = parameters.Get<int>("@newID");
             }
 
             return 0;
         }
 
+        /// <summary>
+        /// Updates or inserts a new LitQ record.
+        /// </summary>
+        /// <param name="wording"></param>
+        /// <param name="oldval"></param>
+        /// <param name="newval"></param>
+        /// <param name="overwrite"></param>
+        /// <returns></returns>
         public static int UpdateLitQ(Wording wording, string oldval, string newval, bool overwrite)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "proc_updateLitQ";
+
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@litqid", wording.WordID);
+            parameters.Add("@oldval", oldval);
+            parameters.Add("@newval", newval);
+            parameters.Add("@overwrite", overwrite);
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+            int rowsAffected = 0;
+
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
-
-                conn.Open();
-
-                sql.UpdateCommand = new SqlCommand("proc_updateLitQ", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@litqid", wording.WordID);
-                sql.UpdateCommand.Parameters.AddWithValue("@oldval", oldval);
-                sql.UpdateCommand.Parameters.AddWithValue("@newval", newval);
-                sql.UpdateCommand.Parameters.AddWithValue("@overwrite", overwrite);
-                sql.UpdateCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                    wording.WordID = Convert.ToInt32(sql.UpdateCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.StoredProcedure);
+                wording.WordID = parameters.Get<int>("@newID");
             }
 
             return 0;
         }
 
+        /// <summary>
+        /// Updates or inserts a new PstI record.
+        /// </summary>
+        /// <param name="wording"></param>
+        /// <param name="oldval"></param>
+        /// <param name="newval"></param>
+        /// <param name="overwrite"></param>
+        /// <returns></returns>
         public static int UpdatePstI(Wording wording, string oldval, string newval, bool overwrite)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "proc_updatePstI";
+
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@pstiid", wording.WordID);
+            parameters.Add("@oldval", oldval);
+            parameters.Add("@newval", newval);
+            parameters.Add("@overwrite", overwrite);
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+            int rowsAffected = 0;
+
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
-
-                conn.Open();
-
-                sql.UpdateCommand = new SqlCommand("proc_updatePstI", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@pstiid", wording.WordID);
-                sql.UpdateCommand.Parameters.AddWithValue("@oldval", oldval);
-                sql.UpdateCommand.Parameters.AddWithValue("@newval", newval);
-                sql.UpdateCommand.Parameters.AddWithValue("@overwrite", overwrite);
-                sql.UpdateCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                    wording.WordID = Convert.ToInt32(sql.UpdateCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.StoredProcedure);
+                wording.WordID = parameters.Get<int>("@newID");
             }
 
             return 0;
         }
 
+        /// <summary>
+        /// Updates or inserts a new PstP record.
+        /// </summary>
+        /// <param name="wording"></param>
+        /// <param name="oldval"></param>
+        /// <param name="newval"></param>
+        /// <param name="overwrite"></param>
+        /// <returns></returns>
         public static int UpdatePstP(Wording wording, string oldval, string newval, bool overwrite)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "proc_updatePstP";
+
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@pstpid", wording.WordID);
+            parameters.Add("@oldval", oldval);
+            parameters.Add("@newval", newval);
+            parameters.Add("@overwrite", overwrite);
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+            int rowsAffected = 0;
+
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
-
-                conn.Open();
-
-                sql.UpdateCommand = new SqlCommand("proc_updatePstP", conn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@pstpid", wording.WordID);
-                sql.UpdateCommand.Parameters.AddWithValue("@oldval", oldval);
-                sql.UpdateCommand.Parameters.AddWithValue("@newval", newval);
-                sql.UpdateCommand.Parameters.AddWithValue("@overwrite", overwrite);
-                sql.UpdateCommand.Parameters.Add("@newID", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                    wording.WordID = Convert.ToInt32(sql.UpdateCommand.Parameters["@newID"].Value);
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.StoredProcedure);
+                wording.WordID = parameters.Get<int>("@newID");
             }
 
             return 0;
         }
 
+
+        /// <summary>
+        /// Updates all questions in the survey using the old PreP# to the new PreP#
+        /// </summary>
+        /// <param name="wording"></param>
+        /// <param name="oldval"></param>
+        /// <param name="newval"></param>
+        /// <param name="overwrite"></param>
+        /// <returns></returns>
         public static int UpdateSurveyPreP(string survey, int oldID, int newID)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "UPDATE tblSurveyNumbers Set PreP#=@newid WHERE Survey = @survey AND PreP#=@oldid;";
+
+            var parameters = new
             {
+                newid = newID,
+                survey = survey,
+                oldid = oldID,
+            };
 
-                conn.Open();
+            int rowsAffected = 0;
 
-                sql.UpdateCommand = new SqlCommand("UPDATE tblSurveyNumbers Set PreP#=@newid WHERE Survey = @survey AND PreP#=@oldid", conn)
-                {
-                    CommandType = CommandType.Text
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@newid", newID);
-                sql.UpdateCommand.Parameters.AddWithValue("@oldid", oldID);
-                sql.UpdateCommand.Parameters.AddWithValue("@survey", survey);
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.Text);
             }
 
             return 0;
         }
 
+        /// <summary>
+        /// Updates all questions in the survey using the old PreI# to the new PreI#
+        /// </summary>
+        /// <param name="wording"></param>
+        /// <param name="oldval"></param>
+        /// <param name="newval"></param>
+        /// <param name="overwrite"></param>
+        /// <returns></returns>
         public static int UpdateSurveyPreI(string survey, int oldID, int newID)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "UPDATE tblSurveyNumbers Set PreI#=@newid WHERE Survey = @survey AND PreI#=@oldid;";
+
+            var parameters = new
             {
+                newid = newID,
+                survey = survey,
+                oldid = oldID,
+            };
 
-                conn.Open();
+            int rowsAffected = 0;
 
-                sql.UpdateCommand = new SqlCommand("UPDATE tblSurveyNumbers Set PreI#=@newid WHERE Survey = @survey AND PreI#=@oldid", conn)
-                {
-                    CommandType = CommandType.Text
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@newid", newID);
-                sql.UpdateCommand.Parameters.AddWithValue("@oldid", oldID);
-                sql.UpdateCommand.Parameters.AddWithValue("@survey", survey);
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.Text);
             }
 
             return 0;
         }
 
+        /// <summary>
+        /// Updates all questions in the survey using the old PreA# to the new PreA#
+        /// </summary>
+        /// <param name="wording"></param>
+        /// <param name="oldval"></param>
+        /// <param name="newval"></param>
+        /// <param name="overwrite"></param>
+        /// <returns></returns>
         public static int UpdateSurveyPreA(string survey, int oldID, int newID)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "UPDATE tblSurveyNumbers Set PreA#=@newid WHERE Survey = @survey AND PreA#=@oldid;";
+
+            var parameters = new
             {
+                newid = newID,
+                survey = survey,
+                oldid = oldID,
+            };
 
-                conn.Open();
+            int rowsAffected = 0;
 
-                sql.UpdateCommand = new SqlCommand("UPDATE tblSurveyNumbers Set PreA#=@newid WHERE Survey = @survey AND PreA#=@oldid", conn)
-                {
-                    CommandType = CommandType.Text
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@newid", newID);
-                sql.UpdateCommand.Parameters.AddWithValue("@oldid", oldID);
-                sql.UpdateCommand.Parameters.AddWithValue("@survey", survey);
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.Text);
             }
 
             return 0;
         }
 
+        /// <summary>
+        /// Updates all questions in the survey using the old LitQ# to the new LitQ#
+        /// </summary>
+        /// <param name="wording"></param>
+        /// <param name="oldval"></param>
+        /// <param name="newval"></param>
+        /// <param name="overwrite"></param>
+        /// <returns></returns>
         public static int UpdateSurveyLitQ(string survey, int oldID, int newID)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "UPDATE tblSurveyNumbers Set LitQ#=@newid WHERE Survey = @survey AND LitQ#=@oldid;";
+
+            var parameters = new
             {
+                newid = newID,
+                survey = survey,
+                oldid = oldID,
+            };
 
-                conn.Open();
+            int rowsAffected = 0;
 
-                sql.UpdateCommand = new SqlCommand("UPDATE tblSurveyNumbers Set LitQ#=@newid WHERE Survey = @survey AND LitQ#=@oldid", conn)
-                {
-                    CommandType = CommandType.Text
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@newid", newID);
-                sql.UpdateCommand.Parameters.AddWithValue("@oldid", oldID);
-                sql.UpdateCommand.Parameters.AddWithValue("@survey", survey);
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.Text);
             }
 
             return 0;
         }
 
+        /// <summary>
+        /// Updates all questions in the survey using the old PstI# to the new PstI#
+        /// </summary>
+        /// <param name="wording"></param>
+        /// <param name="oldval"></param>
+        /// <param name="newval"></param>
+        /// <param name="overwrite"></param>
+        /// <returns></returns>
         public static int UpdateSurveyPstI(string survey, int oldID, int newID)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "UPDATE tblSurveyNumbers Set PstI#=@newid WHERE Survey = @survey AND PstI#=@oldid;";
+
+            var parameters = new
             {
+                newid = newID,
+                survey = survey,
+                oldid = oldID,
+            };
 
-                conn.Open();
+            int rowsAffected = 0;
 
-                sql.UpdateCommand = new SqlCommand("UPDATE tblSurveyNumbers Set PstI#=@newid WHERE Survey = @survey AND PstI#=@oldid", conn)
-                {
-                    CommandType = CommandType.Text
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@newid", newID);
-                sql.UpdateCommand.Parameters.AddWithValue("@oldid", oldID);
-                sql.UpdateCommand.Parameters.AddWithValue("@survey", survey);
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.Text);
             }
 
             return 0;
         }
 
+        /// <summary>
+        /// Updates all questions in the survey using the old PstP# to the new PstP#
+        /// </summary>
+        /// <param name="wording"></param>
+        /// <param name="oldval"></param>
+        /// <param name="newval"></param>
+        /// <param name="overwrite"></param>
+        /// <returns></returns>
         public static int UpdateSurveyPstP(string survey, int oldID, int newID)
         {
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            string query = "UPDATE tblSurveyNumbers Set PstP#=@newid WHERE Survey = @survey AND PstP#=@oldid;";
+
+            var parameters = new
             {
+                newid = newID,
+                survey = survey,
+                oldid = oldID,
+            };
 
-                conn.Open();
+            int rowsAffected = 0;
 
-                sql.UpdateCommand = new SqlCommand("UPDATE tblSurveyNumbers Set PstP#=@newid WHERE Survey = @survey AND PstP#=@oldid", conn)
-                {
-                    CommandType = CommandType.Text
-                };
-
-                sql.UpdateCommand.Parameters.AddWithValue("@newid", newID);
-                sql.UpdateCommand.Parameters.AddWithValue("@oldid", oldID);
-                sql.UpdateCommand.Parameters.AddWithValue("@survey", survey);
-
-                try
-                {
-                    sql.UpdateCommand.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    return 1;
-                }
-
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(query, parameters, commandType: CommandType.Text);
             }
 
-            return 0;
+            return 0;          
         }
 
         /// <summary>
