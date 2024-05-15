@@ -391,7 +391,7 @@ namespace ITCLib
             return 0;
         }
 
-        public static int DeleteRecord(SurveyCohortRecord r)
+        public static int DeleteRecord(SurveyCohort r)
         {
             int rowsAffected = 0;
 

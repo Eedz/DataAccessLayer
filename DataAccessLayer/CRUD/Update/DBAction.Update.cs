@@ -1365,7 +1365,7 @@ namespace ITCLib
         /// </summary>
         /// <param name="record"></param>
         /// <returns></returns>
-        public static int UpdateCohort(SurveyCohortRecord record)
+        public static int UpdateCohort(SurveyCohort record)
         {
             string query = "UPDATE tblCohort SET Cohort = @cohort, Code = @code, WebName =@webname WHERE ID = @ID";
 
@@ -1386,6 +1386,7 @@ namespace ITCLib
 
             return 0;
         }
+
         // TODO
         public static int UpdateUserState(UserStateRecord record)
         {

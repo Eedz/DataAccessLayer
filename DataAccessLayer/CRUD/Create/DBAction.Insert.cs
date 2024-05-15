@@ -898,7 +898,7 @@ namespace ITCLib
             return recordsAffected;
         }
 
-        public static int InsertCohort(SurveyCohortRecord record)
+        public static int InsertCohort(SurveyCohort record)
         {
             DynamicParameters parameters = new DynamicParameters();
             parameters.Add("@cohort", record.Cohort);

@@ -152,15 +152,15 @@ namespace ITCLib
         /// Returns the list of survey cohorts in the database.
         /// </summary>
         /// <returns></returns>
-        public static List<SurveyCohortRecord> GetCohortInfo()
+        public static List<SurveyCohort> GetCohortInfo()
         {
-            List<SurveyCohortRecord> cohorts = new List<SurveyCohortRecord>();
+            List<SurveyCohort> cohorts = new List<SurveyCohort>();
 
             string sql = "SELECT ID, Cohort, Code, WebName FROM tblCohort ORDER BY Cohort";
 
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                cohorts = db.Query<SurveyCohortRecord>(sql).ToList();
+                cohorts = db.Query<SurveyCohort>(sql).ToList();
             }
             return cohorts;
         }
