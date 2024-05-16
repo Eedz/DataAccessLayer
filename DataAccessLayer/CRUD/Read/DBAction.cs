@@ -107,15 +107,15 @@ namespace ITCLib
         /// Returns the list of user states.
         /// </summary>
         /// <returns></returns>
-        public static List<UserStateRecord> GetUserStates()
+        public static List<UserState> GetUserStates()
         {
-            List<UserStateRecord> states = new List<UserStateRecord>();
+            List<UserState> states = new List<UserState>();
 
             string sql = "SELECT ID, UserState AS UserStateName FROM qryUserStates ORDER BY UserState";
 
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                states = db.Query<UserStateRecord>(sql).ToList();
+                states = db.Query<UserState>(sql).ToList();
             }
 
             return states;

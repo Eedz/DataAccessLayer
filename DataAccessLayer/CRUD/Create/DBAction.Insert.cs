@@ -913,7 +913,7 @@ namespace ITCLib
             return recordsAffected;
         }
 
-        public static int InsertUserState(UserStateRecord record)
+        public static int InsertUserState(UserState record)
         {
             DynamicParameters parameters = new DynamicParameters();
             parameters.Add("@userstate", record.UserStateName);

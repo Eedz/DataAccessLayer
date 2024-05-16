@@ -1387,8 +1387,12 @@ namespace ITCLib
             return 0;
         }
 
-        // TODO
-        public static int UpdateUserState(UserStateRecord record)
+        /// <summary>
+        /// Updates a record in the user states table.
+        /// </summary>
+        /// <param name="record"></param>
+        /// <returns></returns>
+        public static int UpdateUserState(UserState record)
         {
             string query = "UPDATE tblUserStates SET UserState = @userstate WHERE ID = @ID";
 

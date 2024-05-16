@@ -134,7 +134,9 @@
     <Compile Include="Record Objects\Survey Structure\StudyRecord.cs" />
     <Compile Include="Record Objects\Survey Structure\StudyWaveRecord.cs" />
     <Compile Include="Record Objects\Survey Structure\SurveyRecord.cs" />
+    <Compile Include="Record Objects\SurveyCohortRecord.cs" />
     <Compile Include="Record Objects\TranslationRecord.cs" />
+    <Compile Include="Record Objects\UserStateRecord.cs" />
     <Compile Include="Record Objects\VariablePrefixRecord.cs" />
     <Compile Include="Record Objects\VarNameChangeRecord.cs" />
     <Compile Include="Record Objects\CanonicalVariableRecord.cs" />

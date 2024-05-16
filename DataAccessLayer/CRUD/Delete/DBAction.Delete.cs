@@ -405,7 +405,7 @@ namespace ITCLib
             return 0;
         }
 
-        public static int DeleteRecord(UserStateRecord r)
+        public static int DeleteRecord(UserState r)
         {
             int rowsAffected = 0;
 
