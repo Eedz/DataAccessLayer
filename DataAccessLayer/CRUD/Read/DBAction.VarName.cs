@@ -68,15 +68,15 @@ namespace ITCLib
         /// 
         /// </summary>
         /// <returns></returns>
-        public static List<CanonicalVariableRecord> GetAllCanonVars()
+        public static List<CanonicalRefVarName> GetAllCanonVars()
         {
-            List<CanonicalVariableRecord> canonVars = new List<CanonicalVariableRecord>();
+            List<CanonicalRefVarName> canonVars = new List<CanonicalRefVarName>();
 
             string sql = "SELECT ID, VarName as RefVarName, AnySuffix, Notes, Active FROM qryEssentialQuestions ORDER BY VarName";
 
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                canonVars = db.Query<CanonicalVariableRecord>(sql).ToList();
+                canonVars = db.Query<CanonicalRefVarName>(sql).ToList();
             }
             return canonVars;
         }

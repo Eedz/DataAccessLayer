@@ -6,32 +6,29 @@ using System.Threading.Tasks;
 
 namespace ITCLib
 {
-    public class CanonicalVariableRecord : IRecord<CanonicalRefVarName>
+    public class ResponseSetRecord : IRecord<ResponseSet>
     {
         public bool NewRecord { get; set; }
         public bool Dirty { get; set; }
-        public CanonicalRefVarName Item { get; set; }
+        public ResponseSet Item { get; set; }
 
-        public CanonicalVariableRecord (CanonicalRefVarName item)
+        public ResponseSetRecord (ResponseSet item)
         {
             Item = item;
         }
 
         public int SaveRecord()
         {
-            if (NewRecord)
+            if (NewRecord) 
             {
-                if (DBAction.InsertCanonVar(this.Item) == 1)
-                    return 1;
-
-                NewRecord = false;
+                DBAction.InsertResponseSet(Item);
                 Dirty = false;
+                NewRecord = false;
+
             }
             else if (Dirty)
             {
-                if (DBAction.UpdateCanonVar(this.Item) == 1)
-                    return 1;
-
+                DBAction.UpdateResponseSet(Item);
                 Dirty = false;
             }
 

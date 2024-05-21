@@ -6,35 +6,32 @@ using System.Threading.Tasks;
 
 namespace ITCLib
 {
-    public class CanonicalVariableRecord : IRecord<CanonicalRefVarName>
+    public class WordingRecord : IRecord<Wording>
     {
         public bool NewRecord { get; set; }
         public bool Dirty { get; set; }
-        public CanonicalRefVarName Item { get; set; }
+        public Wording Item { get; set; }
 
-        public CanonicalVariableRecord (CanonicalRefVarName item)
+        public WordingRecord (Wording item)
         {
             Item = item;
         }
 
         public int SaveRecord()
         {
-            if (NewRecord)
+            if (NewRecord) // new wording created by this form
             {
-                if (DBAction.InsertCanonVar(this.Item) == 1)
-                    return 1;
-
+                // insert into table
+                DBAction.InsertWording(Item);
+                Dirty = false;
                 NewRecord = false;
-                Dirty = false;
+                
             }
-            else if (Dirty)
+            else if (Dirty) // existing wording edited
             {
-                if (DBAction.UpdateCanonVar(this.Item) == 1)
-                    return 1;
-
+                DBAction.UpdateWording(Item);
                 Dirty = false;
             }
-
             return 0;
         }
     }

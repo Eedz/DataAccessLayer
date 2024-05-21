@@ -353,8 +353,9 @@ namespace ITCLib
             parameters.Add("@ExtraFieldNum", extraFieldNum);
             parameters.Add("@ExtraFieldLabel", extraFieldLabel);
 
-            SP_Insert("proc_createSurveyDraftExtraInfo", parameters, out int result);
-            return result;
+            int recordsAffected = SP_Insert("proc_createSurveyDraftExtraInfo", parameters, out int result);
+
+            return recordsAffected;
         }
 
         /// <summary>
@@ -362,7 +363,7 @@ namespace ITCLib
         /// </summary>
         /// <param name="dq"></param>
         /// <returns></returns>
-        public static int InsertDraftQuestion(DraftQuestionRecord dq)
+        public static int InsertDraftQuestion(DraftQuestion dq)
         {
             DynamicParameters parameters = new DynamicParameters();
             parameters.Add("@DraftID", dq.DraftID);
@@ -380,8 +381,10 @@ namespace ITCLib
             parameters.Add("@Inserted", dq.Inserted);
             parameters.Add("@Deleted", dq.Deleted);
 
-            SP_Insert("proc_createSurveyDraftQuestion", parameters, out int result);
-            return result;
+            int recordsAffected = SP_Insert("proc_createSurveyDraftQuestion", parameters, out int result);
+            dq.ID = result;
+
+            return recordsAffected;
         }
 
         /// <summary>
@@ -926,10 +929,10 @@ namespace ITCLib
             return recordsAffected;
         }
 
-        public static int InsertSimilarWords(SimilarWordsRecord record)
+        public static int InsertSimilarWords(SimilarWords record)
         {
             DynamicParameters parameters = new DynamicParameters();
-            parameters.Add("@words", record.Words);
+            parameters.Add("@words", record.WordList);
 
             parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
@@ -939,7 +942,7 @@ namespace ITCLib
             return recordsAffected;
         }
 
-        public static int InsertCanonVar(CanonicalVariableRecord record)
+        public static int InsertCanonVar(CanonicalRefVarName record)
         {
             DynamicParameters parameters = new DynamicParameters();
             parameters.Add("@refVarName", record.RefVarName);

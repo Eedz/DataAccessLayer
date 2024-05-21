@@ -37,188 +37,63 @@ namespace ITCLib
         }
 
         /// <summary>
-        /// Returns a list of Question Comments matching the provided criteria.
+        /// Returns a list of Draft Question matching the provided criteria.
         /// </summary>
-        /// <param name="SurvID"></param>
-        /// <param name="commentTypes"></param>
-        /// <param name="commentDate"></param>
-        /// <param name="commentAuthors"></param>
-        /// <param name="commentSources"></param>
         /// <returns></returns>
-        public static List<DraftQuestion> GetDraftComments(string survey = null, string varname = null, 
-                DateTime? commentDateLower = null, DateTime? commentDateUpper = null, string commentText = null)
-        {
-            List<DraftQuestion> cs = new List<DraftQuestion>();
-            DraftQuestion c;
-
-            string query = "SELECT * FROM dbo.FN_DraftCommentSearch(" +
-                        "@survey, @varname, @LDate, @UDate, @commentText)";
-
-
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand();
-                sql.SelectCommand.Connection = conn;
-                sql.SelectCommand.CommandType = CommandType.Text;
-                sql.SelectCommand.CommandText = query;
-
-                if (string.IsNullOrEmpty(survey))
-                    sql.SelectCommand.Parameters.AddWithValue("@survey", DBNull.Value);
-                else
-                    sql.SelectCommand.Parameters.AddWithValue("@survey", survey);
-
-                if (string.IsNullOrEmpty(varname))
-                    sql.SelectCommand.Parameters.AddWithValue("@varname", DBNull.Value);
-                else
-                    sql.SelectCommand.Parameters.AddWithValue("@varname", varname);
-
-                if (commentDateLower == null)
-                    sql.SelectCommand.Parameters.AddWithValue("@LDate", DBNull.Value);
-                else
-                    sql.SelectCommand.Parameters.AddWithValue("@LDate", commentDateLower);
-
-                if (commentDateLower == null)
-                    sql.SelectCommand.Parameters.AddWithValue("@UDate", DBNull.Value);
-                else
-                    sql.SelectCommand.Parameters.AddWithValue("@UDate", commentDateLower);
-
-                if (string.IsNullOrEmpty(commentText))
-                    sql.SelectCommand.Parameters.AddWithValue("@commentText", DBNull.Value);
-                else
-                    sql.SelectCommand.Parameters.AddWithValue("@commentText", commentText);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            c = new DraftQuestion
-                            {
-                                VarName = rdr.SafeGetString("VarName"),
-                                Qnum = rdr.SafeGetString("Qnum"),
-                                QuestionText = rdr.SafeGetString("QuestionText"),
-                                Comments = rdr.SafeGetString("Comments"),
-                                Extra1 = rdr.SafeGetString("Extra1"),
-                                Extra2 = rdr.SafeGetString("Extra2"),
-                                Extra3 = rdr.SafeGetString("Extra3"),
-                                Extra4 = rdr.SafeGetString("Extra4"),
-                                Extra5 = rdr.SafeGetString("Extra5"),
-                                
-
-
-                            };
-                            cs.Add(c);
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
-            }
-
-            return cs;
-        }
-
-        /// <summary>
-        /// Returns a list of Question Comments matching the provided criteria.
-        /// </summary>
-        
-        /// <returns></returns>
-        public static List<DraftQuestionRecord> GetDraftQuestions(int? survey = null, string varname = null,
+        public static List<DraftQuestion> GetDraftQuestions(int? survey = null, string varname = null,
                 int? draftID = null, int? investigator = null, string questionText = null, string commentText = null)
         {
-            List<DraftQuestionRecord> cs = new List<DraftQuestionRecord>();
+            List<DraftQuestion> cs = new List<DraftQuestion>();
+            string query = "SELECT D.ID, DraftID, VarName, Qnum, QuestionText, Comment, Extra1, Extra2, Extra3, Extra4, Extra5, Inserted, Deleted, I.SurvID " + 
+                "FROM tblSurveyDrafts AS D LEFT JOIN tblSurveyDraftInfo AS I ON D.DraftID = I.ID ";
+            string where = string.Empty;
 
-            string query = "SELECT D.*, I.SurvID FROM tblSurveyDrafts AS D LEFT JOIN tblSurveyDraftInfo AS I ON D.DraftID = I.ID ";
-            string where = "";
-          
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            var parameters = new DynamicParameters();
+           
+            if (survey != null)
             {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand();
-                sql.SelectCommand.Connection = conn;
-                sql.SelectCommand.CommandType = CommandType.Text;
-
-                if (survey != null)
-                {
-                    where += " I.SurvID = @survey AND ";
-                    sql.SelectCommand.Parameters.AddWithValue("@survey", survey);
-                }
-
-                if (!string.IsNullOrEmpty(varname)) {
-                    where += " VarName LIKE COALESCE(@varname, VarName) AND ";
-                    sql.SelectCommand.Parameters.AddWithValue("@varname", varname);
-                }
-
-                if (draftID != null) {
-                    where += " DraftID = @draftID AND ";
-                    sql.SelectCommand.Parameters.AddWithValue("@draftID", draftID);
-                }
-
-                if (!string.IsNullOrEmpty(questionText)) {
-                    where += " QuestionText LIKE '%' + @questionText + '%' AND ";
-                    sql.SelectCommand.Parameters.AddWithValue("@questionText", questionText);
-                }
-
-                if (!string.IsNullOrEmpty(commentText)) {
-                    where += " Comment LIKE '%' + @commentText + '%' AND ";
-                    sql.SelectCommand.Parameters.AddWithValue("@commentText", commentText);
-                }
-
-                where = where.Trim(" AND ".ToCharArray());
-
-                if (!string.IsNullOrWhiteSpace(where))
-                    query +=  " WHERE " + where;
-
-                query += " ORDER BY SortBy";
-
-                sql.SelectCommand.CommandText = query;
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            DraftQuestionRecord c = new DraftQuestionRecord();
-
-                            c.ID = (int)rdr["ID"];
-                            c.DraftID = (int)rdr["DraftID"];
-                            c.VarName = rdr.SafeGetString("VarName");
-                            c.Qnum = rdr.SafeGetString("Qnum");
-                            c.QuestionText = rdr.SafeGetString("QuestionText");
-                            c.Comments = rdr.SafeGetString("Comment");
-                            c.Extra1 = rdr.SafeGetString("Extra1");
-                            c.Extra2 = rdr.SafeGetString("Extra2");
-                            c.Extra3 = rdr.SafeGetString("Extra3");
-                            c.Extra4 = rdr.SafeGetString("Extra4");
-                            c.Extra5 = rdr.SafeGetString("Extra5");
-                            c.Inserted = (bool)rdr["Inserted"];
-                            c.Deleted = (bool)rdr["Deleted"];
-                            cs.Add(c);
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
+                where += " I.SurvID = @survey AND ";
+                parameters.Add("@survey", survey);
             }
 
+            if (!string.IsNullOrEmpty(varname))
+            {
+                where += " VarName LIKE COALESCE(@varname, VarName) AND ";
+                parameters.Add("@varname", survey);
+            }
+
+            if (draftID != null)
+            {
+                where += " DraftID = @draftID AND ";
+                parameters.Add("@draftID", draftID);
+            }
+
+            if (!string.IsNullOrEmpty(questionText))
+            {
+                where += " QuestionText LIKE '%' + @questionText + '%' AND ";
+                parameters.Add("@questionText", questionText);
+            }
+
+            if (!string.IsNullOrEmpty(commentText))
+            {
+                where += " Comment LIKE '%' + @commentText + '%' AND ";
+                parameters.Add("@commentText", commentText);
+            }
+
+            where = where.TrimAndRemoveAll(" AND ");
+
+            if (!string.IsNullOrWhiteSpace(where))
+                query += " WHERE " + where;
+
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                cs = db.Query<DraftQuestion> (query, parameters).ToList();
+            }
             return cs;
         }
 
-
         /// <summary>
-        /// Returns a list of Question Comments matching the survey and draft IDs.
+        /// Returns a list of Draft Question matching the provided criteria.
         /// </summary>
         /// <param name="survey"></param>
         /// <param name="draftID"></param>
@@ -226,168 +101,73 @@ namespace ITCLib
         public static List<DraftQuestion> GetDraftQuestions(Survey survey, int draftID)
         {
             List<DraftQuestion> cs = new List<DraftQuestion>();
+            string query = "SELECT D.ID, DraftID, VarName, Qnum, QuestionText, Comment, Extra1, Extra2, Extra3, Extra4, Extra5, Inserted, Deleted, I.SurvID " +
+                "FROM tblSurveyDrafts AS D LEFT JOIN tblSurveyDraftInfo AS I ON D.DraftID = I.ID WHERE I.SurvID = @survey AND DraftID = @draftID ORDER BY SortBy;";
 
-            string query = "SELECT D.*, I.SurvID FROM tblSurveyDrafts AS D LEFT JOIN tblSurveyDraftInfo AS I ON D.DraftID = I.ID WHERE I.SurvID = @survey AND DraftID =@draftID ORDER BY SortBy";
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            var parameters = new
             {
-                conn.Open();
+                survey = survey.SID,
+                draftID = draftID,
+            };
 
-                sql.SelectCommand = new SqlCommand();
-                sql.SelectCommand.CommandText = query;
-                sql.SelectCommand.Connection = conn;
-                sql.SelectCommand.CommandType = CommandType.Text;
-
-                sql.SelectCommand.Parameters.AddWithValue("@survey", survey.SID);
-                sql.SelectCommand.Parameters.AddWithValue("@draftID", draftID);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            DraftQuestion c = new DraftQuestion();
-
-                            c.VarName = rdr.SafeGetString("VarName");
-                            c.Qnum = rdr.SafeGetString("Qnum");
-                            c.QuestionText = rdr.SafeGetString("QuestionText");
-                            c.Comments = rdr.SafeGetString("Comment");
-                            c.Extra1 = rdr.SafeGetString("Extra1");
-                            c.Extra2 = rdr.SafeGetString("Extra2");
-                            c.Extra3 = rdr.SafeGetString("Extra3");
-                            c.Extra4 = rdr.SafeGetString("Extra4");
-                            c.Extra5 = rdr.SafeGetString("Extra5");
-                            c.Inserted = (bool)rdr["Inserted"];
-                            c.Deleted = (bool)rdr["Deleted"];
-                            cs.Add(c);
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                cs = db.Query<DraftQuestion>(query, parameters).ToList();
             }
-
             return cs;
         }
 
         /// <summary>
-        /// Returns a list of Question Comments matching the survey and draft ID.
+        /// Returns a list of Draft Question matching the provided criteria.
         /// </summary>
         /// <param name="survey"></param>
-        /// <param name="draftID"></param>
+        /// <param name="investigator"></param>
         /// <returns></returns>
         public static List<DraftQuestion> GetDraftQuestions(Survey survey, Person investigator)
         {
             List<DraftQuestion> cs = new List<DraftQuestion>();
 
-            string query = "SELECT D.*, I.SurvID FROM tblSurveyDrafts AS D LEFT JOIN tblSurveyDraftInfo AS I ON D.DraftID = I.ID WHERE I.SurvID = @survey AND Investigator =@investigator ORDER BY SortBy";
+            string query = "SELECT D.ID, DraftID, VarName, Qnum, QuestionText, Comment, Extra1, Extra2, Extra3, Extra4, Extra5, Inserted, Deleted, I.SurvID " +
+                "FROM tblSurveyDrafts AS D LEFT JOIN tblSurveyDraftInfo AS I ON D.DraftID = I.ID WHERE I.SurvID = @survey AND Investigator =@investigator ORDER BY SortBy;";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            var parameters = new
             {
-                conn.Open();
+                survey = survey.SID,
+                investigator = investigator.ID
+            };
 
-                sql.SelectCommand = new SqlCommand();
-                sql.SelectCommand.CommandText = query;
-                sql.SelectCommand.Connection = conn;
-                sql.SelectCommand.CommandType = CommandType.Text;
-
-                sql.SelectCommand.Parameters.AddWithValue("@survey", survey.SID);
-                sql.SelectCommand.Parameters.AddWithValue("@investigator", investigator.ID);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            DraftQuestion c = new DraftQuestion();
-
-                           
-                            c.VarName = rdr.SafeGetString("VarName");
-                            c.Qnum = rdr.SafeGetString("Qnum");
-                            c.QuestionText = rdr.SafeGetString("QuestionText");
-                            c.Comments = rdr.SafeGetString("Comment");
-                            c.Extra1 = rdr.SafeGetString("Extra1");
-                            c.Extra2 = rdr.SafeGetString("Extra2");
-                            c.Extra3 = rdr.SafeGetString("Extra3");
-                            c.Extra4 = rdr.SafeGetString("Extra4");
-                            c.Extra5 = rdr.SafeGetString("Extra5");
-                            c.Inserted = (bool)rdr["Inserted"];
-                            c.Deleted = (bool)rdr["Deleted"];
-                            cs.Add(c);
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                cs = db.Query<DraftQuestion>(query, parameters).ToList();
             }
-
             return cs;
         }
 
         /// <summary>
-        /// Returns a list of Question Comments matching the survey and date range.
+        /// Returns a list of Draft Question matching the provided criteria.
         /// </summary>
         /// <param name="survey"></param>
-        /// <param name="draftID"></param>
+        /// <param name="lowerbound"></param>
+        /// <param name="upperbound"></param>
         /// <returns></returns>
         public static List<DraftQuestion> GetDraftQuestions(Survey survey, DateTime lowerBound, DateTime upperBound)
         {
             List<DraftQuestion> cs = new List<DraftQuestion>();
 
-            string query = "SELECT D.*, I.SurvID FROM tblSurveyDrafts AS D LEFT JOIN tblSurveyDraftInfo AS I ON D.DraftID = I.ID WHERE I.SurvID = @survey AND DraftDate >= @lower AND DraftDate <= @upper ORDER BY SortBy";
+            string query = "SELECT D.ID, DraftID, VarName, Qnum, QuestionText, Comment, Extra1, Extra2, Extra3, Extra4, Extra5, Inserted, Deleted, I.SurvID " + 
+                "FROM tblSurveyDrafts AS D LEFT JOIN tblSurveyDraftInfo AS I ON D.DraftID = I.ID WHERE I.SurvID = @survey AND DraftDate >= @lower AND DraftDate <= @upper ORDER BY SortBy";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            var parameters = new
             {
-                conn.Open();
+                survey = survey.SID,
+                lower = lowerBound,
+                upper = upperBound
+            };
 
-                sql.SelectCommand = new SqlCommand();
-                sql.SelectCommand.CommandText = query;
-                sql.SelectCommand.Connection = conn;
-                sql.SelectCommand.CommandType = CommandType.Text;
-
-                sql.SelectCommand.Parameters.AddWithValue("@survey", survey.SID);
-                sql.SelectCommand.Parameters.AddWithValue("@lower", lowerBound);
-                sql.SelectCommand.Parameters.AddWithValue("@upper", upperBound);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            DraftQuestion c = new DraftQuestion();
-
-                           
-                            c.VarName = rdr.SafeGetString("VarName");
-                            c.Qnum = rdr.SafeGetString("Qnum");
-                            c.QuestionText = rdr.SafeGetString("QuestionText");
-                            c.Comments = rdr.SafeGetString("Comment");
-                            c.Extra1 = rdr.SafeGetString("Extra1");
-                            c.Extra2 = rdr.SafeGetString("Extra2");
-                            c.Extra3 = rdr.SafeGetString("Extra3");
-                            c.Extra4 = rdr.SafeGetString("Extra4");
-                            c.Extra5 = rdr.SafeGetString("Extra5");
-                            c.Inserted = (bool)rdr["Inserted"];
-                            c.Deleted = (bool)rdr["Deleted"];
-                            cs.Add(c);
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-
-                }
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                cs = db.Query<DraftQuestion>(query, parameters).ToList();
             }
-
             return cs;
         }
     }

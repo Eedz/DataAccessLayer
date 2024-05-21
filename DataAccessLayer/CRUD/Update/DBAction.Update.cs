@@ -1412,15 +1412,19 @@ namespace ITCLib
             return 0;
         }
 
-        // TODO
-        public static int UpdateSimilarWords(SimilarWordsRecord record)
+        /// <summary>
+        /// Updates a record in the alternate spelling table.
+        /// </summary>
+        /// <param name="record"></param>
+        /// <returns></returns>
+        public static int UpdateSimilarWords(SimilarWords record)
         {
             string query = "UPDATE tblAlternateSpelling SET Word = @words WHERE ID = @ID";
 
             var parameters = new
             {
                 ID = record.ID,
-                words = record.Words,
+                words = record.WordList,
             };
 
             int rowsAffected = 0;
@@ -1438,7 +1442,7 @@ namespace ITCLib
         /// </summary>
         /// <param name="record"></param>
         /// <returns></returns>
-        public static int UpdateCanonVar(CanonicalVariableRecord record)
+        public static int UpdateCanonVar(CanonicalRefVarName record)
         {
             string query = "UPDATE tblCanonVars SET VarName = @refvarname, AnySuffix=@anysuffix, Notes=@notes, Active= @active WHERE ID = @ID;";
 

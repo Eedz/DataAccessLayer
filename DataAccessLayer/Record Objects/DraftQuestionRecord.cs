@@ -8,17 +8,21 @@ using System.ComponentModel;
 
 namespace ITCLib
 {
-    public class DraftQuestionRecord : DraftQuestion, IRecord
+    public class DraftQuestionRecord : IRecord <DraftQuestion>
     {
-        public int ID { get; set; }
-        public int DraftID { get; set; }
-
         public bool Dirty { get; set; }
         public bool NewRecord { get; set; }
 
+        public DraftQuestion Item { get; set; }
+
+        public DraftQuestionRecord (DraftQuestion question)
+        {
+            Item = question;
+        }
+
         public int SaveRecord()
         {
-            return 1;
+            return 0;
         }
 
 

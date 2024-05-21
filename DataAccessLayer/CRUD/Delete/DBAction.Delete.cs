@@ -419,7 +419,7 @@ namespace ITCLib
             return 0;
         }
 
-        public static int DeleteRecord(SimilarWordsRecord r)
+        public static int DeleteRecord(SimilarWords r)
         {
             int rowsAffected = 0;
 
@@ -433,7 +433,7 @@ namespace ITCLib
             return 0;
         }
 
-        public static int DeleteRecord(CanonicalVariableRecord r)
+        public static int DeleteRecord(CanonicalRefVarName r)
         {
             int rowsAffected = 0;
 

@@ -501,14 +501,23 @@ namespace ITCLib
         /// Returns the list of SimilarWords records.
         /// </summary>
         /// <returns></returns>
-        public static List<SimilarWordsRecord> GetSimilarWordings()
+        public static List<SimilarWords> GetSimilarWordings()
         {
-            List<SimilarWordsRecord> records = new List<SimilarWordsRecord>();        
-            string query = "SELECT ID, word as Words FROM Wordings.FN_GetSimilarWords()";
+            List<SimilarWords> records = new List<SimilarWords>();        
+            string query = "SELECT ID, word FROM tblAlternateSpelling;";
 
             using (SqlConnection conn = new SqlConnection(connectionString))
             {
-                records = conn.Query<SimilarWordsRecord>(query).ToList();
+                var results = conn.Query(query).Select(x => x as IDictionary<string, object>);
+
+                foreach (IDictionary<string, object> row in results)
+                {
+                    records.Add(new SimilarWords()
+                    {
+                        ID = (int)row["ID"],
+                        Words = ((string)row["word"]).Split(new string[] { ", " }, StringSplitOptions.RemoveEmptyEntries).ToList()
+                    });
+                }
             }
             return records;
         }

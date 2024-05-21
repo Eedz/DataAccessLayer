@@ -240,16 +240,20 @@ namespace ITCLib
         /// Returns the list of surveys that have been unlocked by a user.
         /// </summary>
         /// <returns></returns>
-        public static List<LockedSurveyRecord> GetUserLockedSurveys()
+        public static List<LockedSurvey> GetUserLockedSurveys()
         {
-            List<LockedSurveyRecord> records = new List<LockedSurveyRecord>();
+            List<LockedSurvey> records = new List<LockedSurvey>();
 
-            string query = "SELECT ID, SurvID, Survey AS SurveyCode, UnlockedBy, Name, UnlockedFor, UnlockedAt " +
-                "FROM qryUnlockedSurveys ORDER BY Survey";
+            string query = "SELECT ID, SurvID AS SID, Survey AS SurveyCode, UnlockedFor, UnlockedAt, UnlockedBy, UnlockedBy AS ID, Name " +
+                "FROM qryUnlockedSurveys ORDER BY Survey;";
 
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-                records = db.Query<LockedSurveyRecord>(query).ToList();
+                records = db.Query<LockedSurvey, Person, LockedSurvey>(query, (survey, name) =>
+                {
+                    survey.UnlockedBy = name;
+                    return survey;
+                }, splitOn: "UnlockedBy").ToList();
             }
             return records;
         }

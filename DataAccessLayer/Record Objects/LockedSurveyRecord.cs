@@ -7,23 +7,16 @@ using System.Threading.Tasks;
 
 namespace ITCLib
 {
-    public class LockedSurveyRecord : IRecord
+    public class LockedSurveyRecord : IRecord <LockedSurvey>
     {
         public bool Dirty { get; set; }
         public bool NewRecord { get; set; }
+        public LockedSurvey Item { get; set; }
 
-        public int ID { get; set; }
-        public int SurvID { get; set; }
-        public string SurveyCode { get; set; }
-        public int UnlockedBy { get; set; }
-        public string Name { get; set; }
-        public int UnlockedFor { get; set; }
-        public DateTime UnlockedAt { get; set; }
-        public double UnlockedForMin { get {
-                TimeSpan ts = UnlockedAt.AddMinutes(UnlockedFor) - DateTime.Now;
-                return ts.TotalMinutes;
-            } }
-
+        public LockedSurveyRecord (LockedSurvey item)
+        {
+            Item = item;
+        }
 
         public int SaveRecord()
         {

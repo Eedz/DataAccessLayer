@@ -6,13 +6,14 @@ using System.Threading.Tasks;
 
 namespace ITCLib
 {
-    public class CanonicalVariableRecord : IRecord<CanonicalRefVarName>
+    public class SimilarWordsRecord : IRecord<SimilarWords>
     {
         public bool NewRecord { get; set; }
         public bool Dirty { get; set; }
-        public CanonicalRefVarName Item { get; set; }
 
-        public CanonicalVariableRecord (CanonicalRefVarName item)
+        public SimilarWords Item { get; set; }
+
+        public SimilarWordsRecord (SimilarWords item)
         {
             Item = item;
         }
@@ -21,7 +22,7 @@ namespace ITCLib
         {
             if (NewRecord)
             {
-                if (DBAction.InsertCanonVar(this.Item) == 1)
+                if (DBAction.InsertSimilarWords(this.Item) == 1)
                     return 1;
 
                 NewRecord = false;
@@ -29,7 +30,7 @@ namespace ITCLib
             }
             else if (Dirty)
             {
-                if (DBAction.UpdateCanonVar(this.Item) == 1)
+                if (DBAction.UpdateSimilarWords(this.Item) == 1)
                     return 1;
 
                 Dirty = false;
