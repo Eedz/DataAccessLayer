@@ -847,21 +847,9 @@ namespace ITCLib
             parameters.Add("@officeno", record.OfficeNo);
             parameters.Add("@institution", record.Institution);
             parameters.Add("@active", record.Active);
-            parameters.Add("@smg", record.SMG);
-            parameters.Add("@analyst", record.Analyst);
-            parameters.Add("@praccer", record.Praccer);
             parameters.Add("@praccid", record.PraccID);
-            parameters.Add("@programmer", record.Programmer);
-            parameters.Add("@firm", record.Firm);
-            parameters.Add("@countryteam", record.CountryTeam);
             parameters.Add("@entry", record.Entry);
             parameters.Add("@praccentry", record.PraccEntry);
-            parameters.Add("@admin", record.Admin);
-            parameters.Add("@ra", record.ResearchAssistant);
-            parameters.Add("@dissemination", record.Dissemination);
-            parameters.Add("@investigator", record.Investigator);
-            parameters.Add("@projectmanager", record.ProjectManager);
-            parameters.Add("@statistician", record.Statistician);
             parameters.Add("@varnamechangenotify", record.VarNameChangeNotify);
 
             parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
@@ -872,11 +860,25 @@ namespace ITCLib
             return recordsAffected;
         }
 
-        public static int InsertPersonnelStudy(PersonnelStudyRecord record)
+        public static int InsertPersonnelRole(PersonnelRole record)
         {
             DynamicParameters parameters = new DynamicParameters();
             parameters.Add("@personnelID", record.PersonnelID);
-            parameters.Add("@countryID", record.StudyID);
+            parameters.Add("@roleID", record.RoleName.ID);
+
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+            int recordsAffected = SP_Insert("proc_createPersonnelRole", parameters, out int newID);
+            record.ID = newID;
+
+            return recordsAffected;
+        }
+
+        public static int InsertPersonnelStudy(PersonnelStudy record)
+        {
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@personnelID", record.PersonnelID);
+            parameters.Add("@countryID", record.StudyName.ID);
 
             parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
@@ -886,7 +888,7 @@ namespace ITCLib
             return recordsAffected;
         }
 
-        public static int InsertPersonnelComment(PersonnelCommentRecord record)
+        public static int InsertPersonnelComment(PersonnelComment record)
         {
             DynamicParameters parameters = new DynamicParameters();
             parameters.Add("@personnelID", record.PersonnelID);

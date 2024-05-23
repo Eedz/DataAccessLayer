@@ -363,7 +363,7 @@ namespace ITCLib
             return 0;
         }
 
-        public static int DeleteRecord(PersonnelStudyRecord r)
+        public static int DeleteRecord(PersonnelStudy r)
         {
             int rowsAffected = 0;
 
@@ -377,11 +377,25 @@ namespace ITCLib
             return 0;
         }
 
-        public static int DeleteRecord (PersonnelCommentRecord r)
+        public static int DeleteRecord (PersonnelComment r)
         {
             int rowsAffected = 0;
 
             string sql = "DELETE FROM tblPersonnelComments WHERE ID = @ID";
+            var parameters = new { ID = r.ID };
+
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(sql, parameters);
+            }
+            return 0;
+        }
+
+        public static int DeleteRecord(PersonnelRole r)
+        {
+            int rowsAffected = 0;
+
+            string sql = "DELETE FROM tblPersonnelRoles WHERE ID = @ID";
             var parameters = new { ID = r.ID };
 
             using (IDbConnection db = new SqlConnection(connectionString))

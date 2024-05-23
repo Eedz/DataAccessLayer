@@ -6,92 +6,57 @@ using System.Threading.Tasks;
 
 namespace ITCLib
 {
-    public class PersonRecord : Person, IRecord
+    public class PersonRecord : IRecord<Person>
     {
-        public bool Dirty { get; set; }
         public bool NewRecord { get; set; }
-        public new List<PersonnelStudyRecord> AssociatedStudies { get; set; }
-        public new List<PersonnelCommentRecord> PersonnelComments { get; set; }
+        public bool Dirty { get; set; }
+        public Person Item { get; set; }
 
-        public PersonRecord () 
+        public List<PersonnelStudy> AddedStudies { get; set; }
+        public List<PersonnelStudy> DeletedStudies { get; set; }
+
+        public List<PersonnelComment> AddedComment { get; set; }
+        public List<PersonnelComment> EditedComment { get; set; }
+        public List<PersonnelComment> DeletedComment { get; set; }
+
+        public List<PersonnelRole> AddedRoles { get; set; }
+        public List<PersonnelRole> DeletedRoles { get; set; }
+
+        public PersonRecord()
         {
-            AssociatedStudies = new List<PersonnelStudyRecord>();
-            PersonnelComments = new List<PersonnelCommentRecord>();
-            NewRecord = true;   
+            AddedStudies = new List<PersonnelStudy>();
+            DeletedStudies = new List<PersonnelStudy>();
+
+            AddedComment = new List<PersonnelComment>();
+            EditedComment = new List<PersonnelComment>();
+            DeletedComment = new List<PersonnelComment>();
+
+            AddedRoles = new List<PersonnelRole>();
+            DeletedRoles = new List<PersonnelRole>();
+
+            Item = new Person();
+        }
+
+        public PersonRecord (Person item)
+        {
+            AddedStudies = new List<PersonnelStudy>();
+            DeletedStudies = new List<PersonnelStudy>();
+
+            AddedComment = new List<PersonnelComment>();
+            EditedComment = new List<PersonnelComment>();
+            DeletedComment = new List<PersonnelComment>();
+
+            AddedRoles = new List<PersonnelRole>();
+            DeletedRoles = new List<PersonnelRole>();
+
+            Item = item;
         }
 
         public int SaveRecord()
         {
             if (NewRecord)
             {
-                if (DBAction.InsertPersonnel(this) == 1)
-                    return 1;
-
-                foreach (PersonnelStudyRecord r in AssociatedStudies)
-                {
-                    r.PersonnelID = this.ID;
-                    r.SaveRecord();
-                }
-
-                foreach (PersonnelCommentRecord r in PersonnelComments)
-                {
-                    r.PersonnelID = this.ID;
-                    r.SaveRecord();
-                }
-
-                NewRecord = false;
-                Dirty = false;
-            }
-            else if (Dirty)
-            {
-
-                if (DBAction.UpdatePersonnel(this) == 1)
-                    return 1;
-
-                foreach (PersonnelStudyRecord r in AssociatedStudies)
-                {
-                    if (r.NewRecord)
-                        r.PersonnelID = this.ID;
-
-                    r.SaveRecord();
-                }
-
-                foreach (PersonnelCommentRecord r in PersonnelComments)
-                {
-                    if (r.NewRecord)
-                        r.PersonnelID = this.ID;
-
-                    r.SaveRecord();
-                }
-
-                Dirty = false;
-            }
-
-            return 0;
-        }
-    }
-
-    public class PersonnelStudyRecord : IRecord
-    {
-        public bool Dirty { get; set; }
-        public bool NewRecord { get; set; }
-
-        public int ID { get; set; }
-        public int PersonnelID { get; set; }
-
-        public int StudyID { get; set; }
-        public string StudyName { get; set; }
-
-        public PersonnelStudyRecord()
-        {
-            NewRecord = true;
-        }
-
-        public int SaveRecord()
-        {
-            if (NewRecord)
-            {
-                if (DBAction.InsertPersonnelStudy(this) == 1)
+                if (DBAction.InsertPersonnel(Item) == 1)
                     return 1;
 
                 NewRecord = false;
@@ -99,52 +64,71 @@ namespace ITCLib
             }
             else if (Dirty)
             {
-
-                if (DBAction.UpdatePersonnelStudy(this) == 1)
+                if (DBAction.UpdatePersonnel(Item) == 1)
                     return 1;
 
                 Dirty = false;
             }
+
+            SaveStudies();
+            SaveComments();
+            SaveRoles();
 
             return 0;
         }
-    }
 
-    public class PersonnelCommentRecord : PersonnelComment, IRecord
-    {
-        public int PersonnelID { get; set; }
-
-        public bool Dirty { get; set; }
-        public bool NewRecord { get; set; }
-
-        public PersonnelCommentRecord() : base()
+        private void SaveStudies()
         {
-            NewRecord = true;
+            foreach (PersonnelStudy study in AddedStudies)
+            {
+                DBAction.InsertPersonnelStudy(study);
+            }
+            AddedStudies.Clear();
+
+            foreach (PersonnelStudy study in DeletedStudies)
+            {
+                DBAction.DeleteRecord(study);
+            }
+            DeletedStudies.Clear();
         }
 
-        public int SaveRecord()
+        private void SaveComments()
         {
-            if (NewRecord)
+            foreach (PersonnelComment comment in AddedComment)
             {
-                if (DBAction.InsertPersonnelComment(this) == 1)
-                    return 1;
-
-                NewRecord = false;
-                Dirty = false;
+                DBAction.InsertPersonnelComment(comment);
             }
-            else if (Dirty)
+            AddedComment.Clear();
+
+            foreach (PersonnelComment comment in EditedComment)
             {
-
-                if (DBAction.UpdatePersonnelComment(this) == 1)
-                    return 1;
-
-                Dirty = false;
+                DBAction.UpdatePersonnelComment(comment);
             }
+            EditedComment.Clear();
 
-            return 0;
+            foreach (PersonnelComment comment in DeletedComment)
+            {
+                DBAction.DeleteRecord(comment);
+            }
+            DeletedComment.Clear();
         }
+
+        private void SaveRoles()
+        {
+            foreach (PersonnelRole comment in AddedRoles)
+            {
+                DBAction.InsertPersonnelRole(comment);
+            }
+            AddedComment.Clear();
+
+            foreach (PersonnelRole comment in DeletedRoles)
+            {
+                DBAction.DeleteRecord(comment);
+            }
+            DeletedComment.Clear();
+        }
+
     }
-    
 
     public class UserRecord : UserPrefs, IRecord
     {

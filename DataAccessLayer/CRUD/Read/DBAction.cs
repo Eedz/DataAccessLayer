@@ -30,40 +30,58 @@ namespace ITCLib
         /// Returns the list of people.
         /// </summary>
         /// <returns></returns>
-        public static List<PersonRecord> GetPeople()
+        public static List<Person> GetPeople()
         {
-            List<PersonRecord> people = new List<PersonRecord>();
+            List<Person> people = new List<Person>();
 
             string sql = "SELECT ID, Name, Init AS FirstName, LastName, Email, Active, PraccID, username, HomePhoneNo, OfficeNo, SMG, PM, Analyst, Pracc AS Praccer, Firm, " +
                         "Programmer, CountryTeam, Admin, RA AS ResearchAssistant, Dissem AS Dissemination, PI AS Investigator, Stat AS Statistician, Institution, CommentEntry AS Entry, " +
                         "PraccEntry, VarNameNotify AS VarNameChangeNotify FROM qryIssueInit ORDER BY Name;" +
-                        "SELECT P.ID, p.CountryID AS StudyID, P.PersonnelID, C.Country AS StudyName, C.ISO_Code FROM qryPersonnelCountry AS P LEFT JOIN tblCountryCode AS C ON P.CountryID = C.ID ORDER BY C.Country;" +
-                        "SELECT ID, PersonnelID, CommentType, Comment FROM qryPersonnelComments;"; 
+                        "SELECT P.ID, P.PersonnelID, p.CountryID AS StudyID, C.ID, C.Country AS StudyName, C.ISO_Code FROM qryPersonnelCountry AS P LEFT JOIN tblCountryCode AS C ON P.CountryID = C.ID ORDER BY C.Country;" +
+                        "SELECT ID, PersonnelID, CommentType, Comment FROM qryPersonnelComments;" +
+                        "SELECT PR.ID, PersonnelID, RoleID, R.ID, Role AS RoleName FROM tblPersonnelRoles AS PR LEFT JOIN tblPersonnel AS P ON PR.PersonnelID = P.ID LEFT JOIN tblRoles AS R ON PR.RoleID = R.ID;"; 
 
             using (IDbConnection db = new SqlConnection(connectionString))
             {
-
                 var results = db.QueryMultiple(sql);
 
-                people = results.Read<PersonRecord>().ToList();
-                List<PersonnelStudyRecord> countries = results.Read<PersonnelStudyRecord>().ToList();
-                List<PersonnelCommentRecord> comments = results.Read<PersonnelCommentRecord>().ToList();
-
-                foreach (PersonnelStudyRecord p in countries)
-                    p.NewRecord = false;
-                foreach (PersonnelCommentRecord p in comments)
-                    p.NewRecord = false;
-
-                foreach (PersonRecord p in people)
+                people = results.Read<Person>().ToList();
+                List<PersonnelStudy> countries = results.Read<PersonnelStudy, Study, PersonnelStudy>((personnelstudy, study) =>
                 {
-                    p.NewRecord = false;
+                    personnelstudy.StudyName = study;
+                    return personnelstudy;
+                }, splitOn: "StudyID").ToList();
+                List<PersonnelComment> comments = results.Read<PersonnelComment>().ToList();
+                List<PersonnelRole> roles = results.Read<PersonnelRole, Role, PersonnelRole>((personnelrole, role) =>
+                {
+                    personnelrole.RoleName = role;
+                    return personnelrole;
+                }, splitOn: "RoleID").ToList();
+
+                foreach (Person p in people)
+                {
                     p.AssociatedStudies = countries.Where(x => x.PersonnelID == p.ID).ToList();
                     p.PersonnelComments = comments.Where(x => x.PersonnelID == p.ID).ToList();
+                    p.Roles = roles.Where(x => x.PersonnelID == p.ID).ToList();
                 }
 
             }
 
             return people;
+        }
+
+        public static List<Role> GetRoles()
+        {
+            List<Role> roles = new List<Role>();
+
+            string sql = "SELECT ID, Role AS RoleName FROM tblRoles ORDER BY RoleName;";
+
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                roles = db.Query<Role>(sql).ToList();
+            }
+
+            return roles;
         }
 
         /// <summary>
@@ -78,7 +96,6 @@ namespace ITCLib
                         "Programmer, CountryTeam, Admin, RA AS ResearchAssistant, Dissem AS Dissemination, PI AS Investigator, Stat AS Statistician, Institution, CommentEntry AS Entry, " +
                         "PraccEntry, VarNameNotify AS VarNameChangeNotify FROM qryIssueInit ORDER BY Name;";
                        
-
             using (IDbConnection db = new SqlConnection(connectionString))
             {
                 people = db.Query<Person>(sql).ToList();

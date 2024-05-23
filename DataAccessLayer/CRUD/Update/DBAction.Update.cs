@@ -1281,21 +1281,8 @@ namespace ITCLib
                 officeno = record.OfficeNo,
                 institution = record.Institution,
                 active = record.Active,
-                smg = record.SMG,
-                analyst = record.Analyst,
-                praccer = record.Praccer,
-                praccid = record.PraccID,
-                programmer = record.Programmer,
-                firm = record.Firm,
-                countryteam = record.CountryTeam,
                 entry = record.Entry,
                 praccentry = record.PraccEntry,
-                admin = record.Admin,
-                ra = record.ResearchAssistant,
-                dissemination = record.Dissemination,
-                investigator = record.Investigator,
-                projectmanager = record.ProjectManager,
-                statistician = record.Statistician,
                 varnamechangenotify = record.VarNameChangeNotify
             };
 
@@ -1310,36 +1297,11 @@ namespace ITCLib
         }
 
         /// <summary>
-        /// Updates a record in the personnel study table.
-        /// </summary>
-        /// <param name="record"></param>
-        /// <returns></returns>
-        public static int UpdatePersonnelStudy(PersonnelStudyRecord record)
-        {
-            string query = "UPDATE tblPersonnelCountry SET CountryID = @countryID WHERE ID = @ID";
-
-            var parameters = new
-            {
-                ID = record.ID,
-                countryID = record.StudyID
-            };
-
-            int rowsAffected = 0;
-
-            using (IDbConnection db = new SqlConnection(connectionString))
-            {
-                rowsAffected = db.Execute(query, parameters, commandType: CommandType.Text);
-            }
-
-            return 0;
-        }
-
-        /// <summary>
         /// Updates a record in the personnel comment table.
         /// </summary>
         /// <param name="record"></param>
         /// <returns></returns>
-        public static int UpdatePersonnelComment(PersonnelCommentRecord record)
+        public static int UpdatePersonnelComment(PersonnelComment record)
         {
             string query = "UPDATE tblPersonnelComments SET CommentType = @commentType, Comment = @comment WHERE ID = @ID";
 
@@ -1359,7 +1321,7 @@ namespace ITCLib
 
             return 0;
         }
-        
+
         /// <summary>
         /// Updates a record in the cohort table.
         /// </summary>
