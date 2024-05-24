@@ -34,7 +34,7 @@ namespace ITCLib
         {
             List<Person> people = new List<Person>();
 
-            string sql = "SELECT ID, Name, Init AS FirstName, LastName, Email, Active, PraccID, username, HomePhoneNo, OfficeNo, SMG, PM, Analyst, Pracc AS Praccer, Firm, " +
+            string sql = "SELECT ID, Init AS FirstName, LastName, Email, Active, PraccID, username, HomePhoneNo, OfficeNo, SMG, PM, Analyst, Pracc AS Praccer, Firm, " +
                         "Programmer, CountryTeam, Admin, RA AS ResearchAssistant, Dissem AS Dissemination, PI AS Investigator, Stat AS Statistician, Institution, CommentEntry AS Entry, " +
                         "PraccEntry, VarNameNotify AS VarNameChangeNotify FROM qryIssueInit ORDER BY Name;" +
                         "SELECT P.ID, P.PersonnelID, p.CountryID AS StudyID, C.ID, C.Country AS StudyName, C.ISO_Code FROM qryPersonnelCountry AS P LEFT JOIN tblCountryCode AS C ON P.CountryID = C.ID ORDER BY C.Country;" +

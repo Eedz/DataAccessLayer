@@ -21,13 +21,13 @@ namespace ITCLib
         /// </summary>
         /// <param name="username"></param>
         /// <returns></returns>
-        public static UserRecord GetUser(string username)
+        public static UserPrefs GetUser(string username)
         {
-            UserRecord prefs;
+            UserPrefs prefs;
             // user and saved forms
             string sql = "SELECT PersonnelID as userid, username, AccessLevel, ReportFolder AS ReportPath, ReportPrompt, WordingNumbers, " +
                     "CommentDetails FROM qryUserPrefs WHERE username = @username;" +
-                "SELECT PersonnelID, FormCode AS FormName, FormNumber AS FormNum, RecNum AS RecordPosition, Filter, SurvID AS FilterID " +
+                "SELECT ID, PersonnelID, FormCode AS FormName, FormNumber AS FormNum, RecNum AS RecordPosition, Filter, SurvID AS FilterID " +
                     "FROM qryFormManager WHERE username = @username ORDER BY FormCode, FormNumber;";
             // saved comments, sources and last used comment
             string sql2 = "SELECT ID, NoteDate, Source," +
@@ -46,8 +46,8 @@ namespace ITCLib
             using (IDbConnection db = new SqlConnection(connectionString))
             {
                 var grid = db.QueryMultiple(sql, new { username});
-                prefs = grid.Read<UserRecord>().First();
-                List<FormStateRecord> states = grid.Read<FormStateRecord>().ToList();
+                prefs = grid.Read<UserPrefs>().First();
+                List<FormState> states = grid.Read<FormState>().ToList();
                 prefs.FormStates = states;
 
                 var grid2 = db.QueryMultiple(sql2, new { prefs.userid });

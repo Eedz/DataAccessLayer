@@ -22,7 +22,7 @@ namespace ITCLib
 
         public int SaveRecord()
         {
-            return 0;
+            throw new NotImplementedException();
         }
 
 

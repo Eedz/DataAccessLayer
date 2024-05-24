@@ -1283,7 +1283,8 @@ namespace ITCLib
                 active = record.Active,
                 entry = record.Entry,
                 praccentry = record.PraccEntry,
-                varnamechangenotify = record.VarNameChangeNotify
+                varnamechangenotify = record.VarNameChangeNotify,
+                praccid = record.PraccID
             };
 
             int rowsAffected = 0;
@@ -1548,7 +1549,7 @@ namespace ITCLib
         /// <param name="record"></param>
         /// <param name="userid"></param>
         /// <returns></returns>
-        public static int UpdateFormFilter(FormStateRecord record, int userid)
+        public static int UpdateFormFilter(FormState record, int userid)
         {
             DynamicParameters parameters = new DynamicParameters();
             parameters.Add("@formCode", record.FormName);
@@ -1573,7 +1574,7 @@ namespace ITCLib
         /// <param name="position"></param>
         /// <param name="user"></param>
         /// <returns></returns>
-        public static int UpdateFormSurvey(FormStateRecord record, int userid)
+        public static int UpdateFormSurvey(FormState record, int userid)
         {
             DynamicParameters parameters = new DynamicParameters();
             parameters.Add("@formCode", record.FormName);
