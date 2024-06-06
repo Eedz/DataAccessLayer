@@ -211,7 +211,7 @@ namespace ITCLib
                 "NoteInit, NoteInit AS ID, Name, " +
                 "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, ShortForm, " +
                 "AuthorityID, AuthorityID AS ID, Authority AS Name " +
-                "FROM Comments.FN_GetQuesCommentsBySurvID(@sid);";
+                "FROM Comments.FN_GetQuesCommentsBySurvID(@sid) ORDER BY NoteDate;";
 
             var parameters = new { sid = survey.SID };
 

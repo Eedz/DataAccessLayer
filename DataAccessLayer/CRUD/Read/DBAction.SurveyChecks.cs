@@ -18,103 +18,36 @@ namespace ITCLib
         //
        
         /// <summary>
-        /// 
+        /// Returns a list of survey check records.
         /// </summary>
         /// <returns></returns>
-        public static List<SurveyCheckRec> GetSurveyCheckRecords()
+        public static List<SurveyCheck> GetSurveyCheckRecords()
         {
-            List<SurveyCheckRec> records = new List<SurveyCheckRec>();
-            
-            string query = "SELECT SC.*, P.[Name], SA.Survey,CT.CheckType " +
-                "FROM ((tblSurveyChecks AS SC LEFT JOIN tblStudyAttributes AS SA ON SC.SurvID = SA.ID) " +
+            List<SurveyCheck> records = new List<SurveyCheck>();
+
+            string sql = "SELECT SC.ID, CheckDate, Comments, CheckInit, CheckInit AS ID, Name, SA.ID AS SurvID, SA.ID, SA.Survey, CheckTypeID, CheckTypeID AS ID, CheckType AS CheckName " +
+                "FROM((tblSurveyChecks AS SC LEFT JOIN tblStudyAttributes AS SA ON SC.SurvID = SA.ID) " +
                 "LEFT JOIN qryIssueInit AS P ON SC.CheckInit = P.ID) " +
                 "LEFT JOIN dbo.tblSurveyCheckTypes AS CT ON SC.CheckTypeID = CT.ID " +
-                "ORDER BY CheckDate;";
+                "ORDER BY CheckDate;"+
+                "SELECT ID, SurvID AS SID, CheckID, SurveyDate FROM qrySurveyCheckRefSurvs;";
 
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            using (IDbConnection db = new SqlConnection(connectionString))
             {
-                conn.Open();
+                var results = db.QueryMultiple(sql);
 
-                sql.SelectCommand = new SqlCommand(query, conn);
-                
-                try
+                records = results.Read<SurveyCheck, Person, Survey, SurveyCheckType, SurveyCheck>((check, author, survey, checktype)=>
                 {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            SurveyCheckRec r = new SurveyCheckRec() {
-                                ID = (int)rdr["ID"],
-                                CheckType = new SurveyCheckType((int)rdr["CheckTypeID"], rdr.SafeGetString("CheckType")),
-                                Name = new Person(rdr.SafeGetString("Name"), (int)rdr["CheckInit"]),
-                                Comments = rdr.SafeGetString("Comments"),
-                                SurveyCode = new Survey(rdr.SafeGetString("Survey")),
-                            };
+                    check.Name = author;
+                    check.SurveyCode = survey;
+                    check.CheckType = checktype;
+                    return check;
+                }, splitOn: "CheckInit,SurvID,CheckTypeID").ToList();
 
-                            r.SurveyCode.SID = (int)rdr["SurvID"];
-
-                            if (!rdr.IsDBNull(rdr.GetOrdinal("CheckDate")))
-                                r.CheckDate = (DateTime)rdr["CheckDate"];
-
-                    
-
-                            r.ReferenceSurveys = new BindingList<SurveyCheckRefSurvey>(GetSurveyCheckRefSurveys(r.ID));
-
-                            records.Add(r);
-                        }
-                    }
-                }
-                catch (Exception e)
+                var surveys = results.Read<SurveyCheckRefSurvey>();
+                foreach(SurveyCheckRefSurvey s in surveys)
                 {
-                    Console.Write(e.Message);
-                }
-            }
-
-            return records;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="checkID"></param>
-        /// <returns></returns>
-        public static List<SurveyCheckRefSurvey> GetSurveyCheckRefSurveys(int checkID)
-        {
-            List<SurveyCheckRefSurvey> records = new List<SurveyCheckRefSurvey>();
-
-            string query = "SELECT * FROM qrySurveyCheckRefSurvs WHERE CheckID = @checkID";
-
-            using (SqlDataAdapter sql = new SqlDataAdapter())
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
-                conn.Open();
-
-                sql.SelectCommand = new SqlCommand(query, conn);
-                sql.SelectCommand.Parameters.AddWithValue("@checkID", checkID);
-
-                try
-                {
-                    using (SqlDataReader rdr = sql.SelectCommand.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            SurveyCheckRefSurvey r = new SurveyCheckRefSurvey() {
-                                ID = (int)rdr["ID"],
-                                CheckID = (int)rdr["CheckID"],
-                                SID = (int)rdr["SurvID"]
-                            };
-
-                            if (!rdr.IsDBNull(rdr.GetOrdinal("SurveyDate")))
-                                r.SurveyDate = (DateTime)rdr["SurveyDate"];
-
-                            records.Add(r);
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-                    
+                    records.First(x=>x.ID==s.CheckID).ReferenceSurveys.Add(s);
                 }
             }
 

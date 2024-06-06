@@ -208,7 +208,7 @@ namespace ITCLib
             return 0;
         }
 
-        public static int DeleteRecord(SurveyCheckRec r)
+        public static int DeleteRecord(SurveyCheck r)
         {
             int rowsAffected = 0;
 

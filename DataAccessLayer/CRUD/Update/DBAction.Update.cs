@@ -354,7 +354,7 @@ namespace ITCLib
         /// </summary>
         /// <param name="record"></param>
         /// <returns></returns>
-        public static int UpdateSurveyCheckRecord(SurveyCheckRec record)
+        public static int UpdateSurveyCheckRecord(SurveyCheck record)
         {
             string query = "proc_updateSurveyCheckRecord";
             var parameters = new

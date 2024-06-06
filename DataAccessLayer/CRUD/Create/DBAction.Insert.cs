@@ -413,7 +413,7 @@ namespace ITCLib
         /// </summary>
         /// <param name="record"></param>
         /// <returns></returns>
-        public static int InsertSurveyCheckRecord(SurveyCheckRec record)
+        public static int InsertSurveyCheckRecord(SurveyCheck record)
         {
             DynamicParameters parameters = new DynamicParameters();
             parameters.Add("@checkDate", record.CheckDate);
