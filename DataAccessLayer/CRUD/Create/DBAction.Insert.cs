@@ -99,7 +99,7 @@ namespace ITCLib
             using (IDbConnection db = new SqlConnection(connectionString))
             {
                 rowsAffected = db.Execute(sql, parameters, commandType: CommandType.StoredProcedure);
-                question.ID = parameters.Get<int>("@newID");
+                question.ID = parameters.Get<int?>("@newID") ?? 0;
             }
 
             if (rowsAffected == 0)
