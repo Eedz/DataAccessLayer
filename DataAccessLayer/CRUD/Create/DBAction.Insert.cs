@@ -1118,5 +1118,18 @@ namespace ITCLib
 
             return rowsAffected;
         }
+
+        public static int InsertQuestionImage(SurveyImage img)
+        {
+            string sql = "proc_createQuestionImage";
+
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@qid", img.QID);
+            parameters.Add("@imagename", img.ImageName);
+
+            int rowsAffected = SP_Insert(sql, parameters, out int newID);
+
+            return rowsAffected;
+        }
     }
 }

@@ -258,6 +258,54 @@ namespace ITCLib
             return records;
         }
 
+        public static List<SurveyImage> GetSurveyImages(Survey survey)
+        {
+            List<SurveyImage> images = new List<SurveyImage>();
+            string query = "SELECT I.ID, QID, Survey, VarName, ImagePath AS ImageName " +
+                "FROM tblQuestionImages AS I INNER JOIN tblSurveyNumbers AS S ON I.QID = S.ID WHERE Survey=@survey;";
+            var parameters = new { survey = survey.SurveyCode };
+
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                images = db.Query<SurveyImage>(query, parameters).ToList();
+            }           
+
+            string folder = @"\\psychfile\psych$\psych-lab-gfong\SMG\Survey Images\" +
+                survey.SurveyCodePrefix + @" Images\" + survey.SurveyCode;
+
+            if (!System.IO.Directory.Exists(folder))
+                return new List<SurveyImage>();
+
+            var files = System.IO.Directory.EnumerateFiles(folder, "*.*", System.IO.SearchOption.AllDirectories)
+                .Where(s => s.EndsWith(".png") || s.EndsWith(".jpg"));
+
+            foreach (var file in files)
+            {
+                int iWidth = 0;
+                int iHeight = 0;
+                using (System.Drawing.Bitmap bmp = new System.Drawing.Bitmap(file))
+                {
+                    iWidth = (int)Math.Round((decimal)bmp.Width * 9525);
+                    iHeight = (int)Math.Round((decimal)bmp.Height * 9525);
+                }
+
+                string filename = file.Substring(file.LastIndexOf(@"\") + 1);
+                if (!images.Any(x => x.ImageName.Equals(filename)))
+                    continue;
+
+                var matches = images.Where(x=>x.ImageName.Equals(filename));
+                foreach (var match in matches)
+                {
+                    match.Width = iWidth;
+                    match.Height = iHeight;
+                    match.ImagePath = file;
+                    match.SetParts();
+                }
+            }
+
+            return images;
+        }
+
         public static List<SurveyImage> GetSurveyImagesFromFolder(Survey survey)
         {
             string folder = @"\\psychfile\psych$\psych-lab-gfong\SMG\Survey Images\" +
@@ -296,52 +344,6 @@ namespace ITCLib
                     Height = iHeight,
                 };
 
-                //string varname = string.Empty;
-                //string language = string.Empty;
-                //string countries = string.Empty;
-                //string description = string.Empty;
-
-                //string[] parts = file.Split('_');
-
-                //if (parts.Length == 5)
-                //{
-                //    varname = parts[1];
-                //    language = parts[2];
-                //    countries = parts[3];
-                //    description = parts[4];
-                //}
-                //else
-                //{
-                //    if (file.IndexOf('_') > 0)
-                //    {
-                //        int first_ = file.IndexOf('_') + 1;
-                //        int second_ = file.IndexOf('_', first_);
-
-                //        if (second_ == -1 || first_ == -1)
-                //        {
-                //            varname = file.Substring(file.LastIndexOf(@"\") + 1);
-                //            description = file.Substring(file.LastIndexOf(@"\") + 1);
-                //        }
-                //        else
-                //        {
-                //            varname = file.Substring(first_, second_ - first_);
-                //            description = file.Substring(second_ + 1);
-                //        }
-                //    }
-                //}
-
-
-                //SurveyImage img = new SurveyImage()
-                //{
-                //    ImageName = file.Substring(file.LastIndexOf(@"\") + 1),
-                //    ImagePath = file,
-                //    Width = iWidth,
-                //    Height= iHeight,
-                //    Description = description,
-                //    VarName = varname,
-                //    Language = language,
-                //    Country = countries,
-                //};
                 images.Add(img);
                 id++;
             }

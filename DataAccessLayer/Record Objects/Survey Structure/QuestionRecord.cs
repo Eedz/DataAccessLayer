@@ -24,12 +24,18 @@ namespace ITCLib
         public List<QuestionTimeFrame> AddTimeFrames;
         public List<QuestionTimeFrame> DeleteTimeFrames;
 
+        public List<SurveyImage> AddedImages;
+        public List<SurveyImage> DeletedImages;
+
         public QuestionRecord() 
         {
             Item = new SurveyQuestion();
 
             AddTimeFrames = new List<QuestionTimeFrame>();
             DeleteTimeFrames = new List<QuestionTimeFrame>();
+
+            AddedImages = new List<SurveyImage>();
+            DeletedImages = new List<SurveyImage>();
         }
 
         public QuestionRecord(SurveyQuestion question)
@@ -38,11 +44,14 @@ namespace ITCLib
 
             AddTimeFrames = new List<QuestionTimeFrame>();
             DeleteTimeFrames = new List<QuestionTimeFrame>();
+
+            AddedImages = new List<SurveyImage>();
+            DeletedImages = new List<SurveyImage>();
         }
 
         public bool IsEdited()
         {
-            return Dirty || DirtyQnum || DirtyLabels || DirtyAltQnum || DirtyPlainFilter || AddTimeFrames.Count > 0 || DeleteTimeFrames.Count > 0;
+            return Dirty || DirtyQnum || DirtyLabels || DirtyAltQnum || DirtyPlainFilter || AddTimeFrames.Count > 0 || DeleteTimeFrames.Count > 0 || AddedImages.Count>0 || DeletedImages.Count>0;
         }
 
         public int SaveRecord()
@@ -108,6 +117,18 @@ namespace ITCLib
                 DBAction.DeleteRecord(qtf);
             }
             DeleteTimeFrames.Clear();
+
+            foreach(SurveyImage img in AddedImages)
+            {
+                DBAction.InsertQuestionImage(img);
+            }
+            AddedImages.Clear();
+
+            foreach (SurveyImage img in DeletedImages)
+            {
+                DBAction.DeleteRecord(img);
+            }
+            DeletedImages.Clear();
 
             return 0;
         }
