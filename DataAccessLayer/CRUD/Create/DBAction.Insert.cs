@@ -1126,6 +1126,7 @@ namespace ITCLib
             DynamicParameters parameters = new DynamicParameters();
             parameters.Add("@qid", img.QID);
             parameters.Add("@imagename", img.ImageName);
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
             int rowsAffected = SP_Insert(sql, parameters, out int newID);
 
