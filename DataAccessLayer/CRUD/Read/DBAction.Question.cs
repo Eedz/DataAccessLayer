@@ -344,7 +344,8 @@ namespace ITCLib
                     "SELECT ID, QID, SurvID, Survey, VarName, NoteDate, Source, " +
                         "CID, CID AS ID, Notes AS NoteText, " +
                         "NoteInit, NoteInit AS ID, Name, " +
-                        "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, ShortForm " +
+                        "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, ShortForm, " +
+                        "AuthorityID, AuthorityID AS ID, Authority AS Name " +
                         "FROM qryCommentsQues WHERE SurvID = @SID;" +
                     "SELECT ID, QID, TimeFrame FROM qryQuestionTimeFrames WHERE SurvID = @SID;";
 
@@ -424,14 +425,15 @@ namespace ITCLib
                 }, splitOn: "LanguageID").ToList();
 
                 // comments
-                var comments = results.Read<QuestionComment, Note, Person, CommentType, QuestionComment>(
-                    (comment, note, author, type) =>
+                var comments = results.Read<QuestionComment, Note, Person, CommentType, Person, QuestionComment>(
+                    (comment, note, author, type, authority) =>
                     {
                         comment.Notes = note;
                         comment.Author = author;
                         comment.NoteType = type;
+                        comment.Authority = authority;
                         return comment;
-                    }, splitOn: "CID, NoteInit, NoteTypeID").ToList();
+                    }, splitOn: "CID, NoteInit, NoteTypeID, AuthorityID").ToList();
 
                 // time frames
                 var timeframes = results.Read<QuestionTimeFrame>().ToList();

@@ -685,5 +685,19 @@ namespace ITCLib
             }
             return 0;
         }
+
+        public static int DeleteRecord(Translation r)
+        {
+            int rowsAffected = 0;
+
+            string sql = "DELETE FROM tblTranslation WHERE ID = @ID";
+            var parameters = new { ID = r.ID };
+
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                rowsAffected = db.Execute(sql, parameters);
+            }
+            return 0;
+        }
     }
 }
