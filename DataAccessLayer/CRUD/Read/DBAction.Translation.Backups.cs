@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Data;
 using System.Data.SqlClient;
@@ -17,7 +18,7 @@ namespace ITCLib
         /// This could be achieved by changing the FROM clause in GetSurveyTable but often there are columns that don't exist in the backups, due to 
         /// their age and all the changes that have happened to the database over the years. 
         /// </remarks>
-        public static void FillBackupTranslation(Survey s, DateTime backup, List<string> langs)
+        public static void FillBackupTranslation(Survey s, DateTime backup, ObservableCollection<string> langs)
         {
             DataTable rawTable;
             BackupConnection bkp = new BackupConnection(backup);

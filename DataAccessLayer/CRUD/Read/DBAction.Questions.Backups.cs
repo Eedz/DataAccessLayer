@@ -31,16 +31,23 @@ namespace ITCLib
                 "tblTopic.ID AS TopicNum, [Topic], tblContent.ID AS ContentNum, [Content], VarLabel, tblProduct.ID AS ProductNum, [Product], PreP, [PreP#], PreI, [PreI#], PreA, [PreA#], LitQ, [LitQ#], PstI, [PstI#], PstP, [PstP#], RespOptions, tblSurveyNumbers.RespName, NRCodes, tblSurveyNumbers.NRName ";
             string where = "Survey = '" + s.SurveyCode + "'";
 
-            if (bkp.Connected)
-            {
-                Console.Write("unzipped");
-                rawTable = bkp.GetSurveyTable(select, where);
-            }
-            else
-            {
+            if (!bkp.Connected)
                 // could not unzip backup/7zip not installed etc. 
                 return qs;
+
+            
+            Console.Write("unzipped");
+
+            try
+            {
+                rawTable = bkp.GetSurveyTable(select, where);
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return qs;
+            }
+            
 
             foreach (DataRow r in rawTable.Rows)
             {
