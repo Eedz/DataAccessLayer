@@ -51,14 +51,14 @@
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="CommunityToolkit.Mvvm, Version=8.2.0.0, Culture=neutral, PublicKeyToken=4aff67a105548ee2, processorArchitecture=MSIL">
-      <HintPath>..\..\SDIFrontEnd\packages\CommunityToolkit.Mvvm.8.2.2\lib\netstandard2.0\CommunityToolkit.Mvvm.dll</HintPath>
+    <Reference Include="CommunityToolkit.Mvvm, Version=8.3.0.0, Culture=neutral, PublicKeyToken=4aff67a105548ee2, processorArchitecture=MSIL">
+      <HintPath>..\..\SurveyReportWPF\packages\CommunityToolkit.Mvvm.8.3.1\lib\netstandard2.0\CommunityToolkit.Mvvm.dll</HintPath>
     </Reference>
     <Reference Include="Dapper, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\SurveyPaths\packages\Dapper.2.0.151\lib\net461\Dapper.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=7.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\..\SDIFrontEnd\packages\Microsoft.Bcl.AsyncInterfaces.7.0.0\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
+    <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\..\SurveyReportWPF\packages\Microsoft.Bcl.AsyncInterfaces.8.0.0\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualBasic.PowerPacks, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -173,5 +173,7 @@
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\..\SDIFrontEnd\packages\CommunityToolkit.Mvvm.8.2.2\build\netstandard2.0\CommunityToolkit.Mvvm.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\SDIFrontEnd\packages\CommunityToolkit.Mvvm.8.2.2\build\netstandard2.0\CommunityToolkit.Mvvm.targets'))" />
+    <Error Condition="!Exists('..\..\SurveyReportWPF\packages\CommunityToolkit.Mvvm.8.3.1\build\CommunityToolkit.Mvvm.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\SurveyReportWPF\packages\CommunityToolkit.Mvvm.8.3.1\build\CommunityToolkit.Mvvm.targets'))" />
   </Target>
+  <Import Project="..\..\SurveyReportWPF\packages\CommunityToolkit.Mvvm.8.3.1\build\CommunityToolkit.Mvvm.targets" Condition="Exists('..\..\SurveyReportWPF\packages\CommunityToolkit.Mvvm.8.3.1\build\CommunityToolkit.Mvvm.targets')" />
 </Project>
