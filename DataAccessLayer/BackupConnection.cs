@@ -120,8 +120,8 @@ namespace ITCLib
         private DataTable GetSurveyData(string select, string where)
         {
             DataTable d = new DataTable();
-            //OleDbConnection conn = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source='" + unzippedPath + "'");
-            OleDbConnection conn = new OleDbConnection(@"Provider=Microsoft.Jet.OLEDB.4.0;Data Source='" + unzippedPath + "'");
+
+            OleDbConnection conn = new OleDbConnection(@"Provider=" + GetProvider() + ";Data Source='" + unzippedPath + "'");
             OleDbDataAdapter sql = new OleDbDataAdapter();
             string query = select + " FROM  " + usualFrom;
             if (!where.Equals("")) query += " WHERE " + where;
@@ -141,8 +141,7 @@ namespace ITCLib
         private DataTable GetOldSurveyData(string select, string where)
         {
             DataTable d = new DataTable();
-            //OleDbConnection conn = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source='" + unzippedPath + "'");
-            OleDbConnection conn = new OleDbConnection(@"Provider=Microsoft.Jet.OLEDB.4.0;Data Source='" + unzippedPath + "'");
+            OleDbConnection conn = new OleDbConnection(@"Provider=" + GetProvider() + ";Data Source='" + unzippedPath + "'");
             OleDbDataAdapter sql = new OleDbDataAdapter();
             if (select.Contains("tblSurveyNumbers.ID,"))
                 select = select.Replace("tblSurveyNumbers.ID,", "");
@@ -166,8 +165,7 @@ namespace ITCLib
         public DataTable GetTranslationData(string select, string where)
         {
             DataTable d = new DataTable();
-            //OleDbConnection conn = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source='" + unzippedPath + "'");
-            OleDbConnection conn = new OleDbConnection(@"Provider=Microsoft.Jet.OLEDB.4.0;Data Source='" + unzippedPath + "'");
+            OleDbConnection conn = new OleDbConnection(@"Provider=" + GetProvider() + ";Data Source='" + unzippedPath + "'");
             OleDbDataAdapter sql = new OleDbDataAdapter();
             string query = select + " FROM  tblTranslation";
             if (!where.Equals("")) query += " WHERE " + where;
@@ -289,6 +287,13 @@ namespace ITCLib
         {
             if (File.Exists("D:\\users\\" + backupFilePath))
                 File.Delete("D:\\users\\" + backupFilePath);
+        }
+
+        private string GetProvider()
+        {
+            bool is64BitOS = Environment.Is64BitOperatingSystem;
+            string provider = is64BitOS ? "Microsoft.ACE.OLEDB.12.0" : "Microsoft.Jet.OLEDB.4.0";
+            return provider;
         }
     }
 
