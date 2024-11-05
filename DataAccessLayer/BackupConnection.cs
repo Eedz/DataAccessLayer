@@ -12,11 +12,11 @@ using System.Configuration;
 
 namespace ITCLib
 {
-    // TEST
     public class BackupConnection
     {
         public readonly DateTime FirstDateForSurveyNumbersID = new DateTime(2016, 6, 14); // any backups before this date will not have an ID field in tblSurveyNumbers
         public readonly DateTime FirstBackup = new DateTime(2007, 3, 7);
+        public readonly DateTime FirstImageDate = new DateTime(2024, 11, 5); // any backups before this date will not have a table for Question Image records
         DateTime dtBackupDate;
         string backupFilePath;
         string unzippedPath;    // location of unzipped file (TODO make this the application's folder)
@@ -76,9 +76,6 @@ namespace ITCLib
         {
             if (!IsValidBackup())
                 return 1;
-
-            if (!Directory.Exists("C:\\Program Files\\7-Zip"))
-                return 2;
 
             // unzip file here (see 7zip c# library)
             ProcessStartInfo p = new ProcessStartInfo();
@@ -177,7 +174,30 @@ namespace ITCLib
 
             }
             return d;
+        }
 
+        public DataTable GetQuestionImageData(string where)
+        {
+            DataTable d = new DataTable();
+            DateTime fileDate;
+            fileDate = DateTime.Parse(backupFilePath.Replace(".7z", ""));
+
+            if (fileDate <= DateTime.Parse(FirstImageDate.ToString()))
+                return d;
+
+            OleDbConnection conn = new OleDbConnection(@"Provider=" + GetProvider() + ";Data Source='" + unzippedPath + "'");
+            OleDbDataAdapter sql = new OleDbDataAdapter();
+            string query = "SELECT I.ID, QID, Survey, VarName, ImagePath AS ImageName " +
+                "FROM tblQuestionImages AS I INNER JOIN tblSurveyNumbers AS S ON I.QID = S.ID";
+
+            if (!where.Equals("")) query += " WHERE " + where;
+
+            using (conn)
+            {
+                sql.SelectCommand = new OleDbCommand(query, conn);
+                sql.Fill(d);
+            }
+            return d;
         }
 
         public bool IsValidBackup()
@@ -292,7 +312,7 @@ namespace ITCLib
         private string GetProvider()
         {
             bool is64BitOS = Environment.Is64BitOperatingSystem;
-            string provider = is64BitOS ? "Microsoft.ACE.OLEDB.12.0" : "Microsoft.Jet.OLEDB.4.0";
+            string provider = is64BitOS ? "Microsoft.ACE.OLEDB.16.0" : "Microsoft.Jet.OLEDB.4.0";
             return provider;
         }
     }

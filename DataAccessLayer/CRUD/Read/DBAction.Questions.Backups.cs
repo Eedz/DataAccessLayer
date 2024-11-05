@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using Dapper;
 
 namespace ITCLib
@@ -18,6 +19,7 @@ namespace ITCLib
         {
             List<SurveyQuestion> qs = new List<SurveyQuestion>();
             DataTable rawTable;
+            DataTable imagesTable;
 
             BackupConnection bkp = new BackupConnection(backup);
 
@@ -35,6 +37,7 @@ namespace ITCLib
             try
             {
                 rawTable = bkp.GetSurveyTable(select, where);
+                imagesTable = bkp.GetQuestionImageData(where);
             }
             catch (Exception ex)
             {
@@ -74,7 +77,24 @@ namespace ITCLib
                 q.TableFormat = (bool)r["TableFormat"];
                 q.CorrectedFlag = (bool)r["CorrectedFlag"];
 
+                
+
                 qs.Add(q);
+            }
+
+            foreach(DataRow r in imagesTable.Rows)
+            {
+                SurveyImage img = new SurveyImage();
+                img.ID = (int)r["ID"];
+                img.QID = (int)r["QID"];
+                img.Survey = (string)r["Survey"];
+                img.VarName = (string)r["VarName"];
+                img.ImagePath = (string)r["ImageName"];
+
+                var question = qs.FirstOrDefault(x => x.ID == img.QID);
+                if (question == null) continue;
+
+                question.Images.Add(img);
             }
 
             return qs;
