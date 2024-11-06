@@ -81,21 +81,24 @@ namespace ITCLib
 
                 qs.Add(q);
             }
-
+            List<SurveyImage> images = new List<SurveyImage>();
             foreach(DataRow r in imagesTable.Rows)
             {
                 SurveyImage img = new SurveyImage();
                 img.ID = (int)r["ID"];
-                img.QID = (int)r["QID"];
+                img.QID = (int)((double)r["QID"]);
                 img.Survey = (string)r["Survey"];
                 img.VarName = (string)r["VarName"];
-                img.ImagePath = (string)r["ImageName"];
+                img.ImageName = (string)r["ImageName"];
 
                 var question = qs.FirstOrDefault(x => x.ID == img.QID);
                 if (question == null) continue;
 
+                images.Add(img);
                 question.Images.Add(img);
             }
+
+            GetSurveyImageInfo(images, s);
 
             return qs;
         }

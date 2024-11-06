@@ -265,13 +265,25 @@ namespace ITCLib
             using (IDbConnection db = new SqlConnection(connectionString))
             {
                 images = db.Query<SurveyImage>(query, parameters).ToList();
-            }           
+            }
 
+            GetSurveyImageInfo(images, survey);
+
+            return images;
+        }
+
+        /// <summary>
+        /// Fills in the size and full file name of each image if found in the survey's image repository
+        /// </summary>
+        /// <param name="images"></param>
+        /// <param name="survey"></param>
+        public static void GetSurveyImageInfo(List<SurveyImage> images, Survey survey)
+        {
             string folder = @"\\psychfile\psych$\psych-lab-gfong\SMG\Survey Images\" +
                 survey.SurveyCodePrefix + @" Images\" + survey.SurveyCode;
 
             if (!System.IO.Directory.Exists(folder))
-                return new List<SurveyImage>();
+                return;
 
             var files = System.IO.Directory.EnumerateFiles(folder, "*.*", System.IO.SearchOption.AllDirectories)
                 .Where(s => s.EndsWith(".png") || s.EndsWith(".jpg"));
@@ -290,7 +302,7 @@ namespace ITCLib
                 if (!images.Any(x => x.ImageName.Equals(filename)))
                     continue;
 
-                var matches = images.Where(x=>x.ImageName.Equals(filename));
+                var matches = images.Where(x => x.ImageName.Equals(filename));
                 foreach (var match in matches)
                 {
                     match.Width = iWidth;
@@ -299,8 +311,6 @@ namespace ITCLib
                     match.SetParts();
                 }
             }
-
-            return images;
         }
 
         public static List<SurveyImage> GetSurveyImagesFromFolder(Survey survey)

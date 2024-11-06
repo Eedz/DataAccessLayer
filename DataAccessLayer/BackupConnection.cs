@@ -182,7 +182,7 @@ namespace ITCLib
             DateTime fileDate;
             fileDate = DateTime.Parse(backupFilePath.Replace(".7z", ""));
 
-            if (fileDate <= DateTime.Parse(FirstImageDate.ToString()))
+            if (fileDate < DateTime.Parse(FirstImageDate.ToString()))
                 return d;
 
             OleDbConnection conn = new OleDbConnection(@"Provider=" + GetProvider() + ";Data Source='" + unzippedPath + "'");
