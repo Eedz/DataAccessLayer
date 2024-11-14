@@ -129,7 +129,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Record Objects\VarNameRecord.cs" />
     <Compile Include="Record Objects\WordingRecord.cs" />
-    <Compile Include="Repositories\SurveyQuestionRepository.cs" />
     <Compile Include="VarRenamer.cs" />
   </ItemGroup>
   <ItemGroup>
