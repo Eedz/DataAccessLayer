@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using System.ComponentModel;
 
 namespace ITCLib
 {
@@ -27,7 +28,6 @@ namespace ITCLib
         public PraccingIssueRecord()
         {
             Item = new PraccingIssue();
-
             AddedResponses = new List<PraccingResponse>();
             EditedResponses = new List<PraccingResponse>();
             DeletedResponses = new List<PraccingResponse>();
@@ -36,22 +36,33 @@ namespace ITCLib
             DeletedImages = new List<PraccingImage>();
 
             AddedResponseImages = new List<PraccingImage>();
-            DeletedResponseImages = new List<PraccingImage>();
+            DeletedResponseImages = new List<PraccingImage>();          
         }
 
-        public PraccingIssueRecord(PraccingIssue item)
+        private void Item_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            Dirty = true;
+        }
+
+        private void ResponseEdited(object sender, PropertyChangedEventArgs e)
+        {
+            if (sender is PraccingResponse r && !EditedResponses.Contains(r))
+            {
+                EditedResponses.Add(r);
+            }
+        }
+
+
+
+        public PraccingIssueRecord(PraccingIssue item) : this()
         {
             Item = item;
+            Item.PropertyChanged += Item_PropertyChanged;
 
-            AddedResponses = new List<PraccingResponse>();
-            EditedResponses = new List<PraccingResponse>();
-            DeletedResponses = new List<PraccingResponse>();
-
-            AddedImages = new List<PraccingImage>();
-            DeletedImages = new List<PraccingImage>();
-
-            AddedResponseImages = new List<PraccingImage>();
-            DeletedResponseImages = new List<PraccingImage>();
+            foreach(PraccingResponse r in Item.Responses)
+            {
+                r.PropertyChanged += ResponseEdited;
+            }
         }
 
         public int SaveRecord()
@@ -140,7 +151,11 @@ namespace ITCLib
                 DBAction.DeletePraccResponseImage(img);
                 try
                 {
+#if DEBUG
+
+#else 
                     File.Delete(img.Path);
+#endif
                 }
                 catch
                 {
