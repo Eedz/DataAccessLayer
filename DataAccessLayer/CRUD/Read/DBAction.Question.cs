@@ -344,7 +344,7 @@ namespace ITCLib
                         "NoteInit, NoteInit AS ID, Name, " +
                         "NoteTypeID, NoteTypeID AS ID, CommentType AS TypeName, ShortForm, " +
                         "AuthorityID, AuthorityID AS ID, Authority AS Name " +
-                        "FROM qryCommentsQues WHERE SurvID = @SID;" +
+                        "FROM qryCommentsQues WHERE SurvID = @SID ORDER BY NoteDate ASC;" +
                     "SELECT ID, QID, TimeFrame FROM qryQuestionTimeFrames WHERE SurvID = @SID;";
 
             var parameters = new { s.SID };
