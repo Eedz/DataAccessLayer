@@ -964,11 +964,11 @@ namespace ITCLib
             parameters.Add("@prefix", record.Prefix);
             parameters.Add("@prefixName", record.PrefixName);
             parameters.Add("@productType", record.ProductType);
-            parameters.Add("@relatedPrefixes", record.Prefix);
-            parameters.Add("@domainName", record.Prefix);
-            parameters.Add("@comments", record.Prefix);
-            parameters.Add("@inactive", record.Prefix);
-            parameters.Add("@newID", record.Prefix, DbType.Int32, ParameterDirection.Output);
+            parameters.Add("@relatedPrefixes", record.RelatedPrefixes);
+            parameters.Add("@domainName", record.Description);
+            parameters.Add("@comments", record.Comments);
+            parameters.Add("@inactive", record.Inactive);
+            parameters.Add("@newID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
             int rowsAffected = SP_Insert("proc_createPrefix", parameters, out int newID);
             record.ID = newID;

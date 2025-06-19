@@ -19,7 +19,15 @@ public class VariablePrefixRecord: IRecord<VariablePrefix>
     public List<VariableRange> EditedRanges { get; set; }
     public List<VariableRange> DeletedRanges { get; set; }
 
-
+    public VariablePrefixRecord()
+    {
+        AddedParallels = new List<ParallelPrefix>();
+        EditedRanges = new List<VariableRange>();
+        DeletedParallels = new List<ParallelPrefix>();
+        AddedRanges = new List<VariableRange>();
+        DeletedRanges = new List<VariableRange>();
+        Item = new VariablePrefix();
+    }
     public VariablePrefixRecord (VariablePrefix item)
     {
         AddedParallels = new List<ParallelPrefix>();
