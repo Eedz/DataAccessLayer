@@ -336,7 +336,7 @@ namespace ITCLib
                     "ContentNum, ContentNum AS ID, Content AS LabelText, " +
                     "ProductNum, ProductNum AS ID, Product AS LabelText " +
                     "FROM Questions.FN_GetSurveyQuestions(@SID) ORDER BY Qnum;" +
-                    "SELECT T.ID, QID, Q.Survey, Q.VarName, Lang AS Language, Translation AS TranslationText, Bilingual, " +
+                    "SELECT T.ID, QID, Q.Survey, Q.VarName, Lang AS Language, Translation AS TranslationText, Bilingual, LastUpdate, " +
                         "LanguageID, LanguageID AS ID, Lang AS LanguageName, Abbrev, ISOAbbrev, NonLatin, PreferredFont, RTL " +
                         "FROM qryTranslation AS T LEFT JOIN qrySurveyQuestions AS Q ON T.QID = Q.ID WHERE SurvID=@SID;" +
                     "SELECT ID, QID, SurvID, Survey, VarName, NoteDate, Source, " +

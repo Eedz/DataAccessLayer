@@ -17,7 +17,7 @@ namespace ITCLib
         public static Translation GetTranslation (int ID)
         {
             Translation t;
-            string sql = "SELECT ID, QID, Survey, VarName, [Translation] AS TranslationText, LitQ, Bilingual, " +
+            string sql = "SELECT ID, QID, Survey, VarName, [Translation] AS TranslationText, LitQ, Bilingual, LastUpdate, " +
                 "LanguageID, LanguageID AS ID, Lang AS LanguageName, Abbrev, ISOAbbrev, NonLatin, RTL, PreferredFont " +
                 "FROM qryTranslation WHERE ID =@ID";
 
@@ -46,7 +46,7 @@ namespace ITCLib
         {
             List<Translation> ts = new List<Translation>();
 
-            string sql = "SELECT ID, QID, Survey, VarName, [Translation] AS TranslationText, LitQ, Bilingual, " +
+            string sql = "SELECT ID, QID, Survey, VarName, [Translation] AS TranslationText, LitQ, Bilingual, LastUpdate, " +
                 "LanguageID, LanguageID AS ID, Lang AS LanguageName, Abbrev, ISOAbbrev, NonLatin, RTL, PreferredFont " +
                 "FROM qryTranslation WHERE Survey = @survey AND Lang = @language;";
                 
@@ -76,7 +76,7 @@ namespace ITCLib
         {
             Translation t;
 
-            string sql = "SELECT ID, QID, Survey, VarName, [Translation] AS TranslationText, LitQ, Bilingual, " +
+            string sql = "SELECT ID, QID, Survey, VarName, [Translation] AS TranslationText, LitQ, Bilingual, LastUpdate, " +
                 "LanguageID, LanguageID AS ID, Lang AS LanguageName, Abbrev, ISOAbbrev, NonLatin, RTL, PreferredFont " +
                 "FROM qryTranslation WHERE Survey = @survey AND VarName =@varname AND Lang = @language;";
 
@@ -208,7 +208,7 @@ namespace ITCLib
         public static List<Translation> GetQuestionTranslations (int QID)
         {
             List<Translation> list = new List<Translation>();
-            string sql = "SELECT ID, QID, Survey, VarName, [Translation] AS TranslationText, LitQ, Bilingual, " +
+            string sql = "SELECT ID, QID, Survey, VarName, [Translation] AS TranslationText, LitQ, Bilingual, LastUpdate, " +
                 "LanguageID, LanguageID AS ID, Lang AS LanguageName, Abbrev, ISOAbbrev, NonLatin, RTL, PreferredFont " +
                 "FROM qryTranslation WHERE QID = @qid;";
 
@@ -233,7 +233,7 @@ namespace ITCLib
         public static Translation GetQuestionTranslations(int QID, string language)
         {
             Translation translation;
-            string sql = "SELECT ID, QID, Survey, VarName, [Translation] AS TranslationText, LitQ, Bilingual, " +
+            string sql = "SELECT ID, QID, Survey, VarName, [Translation] AS TranslationText, LitQ, Bilingual, LastUpdate, " +
                 "LanguageID, LanguageID AS ID, Lang AS LanguageName, Abbrev, ISOAbbrev, NonLatin, RTL, PreferredFont " +
                 "FROM qryTranslation WHERE QID = @qid AND Lang = @language;";
 
