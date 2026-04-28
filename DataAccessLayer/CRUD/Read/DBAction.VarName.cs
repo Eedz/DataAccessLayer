@@ -756,6 +756,34 @@ namespace ITCLib
             return refVarNames;
         }
 
+        public static List<VariableName> GetVarNamesFromSurveyList(List<string> surveys)
+        {
+            List<VariableName> varnames = new List<VariableName>();
+            string query = "SELECT VarName, refVarName, VarLabel, " +
+                "DomainNum, DomainNum AS ID, Domain AS LabelText, " +
+                "TopicNum, TopicNum AS ID, Topic AS LabelText, " +
+                "ContentNum, ContentNum AS ID, Content AS LabelText, " +
+                "ProductNum, ProductNum AS ID, Product AS LabelText " +
+                "FROM qrySurveyQuestions WHERE Survey IN ('" + string.Join("','", surveys) + "') " + 
+                "GROUP BY VarName, refVarName, VarLabel, DomainNum, Domain, TopicNum, Topic, ContentNum, Content, ProductNum, Product;";
+
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                varnames = db.Query<VariableName, VarNameLabel, VarNameLabel, VarNameLabel, VarNameLabel, VariableName>(
+                    query,
+                    (varname, domain, topic, content, product) =>
+                    {
+                        varname.DomainLabel = domain;
+                        varname.TopicLabel = topic;
+                        varname.ContentLabel = content;
+                        varname.ProductLabel = product;
+                        return varname;
+                    },
+                    splitOn: "DomainNum, TopicNum, ContentNum, ProductNum").ToList();
+            }
+            return varnames;
+        }
+
         public static List<VariableName> GetOrphanVarNames()
         {
             List<VariableName> orphans = new List<VariableName>();
