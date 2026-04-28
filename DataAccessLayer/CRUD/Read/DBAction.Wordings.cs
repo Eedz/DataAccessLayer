@@ -521,5 +521,20 @@ namespace ITCLib
             }
             return records;
         }
+
+        public static List<ResponseSet> GetResponseSetsBySurveys(List<string> surveys)
+        {
+            List<ResponseSet> setList = new List<ResponseSet>();
+            string query = "SELECT RespName AS RespSetName, 'RespOptions' AS FieldType, RespOptions AS RespList " +
+                "FROM qrySurveyQuestions WHERE Survey IN ('" + string.Join("','", surveys) + "') GROUP BY RespName, RespOptions ORDER BY RespName";
+
+            using (IDbConnection db = new SqlConnection(connectionString))
+            {
+                setList = db.Query<ResponseSet>(query).ToList();
+                foreach (ResponseSet w in setList)
+                    w.Type = ResponseType.RespOptions;
+            }
+            return setList;
+        }
     }
 }
